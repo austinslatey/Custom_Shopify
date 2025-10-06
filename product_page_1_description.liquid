@@ -1,0 +1,12 @@
+        <!-- Custom Related Collection Button -->
+        {% assign related_collection = collections['truck-parts-toppers-truck-caps'] %}
+        {% if related_collection != blank %}
+          <div class="tt-row-custom-01">
+            <div class="col-item full-width">
+              <a href="{{ related_collection.url }}" class="btn btn-lg custom-related-btn">
+                View Truck Parts - Toppers Truck Caps
+              </a>
+            </div>
+          </div>
+        {% endif %}
+        <!-- End Custom Button -->
