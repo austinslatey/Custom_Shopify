@@ -247,3 +247,455 @@
         
         <!-- Request a Quote Button -->
         <div class="col-item">
+          <a href="#" data-toggle="modal" data-target="#modalQuoteRequest" class="btn btn-lg quote-request-btn">
+            Request a Quote for the Topper
+          </a>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endunless -%}
+
+  {%- if item.product_item_show_wishlist
+    and settings.show_wishlist
+    or item.product_item_show_compare
+    and settings.show_compare
+  -%}
+    <div class="tt-wrapper">
+      <ul class="tt-list-btn">
+        {%- if item.product_item_show_wishlist and settings.show_wishlist -%}
+          <li>
+            <a
+              href="{{ product.url | within: collection }}"
+              data-productid="{{ product.id }}"
+              data-producth="{{ product.handle }}"
+              data-add="{{ "wishlist.buttons_text.tooltip_add" | t }}"
+              data-remove="{{ "wishlist.buttons_text.tooltip_remove" | t }}"
+              data-tooltip="{% if customer.id == blank %}{{ "wishlist.buttons_text.tooltip_login" | t }}{% else %}{% if wl_text %}{{ "wishlist.buttons_text.tooltip_remove" | t }}{% else %}{{ "wishlist.buttons_text.tooltip_add" | t }}{% endif %}{% endif %}"
+              data-type="wishlist"
+              data-prpage-add="{{ "wishlist.buttons_text.page_text_add" | t }}"
+              data-prpage-rem="{{ "wishlist.buttons_text.page_text_remove" | t }}"
+              data-action="{% if wl_text %}wk-remove{% else %}wk-add{% endif %}"
+              class="inline-wk-link wlbutton-js prpagebtn-js"
+            >
+              {%- include 'svg-heart' -%}
+              <span>
+                {%- if wl_text -%}
+                  {{- 'wishlist.buttons_text.page_text_remove' | t -}}
+                {%- else -%}
+                  {{- 'wishlist.buttons_text.page_text_add' | t -}}
+                {%- endif -%}
+              </span></a
+            >
+          </li>
+        {%- endif -%}
+        {%- if item.product_item_show_compare and settings.show_compare -%}
+          <li>
+            <a
+              href="{{ product.url | within: collection }}"
+              data-action="wk-add"
+              data-add="{{ "compare.buttons_text.tooltip_add" | t }}"
+              data-remove="{{ "compare.buttons_text.tooltip_remove" | t }}"
+              data-tooltip="{{ "compare.buttons_text.tooltip_add" | t }}"
+              data-compareid="{{ pr_variant.id }}"
+              data-prpage-add="{{ "compare.buttons_text.page_text_add" | t }}"
+              data-prpage-rem="{{ "compare.buttons_text.page_text_remove" | t }}"
+              class="inline-wk-link compare-js prpagebtn-js"
+            >
+              {%- include 'svg-compare' -%}
+              <span>{{ 'compare.buttons_text.page_text_add' | t }}</span></a
+            >
+          </li>
+        {%- endif -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  {%- if item.show_trust_badge and item.page_design != 'product_page_3_design' -%}
+    {%- if item.image_l != blank -%}
+      <div class="tt-wrapper">
+        <div class="tt-promo-brand">
+          <img
+            src="{{ item.image_l | img_url: image_max_width }}"
+            srcset="{{ item.image_l | img_url: image_max_width }} 1x, {{ item.image_l | img_url: image_max_width_retina }} 2x"
+            alt="{{ item.image_l.alt }}"
+            class="tt-hidden-mobile"
+          >
+          <img
+            src="{{ item.image_lm | img_url: image_max_width_m }}"
+            srcset="{{ item.image_lm | img_url: image_max_width_m }} 1x, {{ item.image_lm | img_url: image_max_width_retina_m }} 2x"
+            alt="{{ item.image_lm.alt }}"
+            class="tt-hidden-desctope"
+          >
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if item.show_product_info -%}
+    <div class="tt-wrapper">
+      <div class="tt-add-info">
+        <ul>
+          {%- if item.show_product_vendor -%}
+            <li>
+              <span itemprop="brand">{{ 'products.product.vendor' | t }}</span>
+              <a href="/collections/{% if collection == blank %}all{% else %}{{ collection.handle }}{% endif %}/{{ product.vendor | handle }}">
+                {{- product.vendor -}}
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if item.show_product_type and product.type != '' -%}
+            <li>
+              <span>{{ 'products.product.type' | t }}</span>
+              <a href="/collections/{% if collection == blank %}all{% else %}{{ collection.handle }}{% endif %}/{{ product.type | handle }}">
+                {{- product.type -}}
+              </a>
+            </li>
+          {%- endif -%}
+          {%- if item.show_product_barcode -%}
+            <li
+              {% if product.selected_or_first_available_variant.barcode == '' or product.selected_or_first_available_variant.barcode == empty? %}
+                class="hide"
+              {% endif %}
+            >
+              <span>SKU:</span> <span class="barcode">{{ product.selected_or_first_available_variant.barcode }}</span>
+            </li>
+          {%- endif -%}
+          {%- if item.show_sku -%}
+            <li class="sku-js{% if product.selected_or_first_available_variant.sku == '' %} hide{% endif %}">
+              <span>{{ 'products.product.sku' | t }}</span>
+              <span>{{ product.selected_or_first_available_variant.sku }}</span>
+            </li>
+          {%- endif -%}
+          {%- if item.show_product_tags -%}
+            {%- assign collection = collections.all -%}
+            {%- assign custom_url = '/collections/all/' -%}
+            {%- capture ppt -%}{%- include 'product_page_tags' -%}{%- endcapture -%}
+            {%- if ppt != '' and ppt != '!' -%}
+              <li>
+                <span>{{ 'products.product.tags' | t }}</span>&nbsp;{{ ppt | replace: ',&nbsp;!' }}
+              </li>
+            {%- endif -%}
+          {%- endif -%}
+        </ul>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {% if item.full_width_description == 'default' %}{% include 'product_page_tabs' %}{% endif %}
+</div>
+
+{%- if item.show_sizechart and sizechart != '' and sizechart != 'disable' -%}
+  {%- include 'modal-sizechart', value: sizechart -%}
+{%- endif -%}
+{%- if item.show_shipping and shipping != '' and shipping != 'disable' -%}
+  {%- include 'modal-shipping', value: shippingA -%}
+{%- endif -%}
+{%- if item.show_message -%}
+  {%- include 'modal-message' -%}
+{%- endif -%}
+
+<!-- Quote Request Modal -->
+<div class="modal fade" id="modalQuoteRequest" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Request a Quote for {{ product.title }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="quote-request-form" novalidate>
+          <div class="form-group">
+            <label for="quote-first-name">First Name *</label>
+            <input
+              type="text"
+              id="quote-first-name"
+              name="first_name"
+              class="form-control"
+              required
+              placeholder="Enter your first name"
+            >
+            <div class="invalid-feedback">First name is required.</div>
+          </div>
+          <div class="form-group">
+            <label for="quote-last-name">Last Name *</label>
+            <input
+              type="text"
+              id="quote-last-name"
+              name="last_name"
+              class="form-control"
+              required
+              placeholder="Enter your last name"
+            >
+            <div class="invalid-feedback">Last name is required.</div>
+          </div>
+          <div class="form-group">
+            <label for="quote-email">Email *</label>
+            <input
+              type="email"
+              id="quote-email"
+              name="email"
+              class="form-control"
+              required
+              placeholder="Enter your email"
+            >
+            <div class="invalid-feedback">A valid email is required.</div>
+          </div>
+          <div class="form-group">
+            <label for="quote-phone">Phone *</label>
+            <input
+              type="tel"
+              id="quote-phone"
+              name="phone"
+              class="form-control"
+              required
+              placeholder="Enter your phone number"
+            >
+            <div class="invalid-feedback">Phone number is required.</div>
+          </div>
+          <input
+            type="hidden"
+            name="product_title"
+            value="{{ product.title }}"
+          >
+          <input
+            type="hidden"
+            name="collection_handle"
+            value="truck-parts-toppers-truck-caps"
+          >
+          <button type="submit" class="btn btn-lg btn-primary">Submit Quote Request</button>
+        </form>
+        <div id="quote-form-message" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{%- if settings.first_variant_column_is_image -%}
+  {%- capture piffc_src -%}{%- include 'get_product_images_from_first_column' -%}{%- endcapture -%}
+{%- endif -%}
+
+<script>
+  $(function() {
+    /* For buy now button */
+    function changeBuyNowName(){
+      var $buyinoneclick = $('.buyinoneclick');
+      var buttonname = $buyinoneclick.data("buttonname");
+      var loadname = $buyinoneclick.data("loading");
+      if($buyinoneclick.length == 0) return false;
+      $buyinoneclick.first().bind('DOMNodeInserted', function() {
+        $(this).unbind('DOMNodeInserted');
+        var $shopifypaymentbutton = $(this).find(".shopify-payment-button__button");
+        setTimeout(function(){
+          if($('.buyinoneclick').length){
+            $buyinoneclick.hide();
+            setTimeout(
+              function(){
+                if($(".shopify-payment-button__button").hasClass("shopify-payment-button__button--branded")){
+                  $(".shopify-payment-button__button")
+                  .on("click", function(){
+                    $('.buyinoneclick').replaceWith('<p class="tt-loading-text">' + loadname + '</p>')
+                  })
+                  .find('span[aria-hidden=true]').first().text(buttonname+' ');
+                }
+                else{
+                  $(".shopify-payment-button__button")
+                  .on("click", function(){
+                    $('.buyinoneclick').replaceWith('<p class="tt-loading-text">' + loadname + '</p>')
+                  })
+                  .text(buttonname);
+                }
+                $buyinoneclick.fadeIn()
+              }, 300);
+          }
+        }, 300);
+      });
+    }
+    changeBuyNowName();
+
+    /* Quote Request Form Submission */
+    $('#quote-request-form').on('submit', function(e) {
+      e.preventDefault();
+      var $form = $(this);
+      var $message = $('#quote-form-message');
+      $message.empty();
+
+      // Client-side validation
+      var isValid = true;
+      $form.find('input[required]').each(function() {
+        if (!$(this).val()) {
+          $(this).addClass('is-invalid');
+          isValid = false;
+        } else {
+          $(this).removeClass('is-invalid');
+        }
+      });
+      var email = $form.find('#quote-email').val();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        $form.find('#quote-email').addClass('is-invalid');
+        isValid = false;
+      }
+
+      if (!isValid) {
+        $message.html('<div class="alert alert-danger">Please fill out all required fields correctly.</div>');
+        return;
+      }
+
+      // Prepare form data
+      var formData = {
+        first_name: $form.find('#quote-first-name').val(),
+        last_name: $form.find('#quote-last-name').val(),
+        email: email,
+        phone: $form.find('#quote-phone').val(),
+        product_title: $form.find('input[name="product_title"]').val(),
+        collection_handle: $form.find('input[name="collection_handle"]').val()
+      };
+
+      // AJAX submission to Render server
+      $.ajax({
+        url: 'https://your-render-server.com/api/quote', // Replace with your actual Render endpoint
+        type: 'POST',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        headers: {
+          // Add any required headers, e.g., 'Authorization': 'Bearer your-api-key'
+        },
+        success: function(response) {
+          $message.html('<div class="alert alert-success">Quote request submitted successfully!</div>');
+          $form[0].reset();
+          setTimeout(function() {
+            $('#modalQuoteRequest').modal('hide');
+            $message.empty();
+          }, 2000);
+        },
+        error: function(xhr) {
+          var errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please try again.';
+          $message.html('<div class="alert alert-danger">' + errorMsg + '</div>');
+        }
+      });
+    });
+
+    /* Swatches */
+    function productPageJsonLoaded(json_data) {
+      var str = '{{ piffc_src | replace: "'", "\\'" }}';
+      var sw_history = Boolean({{ item.history }});
+      var show_unavailable_options = $('.show_unavailable_variants').length > 0;
+      var cur_opt = str != '' ? JSON.parse(str) : '';
+      var full_opt = cur_opt != '' ? $.extend( texture_obj, cur_opt ) : texture_obj;
+      _selectedByDefault = {% if item.use_select_button %}!(location.search == ''){% else %}true{% endif %};
+      var group1 = new SwatchesConstructor(json_data, {contentParent: '.tt-swatches-container-js', enableHistoryState: sw_history, callback: productPageVariant, externalImagesObject: full_opt, externalColors: colors_value, colorWithBorder: color_with_border, productHandle:'{{ product.handle }}', designOption1:'{{ item.designoption1 }}', designOption2:'{{ item.designoption2 }}', designOption3:'{{ item.designoption3 }}', selectedByDefault: _selectedByDefault, show_unavailable_options: show_unavailable_options });
+
+      $('body').on('change', '.tt-fixed-product-wrapper select', function(e){
+          group1.initSwatches($(this).val());
+          sw_history && history.pushState(null, null, location.pathname+'?variant='+$(this).val());
+          $('[name="id"]').val($(this).val());
+          $('.tt-fixed-product-wrapper').find('.btn').replaceWith($('.btn-addtocart').first().clone().removeClass('btn-lg btn-addtocart addtocart-js'));
+      })
+
+      json_data = null;
+    };
+
+    function productPageVariant(variant, product){
+      var _parent = $('.tt-product-single-info');
+      var _swatch = _parent.find('.tt-swatches-container-js');
+
+      swatchVariantHandler(_parent, variant);
+
+      var sc = $('.tt-swatches-container');
+      if(location.search == '' && $('.select_options').length && !sc.find('.active').length && _swatch.children().length){
+        return false;
+      }
+
+      if(_parent.find('.select_options').length){
+        _parent.find('.select_options').removeClass('select_options');
+        $(window).trigger('resize');
+      }
+
+      swatchVariantButtonHandler(_parent, variant);
+
+      var g = $('#smallGallery');
+      var filter = '.filter'+variant.options[0].split(' ').join('_');
+      if($('.four-images-js').length == 0 && $('.product-images-static').length == 0 && g.hasClass('withfiltres') && g.attr('data-cur') != filter){
+        g.attr('data-cur', filter);
+        g.slick('slickUnfilter').slick('slickFilter',filter);
+      }
+
+      var img_id = variant.featured_image ? variant.featured_image.id : 'none';
+      var target = img_id == 'none' ? $("[data-slick-index=0]").children() : $("[data-target="+img_id+"]");
+      var num = target.last().parent().attr('data-slick-index');
+
+      var $container = $("#smallGallery");
+      $('.four-images-js').length == 0 && $('.product-images-static').length == 0 && setDefaultSlider(variant, num, $container, target);
+      $container = $('.slider-scroll-product');
+      setScrollSlider(num, $container);
+
+      g = $('.tt-mobile-product-slider');
+      if(num && g.length && g.hasClass('slick-initialized')) {
+        var filter = '.filter'+variant.options[0].split(' ').join('_');
+        if(g.hasClass('withfiltres') && g.attr('data-cur') != filter){
+          g.attr('data-cur', filter);
+          g.slick('slickUnfilter').slick('slickFilter',filter);
+        }
+        g.slick('slickGoTo', num, true);
+      }
+
+      addToCartHandler.initFormAddToCartButton(variant.id, _parent, _swatch);
+
+      $('.four-images-js').length && setFourSlider($('.four-images-js'), product, variant);
+
+      var buyinoneclick = _parent.find(".buyinoneclick");
+      buyinoneclick.length && buyinoneclick.removeClass("hide");
+
+      if(_parent.find('.compare-js').length){
+        _parent.find('.compare-js').attr('data-compareid', variant.id);
+        $(window).trigger( "compareevent" );
+      }
+
+      var tfpw = $('.tt-fixed-product-wrapper');
+      if(tfpw.length){
+        if(variant.featured_image){
+          tfpw.find('img').attr('src', Shopify.resizeImage(variant.featured_image.src, 'x80'));
+        }
+
+        var s = tfpw.find('select');
+        s.val(variant.id);
+        variant.available ? s.removeClass('disabled') : s.addClass('disabled');
+
+        var v = $('.tt-product-single-info').find('.tt-input-counter').first().clone();
+        tfpw.find('.tt-input-counter').replaceWith(v);
+      }
+    }
+    function setDefaultSlider(variant, num, $container, target){
+      if(num && $container.length){
+        $container.slick('slickGoTo', num, true);
+        $container.find('.zoomGalleryActive').removeClass('zoomGalleryActive');
+        target.addClass('zoomGalleryActive');
+        $(".zoom-product").attr('src', target.attr('data-image')).attr('data-zoom-image', target.attr('data-zoom-image'));
+      }
+      else{
+        variant.featured_image && $(".zoom-product").attr('src', variant.featured_image.src).attr('data-zoom-image', variant.featured_image.src);
+      }
+
+      !elevateZoomWidget.checkNoZoom() && elevateZoomWidget.configureZoomImage();
+    }
+    function setFourSlider($container, product, variant){
+      if(product.images.length < 4 || variant.featured_image == null) return false;
+
+      var c_img = variant.featured_image.src.replace(/https:/g, '');
+      var img_a = String(c_img+product.images.join(',').split(c_img).pop()).split(',');
+
+      $container.find(".zoom-product").each(function(index){
+        var src = Shopify.resizeImage(img_a[index], '600x');
+        $(this).attr('src',src);
+      })
+
+      !elevateZoomWidget.checkNoZoom() && elevateZoomWidget.configureZoomImage();
+    }
+    function setScrollSlider(num, $container){
+      if(!(num && $container.length)) return false;
+      $container.slick('slickGoTo', num, true);
+    }
+    Shopify.getProduct('{{ product.handle }}', productPageJsonLoaded);
+  });
+</script>
