@@ -1,12 +1,249 @@
-        <!-- Custom Related Collection Button -->
-        {% assign related_collection = collections['truck-parts-toppers-truck-caps'] %}
-        {% if related_collection != blank %}
+{%- assign image_max_width = item.image_max_width | append: 'x' -%}
+{%- assign image_max_width_retina = item.image_max_width | times: 2 | append: 'x' -%}
+{%- assign image_max_width_m = item.image_max_width_m | append: 'x' -%}
+{%- assign image_max_width_retina_m = item.image_max_width_m | times: 2 | append: 'x' -%}
+
+{%- capture badge_icons -%}
+{%- if product_meta.icon_new != 'disable' and item.show_badge_new -%}{%- if date_difference < date_limit or product_meta.icon_new == 'always' -%}<div class="tt-label-new">{{ 'products.general.new' | t }}</div>{%- endif -%}{%- endif -%}
+{%- unless product.available -%}<div class="tt-label-out-stock">{{ 'products.general.unavailable' | t }}</div>{%- endunless -%}
+{%- if product_meta.featured != blank and item.show_badge_featured -%}<div class="tt-label tt-label-our-fatured">{{ product_meta.featured }}</div>{%- endif -%}
+{%- endcapture -%}
+{%- assign badge_icons = badge_icons | strip -%}
+
+{%- assign pid = product.id | append: '' -%}
+{%- assign wl = customer.metafields.wishlist -%}
+{%- unless wl == blank -%}
+  {%- if wl[pid] == blank -%}
+    {%- assign wl_text = false -%}
+  {%- else -%}
+    {%- assign wl_text = true -%}
+  {%- endif -%}
+{%- else -%}
+  {%- assign wl_text = false -%}
+{%- endunless -%}
+
+<div class="tt-product-single-info{% if item.stickygallery %} stickprcolheight-js{% endif %}">
+  {%- if badge_icons != '' -%}
+    <div class="tt-wrapper">
+      <div class="tt-label">
+        {{ badge_icons }}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- if item.show_product_main_info -%}
+    <div class="tt-add-info">
+      <ul>
+        {%- if item.show_qiantity -%}
+          <li class="availability">
+            <span>{{ 'products.product.availability' | t }}</span>
+            {% if product.available %}
+              <span class="stock_quantity hide"></span>
+              <span class="in_stock hide">{{ 'products.product.in_stock' | t }}</span>
+              <span class="many_in_stock hide">{{ 'products.product.many_in_stock' | t }}</span>
+              <span class="sold_out hide">{{ 'products.product.sold_out' | t }}</span>
+              <span class="continue_out hide">{{ 'products.product.purchase_when_out_of_stock' | t }}</span>
+            {% else %}
+              <span class="sold_out">{{ 'products.product.sold_out' | t }}</span>
+            {% endif %}
+          </li>
+        {%- endif -%}
+      </ul>
+    </div>
+  {%- endif -%}
+
+  <h1 class="tt-title" itemprop="name">{{ product.title }}</h1>
+
+  {%- unless settings.catalogue_mode -%}
+    <div itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+      <meta itemprop="priceCurrency" content="{{ shop.currency }}">
+      <link
+        itemprop="availability"
+        href="http://schema.org/{% if product.available %}InStock{% else %}OutOfStock{% endif %}"
+      >
+      <div
+        class="tt-price"
+        itemprop="price"
+        content="{{ product.selected_or_first_available_variant.price | divided_by: 100.00 }}"
+      >
+        {%- if sale_on -%}
+          <span class="sale-price">{{ product.selected_or_first_available_variant.price | money }}</span>
+          <span class="old-price">{{ product.selected_or_first_available_variant.compare_at_price | money }}</span>
+        {%- else -%}
+          <span class="new-price">{{ product.selected_or_first_available_variant.price | money }}</span>
+          <span class="old-price"></span>
+        {%- endif -%}
+      </div>
+    </div>
+    {% capture current_date %}{{ 'now' | date: '%s' }}{% endcapture %}
+    {% capture start_date %}{{ '2025-09-10' | date: '%s' }}{% endcapture %}
+    {% capture end_date %}{{ '2025-11-15' | date: '%s' | plus: 86399 }}{% endcapture %}
+    {% if current_date >= start_date and current_date <= end_date %}
+      {% assign target_collection = collections['superwinch-rebate-2025'] %}
+      {% if product.collections contains target_collection
+        and product.metafields.custom.cash_back_rebate_amount != blank
+      %}
+        <a
+          href="{{ 'Superwinch-rebate-form.pdf' | file_url }}"
+          target="_blank"
+          class="cashback-notice"
+          style="color: #2a2a2a; font-size: 14px; background-color: #e6f3ff; border-radius: 4px; padding: 8px 12px; margin: 10px 0; text-align: center; font-weight: 500; display: block; text-decoration: none;"
+        >
+          Cash Back Rebate: {{ product.metafields.custom.cash_back_rebate_amount | times: 100 | money }}
+        </a>
+      {% endif %}
+    {% endif %}
+    <br>
+
+    {%- if item.show_review -%}
+      <div class="tt-review">
+        <div class="rating" data-tooltip="{{ 'general.tooltip_texts.view_review' | t }}">
+          <span class="shopify-product-reviews-badge" data-id="{{ product.id }}"></span>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endunless -%}
+
+  {%- unless product_meta.custom_html == blank -%}
+    <div class="tt-wrapper">
+      {{ product_meta.custom_html }}
+    </div>
+  {%- endunless -%}
+
+  {%- unless settings.catalogue_mode -%}
+    {%- unless product_meta.countdown == blank -%}
+      <div class="tt-wrapper">
+        <div class="tt-countdown_box_02 tt-type-02">
+          <div class="tt-countdown_inner">
+            <div class="tt-countdown" data-date="{{ product_meta.countdown }}"></div>
+          </div>
+        </div>
+      </div>
+    {%- endunless -%}
+  {%- endunless -%}
+
+  <div class="tt-swatches-container tt-swatches-container-js"></div>
+
+  {%- assign m_sizechart = product_meta.sizechart -%}
+  {%- capture sizechart -%}{% if m_sizechart != blank %}{{ m_sizechart }}{% else %}{{ item.popupcontent }}{% endif %}{%- endcapture -%}
+  {%- assign m_shipping = product_meta.shipping -%}
+  {%- capture shipping -%}{% if m_shipping != blank %}{{ m_shipping }}{% else %}{{ item.popupcontentshipping }}{% endif %}{%- endcapture -%}
+  {%- if item.show_sizechart and sizechart != '' and sizechart != 'disable' -%}
+    {% assign sch_a = true %}
+  {%- else -%}
+    {% assign sch_a = false -%}
+  {%- endif -%}
+  {%- if item.show_shipping and shipping != '' and shipping != 'disable' -%}
+    {% assign shch_a = true %}
+  {%- else -%}
+    {% assign shch_a = false -%}
+  {%- endif -%}
+  {%- if item.show_message -%}{% assign schm_a = true %}{%- else -%}{% assign schm_a = false %}{% endif -%}
+  {% if sch_a or shch_a or schm_a %}
+    <div class="tt-wrapper product-information-buttons">
+      {%- if sch_a -%}
+        <a data-toggle="modal" data-target="#modalProductInfo" href="#">{{ item.btnname }}</a>
+      {%- endif -%}
+      {%- if shch_a -%}
+        <a data-toggle="modal" data-target="#modalProductInfo-02" href="#">{{ item.btnname2 }}</a>
+      {%- endif -%}
+      {%- if schm_a -%}
+        <a data-toggle="modal" data-target="#modalProductInfo-03" href="#" class="mespr">{{ item.btnname3 }}</a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- unless settings.catalogue_mode -%}
+    {%- if product.available -%}
+      {%- capture product_select_options -%}{%- if product.selected_variant == blank and product.variants.size > 1 and item.use_select_button -%}true{%- else -%}false{%- endif -%}{%- endcapture -%}
+      <!-- -AFFIRM -->
+      <p
+        class="affirm-as-low-as"
+        data-page-type="product"
+        data-amount="{{ product.selected_or_first_available_variant.price}}"
+      ></p>
+      <!-- -AFFIRM -->
+      <!-- -buildtoorder and backorder -->
+      {% for tag in product.tags %}
+        {% if tag contains 'backorder' %}
+          <strong style="font-size:22px;color:red;"
+            >This item may take 2-3 weeks or more, before it's shipped, as it's on back order currently.</strong
+          >
+        {% endif %}
+      {% endfor %}
+      {% for tag in product.tags %}
+        {% if tag contains 'buildtoorder' %}
+          <strong style="font-size:22px;color:red;"
+            ><br>
+            This item may take 4 weeks or more, before it's shipped, as it's a build to order product.</strong
+          >
+        {% endif %}
+      {% endfor %}
+      <!-- -buildtoorder and backorder -->
+      <div class="tt-wrapper{% if product_select_options == 'true' %} select_options{% endif %}">
+        {%- form 'product', product -%}
+          <input
+            type="hidden"
+            class="input_variant"
+            name="id"
+            value="{{ product.selected_or_first_available_variant.id }}"
+          >
           <div class="tt-row-custom-01">
-            <div class="col-item full-width">
-              <a href="{{ related_collection.url }}" class="btn btn-lg custom-related-btn">
-                View Truck Parts - Toppers Truck Caps
-              </a>
+            <div class="col-item">
+              <div class="tt-input-counter style-01">
+                <span class="minus-btn"></span>
+                <input type="text" name="quantity" value="1" size="5">
+                <span class="plus-btn"></span>
+              </div>
+            </div>
+            <div class="col-item">
+              <button
+                class="btn btn-lg btn-addtocart{% if settings.ajax_addtocart %} addtocart-js{% endif %}{% if product_select_options == 'false' and product.selected_variant.available == false %} disable{% endif %}"
+                {%- if settings.show_addtocart_popup_related -%}
+                  {%- unless product.metafields.description.related_collection == blank -%}
+                    data-relatedcollection="{{ product.metafields.description.related_collection }}"
+                  {%- endunless -%}
+                {%- endif -%}
+              >
+                {% if product_select_options == 'true' -%}
+                  {{- 'products.general.select_options_html' | t }}
+                {% else %}
+                  {% if product.selected_variant.available == false -%}
+                    {{- 'products.general.unavailable_html' | t }}
+                  {% else %}
+                    {% if product.selected_or_first_available_variant.inventory_management == 'shopify'
+                      and product.selected_or_first_available_variant.inventory_policy == 'continue'
+                      and product.selected_or_first_available_variant.inventory_quantity == 0
+                    %}
+                      {{ 'products.general.preorder_html' | t }}
+                    {% else %}
+                      {{ 'products.general.add_to_cart_html' | t }}
+                    {% endif %}
+                  {% endif -%}
+                {%- endif %}
+              </button>
             </div>
           </div>
-        {% endif %}
-        <!-- End Custom Button -->
+          {%- if settings.buy_in_one_click -%}
+            {% if settings.terms_cond_checkbox_show %}
+              <div class="checkbox-group prpage-term-conditions-checkbox term-conditions-checkbox-js">
+                <input type="checkbox" id="prpage-cart-term-conditions-checkbox" value="1">
+                <label for="prpage-cart-term-conditions-checkbox">
+                  <span class="check"></span>
+                  <span class="box"></span>
+                  {{ settings.terms_cond_checkbox_text }}
+                </label>
+              </div>
+            {% endif %}
+            <div
+              class="buyinoneclick{% if product_select_options == 'true' %} hide{% endif %}"
+              data-buttonname="{{ 'products.general.buy_now_button' | t }}"
+              data-loading="{{ 'products.general.loading' | t }}"
+            >
+              {{ form | payment_button }}
+            </div>
+          {%- endif -%}
+        {%- endform -%}
+        
+        <!-- Request a Quote Button -->
+        <div class="col-item">
