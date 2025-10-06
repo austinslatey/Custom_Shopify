@@ -151,7 +151,7 @@
         <a data-toggle="modal" data-target="#modalProductInfo-03" href="#" class="mespr">{{ item.btnname3 }}</a>
       {%- endif -%}
     </div>
-  {%- endif -%}
+  {%- endunless -%}
 
   {%- unless settings.catalogue_mode -%}
     {%- if product.available -%}
@@ -246,11 +246,14 @@
         {%- endform -%}
         
         <!-- Request a Quote Button -->
+        <!-- Uncomment below for conditional display -->
+        <!-- {% if product.collections contains 'truck-parts-toppers-truck-caps' %} -->
         <div class="col-item">
           <a href="#" data-toggle="modal" data-target="#modalQuoteRequest" class="btn btn-lg quote-request-btn">
             Request a Quote for the Topper
           </a>
         </div>
+        <!-- {% endif %} -->
       </div>
     {%- endif -%}
   {%- endunless -%}
@@ -388,7 +391,7 @@
   {%- include 'modal-sizechart', value: sizechart -%}
 {%- endif -%}
 {%- if item.show_shipping and shipping != '' and shipping != 'disable' -%}
-  {%- include 'modal-shipping', value: shippingA -%}
+  {%- include 'modal-shipping', value: shipping -%}
 {%- endif -%}
 {%- if item.show_message -%}
   {%- include 'modal-message' -%}
@@ -451,20 +454,24 @@
               class="form-control"
               required
               placeholder="Enter your phone number"
+              pattern="[0-9]{10,15}"
             >
-            <div class="invalid-feedback">Phone number is required.</div>
+            <div class="invalid-feedback">Please enter a valid phone number (10-15 digits).</div>
           </div>
           <input
             type="hidden"
             name="product_title"
-            value="{{ product.title }}"
+            value="{{ product.title | escape }}"
           >
           <input
             type="hidden"
             name="collection_handle"
-            value="truck-parts-toppers-truck-caps"
+            value="{% for collection in product.collections %}{{ collection.handle }}{% break %}{% endfor %}"
           >
-          <button type="submit" class="btn btn-lg btn-primary">Submit Quote Request</button>
+          <button type="submit" class="btn btn-lg btn-primary" id="quote-submit-btn">
+            <span class="btn-text">Submit Quote Request</span>
+            <span class="btn-loading" style="display: none;">Loading...</span>
+          </button>
         </form>
         <div id="quote-form-message" class="mt-3"></div>
       </div>
@@ -554,15 +561,12 @@
 
       // AJAX submission to Render server
       $.ajax({
-        url: 'https://your-render-server.com/api/quote', // Replace with your actual Render endpoint
+        url: 'https://your-app.onrender.com/api/quote', // Replace with your actual Render endpoint
         type: 'POST',
         data: JSON.stringify(formData),
         contentType: 'application/json',
-        headers: {
-          // Add any required headers, e.g., 'Authorization': 'Bearer your-api-key'
-        },
         success: function(response) {
-          $message.html('<div class="alert alert-success">Quote request submitted successfully!</div>');
+          $message.html('<div class="alert alert-success">' + (response.message || 'Quote request submitted successfully!') + '</div>');
           $form[0].reset();
           setTimeout(function() {
             $('#modalQuoteRequest').modal('hide');
@@ -570,7 +574,7 @@
           }, 2000);
         },
         error: function(xhr) {
-          var errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred. Please try again.';
+          var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred. Please try again.';
           $message.html('<div class="alert alert-danger">' + errorMsg + '</div>');
         }
       });
