@@ -2,7 +2,6 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import sgMail from "@sendgrid/mail";
-import fetch from "node-fetch";
 
 dotenv.config();
 const app = express();
@@ -15,16 +14,13 @@ app.use(express.json()); // Parse JSON bodies
 // SendGrid setup
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Shopify GraphQL API URL
-const SHOPIFY_API_URL = `${process.env.ADMIN_URL}`;
-
 // POST /api/quote endpoint
 app.post("/api/quote", async (req, res) => {
   try {
-    const { first_name, last_name, email, phone, product_title, collection_handle, product_id } = req.body;
+    const { first_name, last_name, email, phone, product_title, product_id, sku } = req.body;
 
     // Basic validation
-    if (!first_name || !last_name || !email || !phone || !product_title || !product_id) {
+    if (!first_name || !last_name || !email || !phone || !product_title || !product_id || !sku) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -46,16 +42,18 @@ app.post("/api/quote", async (req, res) => {
       subject: `New Quote Request: ${product_title}`,
       html: `
         <h2>New Quote Request</h2>
-        <p><strong>Product:</strong> ${product_title} (Collection: ${collection_handle || "N/A"})</p>
+        <p><strong>Product:</strong> ${product_title}</p>
+        <p><strong>SKU:</strong> ${sku}</p>
         <p><strong>Customer:</strong> ${first_name} ${last_name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Product ID:</strong> ${product_id}</p>
-        ${Object.entries(productDetails)
-          .map(([k, v]) => `<p><strong>${k.charAt(0).toUpperCase() + k.slice(1)}:</strong> ${v}</p>`)
-          .join("")}
         <hr>
-        <p>Please respond promptly!</p>
+        <p>Thank you,</p>
+        <p>The Waldoch Team</p>
+        <p style="margin-top:20px; text-align:center;">
+            <img src="https://www.waldoch.com/wp-content/uploads/2021/02/logo-wo-w-50th-314-86-1.png"
+                    alt="Waldoch Logo" style="max-width:200px; height:auto;">
+        </p>
       `,
     };
 
