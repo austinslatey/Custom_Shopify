@@ -28,8 +28,8 @@ app.post("/api/quote", async (req, res) => {
             return res.status(400).json({ error: "Invalid email format" });
         }
 
-        if (!/^[0-9]{10,15}$/.test(phone)) {
-            return res.status(400).json({ error: "Invalid phone number (10-15 digits)" });
+        if (!/^\+?[0-9\s\(\)-]{10,20}$/.test(phone) || !/^[0-9\s\(\)-]{10,20}$/.test(phone.replace(/^\+/, ''))) {
+            return res.status(400).json({ error: "Invalid phone number (10-15 digits, optional + prefix, parentheses, spaces, or hyphens)" });
         }
 
         // Optional: Fetch product details from Shopify GraphQL
