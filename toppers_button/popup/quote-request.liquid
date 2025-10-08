@@ -1,16 +1,9 @@
 {% comment %}
   Snippet: quote-request.liquid
   Purpose: Displays a "Request a Quote" button and modal form for products in the specified collection.
-  Usage: Include in your product template (e.g., main-product.liquid or product.liquid) with:
-    {% assign target_collection = collections['truck-parts-toppers-truck-caps'] %}
-    {% if product.collections contains target_collection %}
-      {% include 'quote-request' %}
-    {% endif %}
-  Dependencies: Requires jQuery and Bootstrap (or equivalent) for modal functionality.
-  Notes:
-  - The form submits to the specified API endpoint[](https://waldoch-rebate-popup.onrender.com/api/quote).
-  - Ensure the API endpoint is correctly configured to handle quote requests.
-  - The variant_id updates dynamically if included in the productPageVariant function.
+  Usage: Included in product template for truck-parts-toppers-truck-caps collection.
+  Dependencies: Requires jQuery and Bootstrap for modal functionality.
+  Notes: Sends product_id instead of variant_id to match server without variants.
 {% endcomment %}
 
 <div class="col-item">
@@ -92,8 +85,8 @@
           >
           <input
             type="hidden"
-            name="variant_id"
-            value="{{ product.selected_or_first_available_variant.id }}"
+            name="product_id"
+            value="{{ product.id }}"
           >
           <button type="submit" class="btn btn-lg btn-primary" id="quote-submit-btn">
             <span class="btn-text">Submit Quote Request</span>
@@ -193,12 +186,12 @@
         phone: phone,
         product_title: $form.find('input[name="product_title"]').val(),
         collection_handle: $form.find('input[name="collection_handle"]').val(),
-        variant_id: $form.find('input[name="variant_id"]').val()
+        product_id: $form.find('input[name="product_id"]').val()
       };
 
-      // AJAX submission to API
+      // AJAX submission to new Render server
       $.ajax({
-        url: 'https://waldoch-rebate-popup.onrender.com/api/quote',
+        url: 'https://waldoch-quote-api-new.onrender.com/api/quote',
         type: 'POST',
         data: JSON.stringify(formData),
         contentType: 'application/json',
