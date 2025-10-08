@@ -1,4 +1,9 @@
 // Optional: Fetch product details from Shopify GraphQL
+import fetch from "node-fetch";
+
+// Shopify GraphQL API URL
+const SHOPIFY_API_URL = `${process.env.ADMIN_URL}`;
+
 let productDetails = {};
 try {
     const query = `
