@@ -1,9 +1,9 @@
 {% comment %}
   Snippet: quote-request.liquid
-  Purpose: Displays a "Request a Quote" button and modal form for products in the truck-parts-toppers-truck-caps collection.
+  Purpose: Displays a "Request a Quote" button and modal form for truck parts, with separate dropdowns for truck makes and models.
   Usage: Included in product template.
   Dependencies: Requires jQuery and Bootstrap for modal functionality.
-  Notes: Sends product_id instead of variant_id to match server without variants. Uses new server URL.
+  Notes: Sends product_id instead of variant_id. Uses new server URL. Validates phone numbers with special characters.
 {% endcomment %}
 
 <div class="col-item">
@@ -14,89 +14,119 @@
 
 <!-- Quote Request Modal -->
 <div class="modal fade" id="modalQuoteRequest" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Request a Quote for {{ product.title }}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="quote-request-form" novalidate>
-          <div class="form-group">
-            <label for="quote-first-name">First Name *</label>
-            <input
-              type="text"
-              id="quote-first-name"
-              name="first_name"
-              class="form-control"
-              required
-              placeholder="Enter your first name"
-            >
-            <div class="invalid-feedback">First name is required.</div>
-          </div>
-          <div class="form-group">
-            <label for="quote-last-name">Last Name *</label>
-            <input
-              type="text"
-              id="quote-last-name"
-              name="last_name"
-              class="form-control"
-              required
-              placeholder="Enter your last name"
-            >
-            <div class="invalid-feedback">Last name is required.</div>
-          </div>
-          <div class="form-group">
-            <label for="quote-email">Email *</label>
-            <input
-              type="email"
-              id="quote-email"
-              name="email"
-              class="form-control"
-              required
-              placeholder="Enter your email"
-            >
-            <div class="invalid-feedback">A valid email is required.</div>
-          </div>
-          <div class="form-group">
-            <label for="quote-phone">Phone *</label>
-            <input
-              type="tel"
-              id="quote-phone"
-              name="phone"
-              class="form-control"
-              required
-              placeholder="Enter your phone number"
-              pattern="[0-9]{10,15}"
-            >
-            <div class="invalid-feedback">Please enter a valid phone number (10-15 digits).</div>
-          </div>
-          <input
-            type="hidden"
-            name="product_title"
-            value="{{ product.title | escape }}"
-          >
-          <input
-            type="hidden"
-            name="collection_handle"
-            value="{{ target_collection.handle }}"
-          >
-          <input
-            type="hidden"
-            name="product_id"
-            value="{{ product.id }}"
-          >
-          <button type="submit" class="btn btn-lg btn-primary" id="quote-submit-btn">
-            <span class="btn-text">Submit Quote Request</span>
-            <span class="btn-loading" style="display: none;">Loading...</span>
-          </button>
-        </form>
-        <div id="quote-form-message" class="mt-3"></div>
-      </div>
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Request a Quote for {{ product.title }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="quote-request-form" novalidate>
+                    <div class="form-group">
+                        <label for="quote-first-name">First Name *</label>
+                        <input type="text" id="quote-first-name" name="first_name" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="Enter your first name">
+                        <div class="invalid-feedback">First name is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="quote-last-name">Last Name *</label>
+                        <input type="text" id="quote-last-name" name="last_name" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="Enter your last name">
+                        <div class="invalid-feedback">Last name is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="quote-email">Email *</label>
+                        <input type="email" id="quote-email" name="email" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="Enter your email">
+                        <div class="invalid-feedback">A valid email is required.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="quote-phone">Phone *</label>
+                        <input type="tel" id="quote-phone" name="phone" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="e.g., +1 (111) 111-1111">
+                        <div class="invalid-feedback">Please enter a valid phone number (10-15 digits, optional + prefix, parentheses, spaces, or hyphens).</div>
+                    </div>
+                    <input type="hidden" name="product_title" value="{{ product.title | escape }}">
+                    <input type="hidden" name="collection_handle" value="{{ target_collection.handle }}">
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <div class="form-group">
+                        <label for="vehicle-make">Vehicle Make *</label>
+                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="vehicle-make" name="Vehicle Make" autocomplete="off" field-name="Vehicle Make" data-type="select" required>
+                            <option value="" disabled selected>Please Select an option</option>
+                            <option value="Chevrolet">Chevrolet</option>
+                            <option value="Dodge/Ram">Dodge/Ram</option>
+                            <option value="Ford">Ford</option>
+                            <option value="GMC">GMC</option>
+                            <option value="Toyota">Toyota</option>
+                        </select>
+                    </div>
+                    <!-- Model Dropdowns -->
+                    <div class="form-group model-dropdown" id="chevrolet-models" style="display: none;">
+                        <label for="chevrolet-model">Chevrolet Model *</label>
+                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="chevrolet-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
+                            <option value="" disabled selected>Please Select a model</option>
+                            <option value="Silverado 1500">Silverado 1500</option>
+                            <option value="Silverado 2500HD">Silverado 2500HD</option>
+                            <option value="Silverado 3500HD">Silverado 3500HD</option>
+                            <option value="Colorado">Colorado</option>
+                        </select>
+                    </div>
+                    <div class="form-group model-dropdown" id="dodge-ram-models" style="display: none;">
+                        <label for="dodge-ram-model">Dodge/Ram Model *</label>
+                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="dodge-ram-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
+                            <option value="" disabled selected>Please Select a model</option>
+                            <option value="Ram 1500">Ram 1500</option>
+                            <option value="Ram 2500">Ram 2500</option>
+                            <option value="Ram 3500">Ram 3500</option>
+                        </select>
+                    </div>
+                    <div class="form-group model-dropdown" id="ford-models" style="display: none;">
+                        <label for="ford-model">Ford Model *</label>
+                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="ford-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
+                            <option value="" disabled selected>Please Select a model</option>
+                            <option value="F-150">F-150</option>
+                            <option value="F-250 Super Duty">F-250 Super Duty</option>
+                            <option value="F-350 Super Duty">F-350 Super Duty</option>
+                            <option value="Ranger">Ranger</option>
+                        </select>
+                    </div>
+                    <div class="form-group model-dropdown" id="gmc-models" style="display: none;">
+                        <label for="gmc-model">GMC Model *</label>
+                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="gmc-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
+                            <option value="" disabled selected>Please Select a model</option>
+                            <option value="Sierra 1500">Sierra 1500</option>
+                            <option value="Sierra 2500HD">Sierra 2500HD</option>
+                            <option value="Sierra 3500HD">Sierra 3500HD</option>
+                            <option value="Canyon">Canyon</option>
+                        </select>
+                    </div>
+                    <div class="form-group model-dropdown" id="toyota-models" style="display: none;">
+                        <label for="toyota-model">Toyota Model *</label>
+                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="toyota-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
+                            <option value="" disabled selected>Please Select a model</option>
+                            <option value="Tacoma">Tacoma</option>
+                            <option value="Tundra">Tundra</option>
+                        </select>
+                    </div>
+                    <!-- Year Input -->
+                    <div class="form-group">
+                        <label for="vehicle-year">Vehicle Year *</label>
+                        <input type="number" class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="vehicle-year" name="Vehicle Year" autocomplete="off" field-name="Vehicle Year" placeholder="Enter vehicle year (e.g., 2023)" min="1900" max="2026" required>
+                        <div class="invalid-feedback">Please enter a valid year (1900-2026).</div>
+                    </div>
+                    <!-- VIN Number Input -->
+                    <div class="form-group">
+                        <label for="vehicle-vin">VIN Number *</label>
+                        <input type="text" class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="vehicle-vin" name="VIN Number" autocomplete="off" field-name="VIN Number" placeholder="Enter VIN (17 characters)" pattern="[A-HJ-NPR-Z0-9]{17}" maxlength="17" required>
+                        <div class="invalid-feedback">Please enter a valid 17-character VIN.</div>
+                    </div>
+                    <button type="submit" id="quote-submit-btn" class="btn btn-primary">
+                        <span class="btn-text">Submit Quote Request</span>
+                        <span class="btn-loading" style="display: none;">Submitting...</span>
+                    </button>
+                </form>
+                <div id="quote-form-message" class="mt-3"></div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <style>
@@ -123,7 +153,7 @@
     color: #fff;
     text-decoration: none;
   }
-  .form-control.is-invalid {
+  .form-control.is-invalid, .avp-productdescfont.is-invalid {
     border-color: #dc3545;
   }
   .invalid-feedback {
@@ -134,10 +164,22 @@
   .is-invalid ~ .invalid-feedback {
     display: block;
   }
+  .model-dropdown {
+    margin-top: 10px;
+  }
 </style>
 
 <script>
   $(function() {
+    // Show/hide model dropdowns based on selected make
+    $('#vehicle-make').on('change', function() {
+      $('.model-dropdown').hide(); // Hide all model dropdowns
+      var selectedMake = $(this).val();
+      if (selectedMake) {
+        $('#' + selectedMake.toLowerCase().replace('/', '-') + '-models').show();
+      }
+    });
+
     $('#quote-request-form').on('submit', function(e) {
       e.preventDefault();
       var $form = $(this);
@@ -149,7 +191,7 @@
 
       // Client-side validation
       var isValid = true;
-      $form.find('input[required]').each(function() {
+      $form.find('input[required], select[required]').each(function() {
         if (!$(this).val()) {
           $(this).addClass('is-invalid');
           isValid = false;
@@ -157,14 +199,29 @@
           $(this).removeClass('is-invalid');
         }
       });
+
+      // Email validation
       var email = $form.find('#quote-email').val();
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         $form.find('#quote-email').addClass('is-invalid');
         isValid = false;
       }
+
+      // Phone validation (allows + prefix, parentheses, spaces, hyphens)
       var phone = $form.find('#quote-phone').val();
-      if (phone && !/^[0-9]{10,15}$/.test(phone)) {
+      const digitsOnly = phone.replace(/[^0-9]/g, ''); // Extract only digits
+      if (!/^\+?[0-9\s\(\)-]{10,20}$/.test(phone) || digitsOnly.length < 10 || digitsOnly.length > 15) {
         $form.find('#quote-phone').addClass('is-invalid');
+        isValid = false;
+      } else {
+        $form.find('#quote-phone').removeClass('is-invalid');
+      }
+
+      // Model validation (ensure a model is selected if a make is chosen)
+      var selectedMake = $form.find('#vehicle-make').val();
+      var selectedModel = $form.find('.model-dropdown:visible select').val();
+      if (selectedMake && !selectedModel) {
+        $form.find('.model-dropdown:visible select').addClass('is-invalid');
         isValid = false;
       }
 
@@ -186,7 +243,11 @@
         phone: phone,
         product_title: $form.find('input[name="product_title"]').val(),
         collection_handle: $form.find('input[name="collection_handle"]').val(),
-        product_id: $form.find('input[name="product_id"]').val()
+        product_id: $form.find('input[name="product_id"]').val(),
+        vehicle_make: $form.find('#vehicle-make').val(),
+        vehicle_model: selectedModel,
+        vehicle_year: $form.find('#vehicle-year').val(),
+        vin_number: $form.find('#vehicle-vin').val()
       };
 
       // AJAX submission to new Render server
@@ -198,6 +259,7 @@
         success: function(response) {
           $message.html('<div class="alert alert-success">' + (response.message || 'Quote request submitted successfully!') + '</div>');
           $form[0].reset();
+          $('.model-dropdown').hide();
           setTimeout(function() {
             $('#modalQuoteRequest').modal('hide');
             $message.empty();
