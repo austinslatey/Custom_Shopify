@@ -223,10 +223,6 @@
                 {%- endif %}
               </button>
             </div>
-            {% assign target_collection = collections['truck-parts-toppers-truck-caps'] %}
-            {% if product.collections contains target_collection %}
-              {% include 'quote-request' %}
-            {% endif %}
           </div>
           {%- if settings.buy_in_one_click -%}
             {% if settings.terms_cond_checkbox_show %}
@@ -329,6 +325,10 @@
   {%- endif -%}
 
   {%- if item.show_product_info -%}
+    {% assign target_collection = collections['truck-parts-toppers-truck-caps'] %}
+    {% if product.collections contains target_collection %}
+      {% include 'quote-request' %}
+    {% endif %}
     <div class="tt-wrapper">
       <div class="tt-add-info">
         <ul>
