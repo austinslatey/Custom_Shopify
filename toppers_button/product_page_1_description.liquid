@@ -4,9 +4,17 @@
 {%- assign image_max_width_retina_m = item.image_max_width_m | times: 2 | append: 'x' -%}
 
 {%- capture badge_icons -%}
-{%- if product_meta.icon_new != 'disable' and item.show_badge_new -%}{%- if date_difference < date_limit or product_meta.icon_new == 'always' -%}<div class="tt-label-new">{{ 'products.general.new' | t }}</div>{%- endif -%}{%- endif -%}
-{%- unless product.available -%}<div class="tt-label-out-stock">{{ 'products.general.unavailable' | t }}</div>{%- endunless -%}
-{%- if product_meta.featured != blank and item.show_badge_featured -%}<div class="tt-label tt-label-our-fatured">{{ product_meta.featured }}</div>{%- endif -%}
+  {%- if product_meta.icon_new != 'disable' and item.show_badge_new -%}
+    {%- if date_difference < date_limit or product_meta.icon_new == 'always' -%}
+      <div class="tt-label-new">{{ 'products.general.new' | t }}</div>
+    {%- endif -%}
+  {%- endif -%}
+  {%- unless product.available -%}
+    <div class="tt-label-out-stock">{{ 'products.general.unavailable' | t }}</div>
+  {%- endunless -%}
+  {%- if product_meta.featured != blank and item.show_badge_featured -%}
+    <div class="tt-label tt-label-our-fatured">{{ product_meta.featured }}</div>
+  {%- endif -%}
 {%- endcapture -%}
 {%- assign badge_icons = badge_icons | strip -%}
 
@@ -64,13 +72,13 @@
       <div
         class="tt-price"
         itemprop="price"
-        content="{{ product.selected_or_first_available_variant.price | divided_by: 100.00 }}"
+        content="{{ product.price | divided_by: 100.00 }}"
       >
-        {%- if sale_on -%}
-          <span class="sale-price">{{ product.selected_or_first_available_variant.price | money }}</span>
-          <span class="old-price">{{ product.selected_or_first_available_variant.compare_at_price | money }}</span>
+        {%- if product.compare_at_price > product.price -%}
+          <span class="sale-price">{{ product.price | money }}</span>
+          <span class="old-price">{{ product.compare_at_price | money }}</span>
         {%- else -%}
-          <span class="new-price">{{ product.selected_or_first_available_variant.price | money }}</span>
+          <span class="new-price">{{ product.price | money }}</span>
           <span class="old-price"></span>
         {%- endif -%}
       </div>
@@ -80,9 +88,7 @@
     {% capture end_date %}{{ '2025-11-15' | date: '%s' | plus: 86399 }}{% endcapture %}
     {% if current_date >= start_date and current_date <= end_date %}
       {% assign target_collection = collections['superwinch-rebate-2025'] %}
-      {% if product.collections contains target_collection
-        and product.metafields.custom.cash_back_rebate_amount != blank
-      %}
+      {% if product.collections contains target_collection and product.metafields.custom.cash_back_rebate_amount != blank %}
         <a
           href="{{ 'Superwinch-rebate-form.pdf' | file_url }}"
           target="_blank"
@@ -151,42 +157,17 @@
         <a data-toggle="modal" data-target="#modalProductInfo-03" href="#" class="mespr">{{ item.btnname3 }}</a>
       {%- endif -%}
     </div>
-  {%- endunless -%}
+  {%- endif -%}
 
   {%- unless settings.catalogue_mode -%}
     {%- if product.available -%}
-      {%- capture product_select_options -%}{%- if product.selected_variant == blank and product.variants.size > 1 and item.use_select_button -%}true{%- else -%}false{%- endif -%}{%- endcapture -%}
-      <!-- -AFFIRM -->
-      <p
-        class="affirm-as-low-as"
-        data-page-type="product"
-        data-amount="{{ product.selected_or_first_available_variant.price}}"
-      ></p>
-      <!-- -AFFIRM -->
-      <!-- -buildtoorder and backorder -->
-      {% for tag in product.tags %}
-        {% if tag contains 'backorder' %}
-          <strong style="font-size:22px;color:red;"
-            >This item may take 2-3 weeks or more, before it's shipped, as it's on back order currently.</strong
-          >
-        {% endif %}
-      {% endfor %}
-      {% for tag in product.tags %}
-        {% if tag contains 'buildtoorder' %}
-          <strong style="font-size:22px;color:red;"
-            ><br>
-            This item may take 4 weeks or more, before it's shipped, as it's a build to order product.</strong
-          >
-        {% endif %}
-      {% endfor %}
-      <!-- -buildtoorder and backorder -->
-      <div class="tt-wrapper{% if product_select_options == 'true' %} select_options{% endif %}">
+      <div class="tt-wrapper">
         {%- form 'product', product -%}
           <input
             type="hidden"
             class="input_variant"
             name="id"
-            value="{{ product.selected_or_first_available_variant.id }}"
+            value="{{ product.id }}"
           >
           <div class="tt-row-custom-01">
             <div class="col-item">
@@ -198,38 +179,27 @@
             </div>
             <div class="col-item">
               <button
-                class="btn btn-lg btn-addtocart{% if settings.ajax_addtocart %} addtocart-js{% endif %}{% if product_select_options == 'false' and product.selected_variant.available == false %} disable{% endif %}"
+                class="btn btn-lg btn-addtocart{% if settings.ajax_addtocart %} addtocart-js{% endif %}"
                 {%- if settings.show_addtocart_popup_related -%}
                   {%- unless product.metafields.description.related_collection == blank -%}
                     data-relatedcollection="{{ product.metafields.description.related_collection }}"
                   {%- endunless -%}
                 {%- endif -%}
               >
-                {% if product_select_options == 'true' -%}
-                  {{- 'products.general.select_options_html' | t }}
-                {% else %}
-                  {% if product.selected_variant.available == false -%}
-                    {{- 'products.general.unavailable_html' | t }}
+                {% if product.available %}
+                  {% if product.inventory_management == 'shopify' and product.inventory_policy == 'continue' and product.inventory_quantity == 0 %}
+                    {{ 'products.general.preorder_html' | t }}
                   {% else %}
-                    {% if product.selected_or_first_available_variant.inventory_management == 'shopify'
-                      and product.selected_or_first_available_variant.inventory_policy == 'continue'
-                      and product.selected_or_first_available_variant.inventory_quantity == 0
-                    %}
-                      {{ 'products.general.preorder_html' | t }}
-                    {% else %}
-                      {{ 'products.general.add_to_cart_html' | t }}
-                    {% endif %}
-                  {% endif -%}
-                {%- endif %}
+                    {{ 'products.general.add_to_cart_html' | t }}
+                  {% endif %}
+                {% else %}
+                  {{ 'products.general.unavailable_html' | t }}
+                {% endif %}
               </button>
             </div>
             {% assign target_collection = collections['truck-parts-toppers-truck-caps'] %}
             {% if product.collections contains target_collection %}
-              <div class="col-item">
-                <a href="#" data-toggle="modal" data-target="#modalQuoteRequest" class="btn btn-lg quote-request-btn">
-                  Request a Quote for {{ product.title }}
-                </a>
-              </div>
+              {% include 'quote-request' %}
             {% endif %}
           </div>
           {%- if settings.buy_in_one_click -%}
@@ -244,7 +214,7 @@
               </div>
             {% endif %}
             <div
-              class="buyinoneclick{% if product_select_options == 'true' %} hide{% endif %}"
+              class="buyinoneclick"
               data-buttonname="{{ 'products.general.buy_now_button' | t }}"
               data-loading="{{ 'products.general.loading' | t }}"
             >
@@ -256,11 +226,7 @@
     {%- endif -%}
   {%- endunless -%}
 
-  {%- if item.product_item_show_wishlist
-    and settings.show_wishlist
-    or item.product_item_show_compare
-    and settings.show_compare
-  -%}
+  {%- if item.product_item_show_wishlist and settings.show_wishlist or item.product_item_show_compare and settings.show_compare -%}
     <div class="tt-wrapper">
       <ul class="tt-list-btn">
         {%- if item.product_item_show_wishlist and settings.show_wishlist -%}
@@ -269,12 +235,12 @@
               href="{{ product.url | within: collection }}"
               data-productid="{{ product.id }}"
               data-producth="{{ product.handle }}"
-              data-add="{{ "wishlist.buttons_text.tooltip_add" | t }}"
-              data-remove="{{ "wishlist.buttons_text.tooltip_remove" | t }}"
-              data-tooltip="{% if customer.id == blank %}{{ "wishlist.buttons_text.tooltip_login" | t }}{% else %}{% if wl_text %}{{ "wishlist.buttons_text.tooltip_remove" | t }}{% else %}{{ "wishlist.buttons_text.tooltip_add" | t }}{% endif %}{% endif %}"
+              data-add="{{ 'wishlist.buttons_text.tooltip_add' | t }}"
+              data-remove="{{ 'wishlist.buttons_text.tooltip_remove' | t }}"
+              data-tooltip="{% if customer.id == blank %}{{ 'wishlist.buttons_text.tooltip_login' | t }}{% else %}{% if wl_text %}{{ 'wishlist.buttons_text.tooltip_remove' | t }}{% else %}{{ 'wishlist.buttons_text.tooltip_add' | t }}{% endif %}{% endif %}"
               data-type="wishlist"
-              data-prpage-add="{{ "wishlist.buttons_text.page_text_add" | t }}"
-              data-prpage-rem="{{ "wishlist.buttons_text.page_text_remove" | t }}"
+              data-prpage-add="{{ 'wishlist.buttons_text.page_text_add' | t }}"
+              data-prpage-rem="{{ 'wishlist.buttons_text.page_text_remove' | t }}"
               data-action="{% if wl_text %}wk-remove{% else %}wk-add{% endif %}"
               class="inline-wk-link wlbutton-js prpagebtn-js"
             >
@@ -294,12 +260,12 @@
             <a
               href="{{ product.url | within: collection }}"
               data-action="wk-add"
-              data-add="{{ "compare.buttons_text.tooltip_add" | t }}"
-              data-remove="{{ "compare.buttons_text.tooltip_remove" | t }}"
-              data-tooltip="{{ "compare.buttons_text.tooltip_add" | t }}"
-              data-compareid="{{ pr_variant.id }}"
-              data-prpage-add="{{ "compare.buttons_text.page_text_add" | t }}"
-              data-prpage-rem="{{ "compare.buttons_text.page_text_remove" | t }}"
+              data-add="{{ 'compare.buttons_text.tooltip_add' | t }}"
+              data-remove="{{ 'compare.buttons_text.tooltip_remove' | t }}"
+              data-tooltip="{{ 'compare.buttons_text.tooltip_add' | t }}"
+              data-compareid="{{ product.id }}"
+              data-prpage-add="{{ 'compare.buttons_text.page_text_add' | t }}"
+              data-prpage-rem="{{ 'compare.buttons_text.page_text_remove' | t }}"
               class="inline-wk-link compare-js prpagebtn-js"
             >
               {%- include 'svg-compare' -%}
@@ -354,17 +320,17 @@
           {%- endif -%}
           {%- if item.show_product_barcode -%}
             <li
-              {% if product.selected_or_first_available_variant.barcode == '' or product.selected_or_first_available_variant.barcode == empty? %}
+              {% if product.barcode == '' or product.barcode == empty %}
                 class="hide"
               {% endif %}
             >
-              <span>SKU:</span> <span class="barcode">{{ product.selected_or_first_available_variant.barcode }}</span>
+              <span>SKU:</span> <span class="barcode">{{ product.barcode }}</span>
             </li>
           {%- endif -%}
           {%- if item.show_sku -%}
-            <li class="sku-js{% if product.selected_or_first_available_variant.sku == '' %} hide{% endif %}">
+            <li class="sku-js{% if product.sku == '' %} hide{% endif %}">
               <span>{{ 'products.product.sku' | t }}</span>
-              <span>{{ product.selected_or_first_available_variant.sku }}</span>
+              <span>{{ product.sku }}</span>
             </li>
           {%- endif -%}
           {%- if item.show_product_tags -%}
@@ -395,107 +361,9 @@
   {%- include 'modal-message' -%}
 {%- endif -%}
 
-<!-- Quote Request Modal -->
-<div class="modal fade" id="modalQuoteRequest" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Request a Quote for {{ product.title }}</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="quote-request-form" novalidate>
-          <div class="form-group">
-            <label for="quote-first-name">First Name *</label>
-            <input
-              type="text"
-              id="quote-first-name"
-              name="first_name"
-              class="form-control"
-              required
-              placeholder="Enter your first name"
-            >
-            <div class="invalid-feedback">First name is required.</div>
-          </div>
-          <div class="form-group">
-            <label for="quote-last-name">Last Name *</label>
-            <input
-              type="text"
-              id="quote-last-name"
-              name="last_name"
-              class="form-control"
-              required
-              placeholder="Enter your last name"
-            >
-            <div class="invalid-feedback">Last name is required.</div>
-          </div>
-          <div class="form-group">
-            <label for="quote-email">Email *</label>
-            <input
-              type="email"
-              id="quote-email"
-              name="email"
-              class="form-control"
-              required
-              placeholder="Enter your email"
-            >
-            <div class="invalid-feedback">A valid email is required.</div>
-          </div>
-          <div class="form-group">
-            <label for="quote-phone">Phone *</label>
-            <input
-              type="tel"
-              id="quote-phone"
-              name="phone"
-              class="form-control"
-              required
-              placeholder="Enter your phone number"
-              pattern="[0-9]{10,15}"
-            >
-            <div class="invalid-feedback">Please enter a valid phone number (10-15 digits).</div>
-          </div>
-          <input
-            type="hidden"
-            name="product_title"
-            value="{{ product.title | escape }}"
-          >
-          <input
-            type="hidden"
-            name="collection_handle"
-            value="{% for collection in product.collections %}{{ collection.handle }}{% break %}{% endfor %}"
-          >
-          <input
-            type="hidden"
-            name="variant_id"
-            value="{{ product.selected_or_first_available_variant.id }}"
-          >
-          <button type="submit" class="btn btn-lg btn-primary" id="quote-submit-btn">
-            <span class="btn-text">Submit Quote Request</span>
-            <span class="btn-loading" style="display: none;">Loading...</span>
-          </button>
-        </form>
-        <div id="quote-form-message" class="mt-3"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 {%- if settings.first_variant_column_is_image -%}
   {%- capture piffc_src -%}{%- include 'get_product_images_from_first_column' -%}{%- endcapture -%}
 {%- endif -%}
-
-<style>
-  .btn-loading {
-    display: inline-block;
-    font-size: 14px;
-  }
-  .btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-</style>
 
 <script>
   $(function() {
@@ -533,222 +401,42 @@
     }
     changeBuyNowName();
 
-    /* Quote Request Form Submission */
-    $('#quote-request-form').on('submit', function(e) {
-      e.preventDefault();
-      var $form = $(this);
-      var $message = $('#quote-form-message');
-      var $submitBtn = $('#quote-submit-btn');
-      var $btnText = $submitBtn.find('.btn-text');
-      var $btnLoading = $submitBtn.find('.btn-loading');
-      $message.empty();
-
-      // Client-side validation
-      var isValid = true;
-      $form.find('input[required]').each(function() {
-        if (!$(this).val()) {
-          $(this).addClass('is-invalid');
-          isValid = false;
-        } else {
-          $(this).removeClass('is-invalid');
-        }
-      });
-      var email = $form.find('#quote-email').val();
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        $form.find('#quote-email').addClass('is-invalid');
-        isValid = false;
-      }
-      var phone = $form.find('#quote-phone').val();
-      if (phone && !/^[0-9]{10,15}$/.test(phone)) {
-        $form.find('#quote-phone').addClass('is-invalid');
-        isValid = false;
-      }
-
-      if (!isValid) {
-        $message.html('<div class="alert alert-danger">Please fill out all required fields correctly.</div>');
-        return;
-      }
-
-      // Show loading state
-      $submitBtn.prop('disabled', true);
-      $btnText.hide();
-      $btnLoading.show();
-
-      // Prepare form data
-      var formData = {
-        first_name: $form.find('#quote-first-name').val(),
-        last_name: $form.find('#quote-last-name').val(),
-        email: email,
-        phone: phone,
-        product_title: $form.find('input[name="product_title"]').val(),
-        collection_handle: $form.find('input[name="collection_handle"]').val(),
-        variant_id: $form.find('input[name="variant_id"]').val()
-      };
-
-      // AJAX submission to Render server
-      $.ajax({
-        url: 'https://waldoch-rebate-popup.onrender.com/api/quote',
-        type: 'POST',
-        data: JSON.stringify(formData),
-        contentType: 'application/json',
-        success: function(response) {
-          $message.html('<div class="alert alert-success">' + (response.message || 'Quote request submitted successfully!') + '</div>');
-          $form[0].reset();
-          setTimeout(function() {
-            $('#modalQuoteRequest').modal('hide');
-            $message.empty();
-          }, 3000);
-        },
-        error: function(xhr) {
-          var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred. Please try again.';
-          $message.html('<div class="alert alert-danger">' + errorMsg + '</div>');
-        },
-        complete: function() {
-          // Reset button state
-          $submitBtn.prop('disabled', false);
-          $btnText.show();
-          $btnLoading.hide();
-        }
-      });
-    });
-
-    /* Swatches */
+    /* Simplified product page logic (no variants) */
     function productPageJsonLoaded(json_data) {
       var str = '{{ piffc_src | replace: "'", "\\'" }}';
-      var sw_history = Boolean({{ item.history }});
-      var show_unavailable_options = $('.show_unavailable_variants').length > 0;
       var cur_opt = str != '' ? JSON.parse(str) : '';
       var full_opt = cur_opt != '' ? $.extend(texture_obj, cur_opt) : texture_obj;
-      _selectedByDefault = {% if item.use_select_button %}!(location.search == ''){% else %}true{% endif %};
-      var group1 = new SwatchesConstructor(json_data, {
-        contentParent: '.tt-swatches-container-js',
-        enableHistoryState: sw_history,
-        callback: productPageVariant,
-        externalImagesObject: full_opt,
-        externalColors: colors_value,
-        colorWithBorder: color_with_border,
-        productHandle: '{{ product.handle }}',
-        designOption1: '{{ item.designoption1 }}',
-        designOption2: '{{ item.designoption2 }}',
-        designOption3: '{{ item.designoption3 }}',
-        selectedByDefault: _selectedByDefault,
-        show_unavailable_options: show_unavailable_options
-      });
 
-      $('body').on('change', '.tt-fixed-product-wrapper select', function(e) {
-        group1.initSwatches($(this).val());
-        sw_history && history.pushState(null, null, location.pathname + '?variant=' + $(this).val());
-        $('[name="id"]').val($(this).val());
-        $('.tt-fixed-product-wrapper').find('.btn').replaceWith($('.btn-addtocart').first().clone().removeClass('btn-lg btn-addtocart addtocart-js'));
-      });
-
-      json_data = null;
-    }
-
-    function productPageVariant(variant, product) {
-      var _parent = $('.tt-product-single-info');
-      var _swatch = _parent.find('.tt-swatches-container-js');
-
-      swatchVariantHandler(_parent, variant);
-
-      var sc = $('.tt-swatches-container');
-      if (location.search == '' && $('.select_options').length && !sc.find('.active').length && _swatch.children().length) {
-        return false;
-      }
-
-      if (_parent.find('.select_options').length) {
-        _parent.find('.select_options').removeClass('select_options');
-        $(window).trigger('resize');
-      }
-
-      swatchVariantButtonHandler(_parent, variant);
-
-      var g = $('#smallGallery');
-      var filter = '.filter' + variant.options[0].split(' ').join('_');
-      if ($('.four-images-js').length == 0 && $('.product-images-static').length == 0 && g.hasClass('withfiltres') && g.attr('data-cur') != filter) {
-        g.attr('data-cur', filter);
-        g.slick('slickUnfilter').slick('slickFilter', filter);
-      }
-
-      var img_id = variant.featured_image ? variant.featured_image.id : 'none';
+      // Set default image
+      var $container = $("#smallGallery");
+      var img_id = json_data.featured_image ? json_data.featured_image.id : 'none';
       var target = img_id == 'none' ? $("[data-slick-index=0]").children() : $("[data-target=" + img_id + "]");
       var num = target.last().parent().attr('data-slick-index');
 
-      var $container = $("#smallGallery");
-      $('.four-images-js').length == 0 && $('.product-images-static').length == 0 && setDefaultSlider(variant, num, $container, target);
-      $container = $('.slider-scroll-product');
-      setScrollSlider(num, $container);
-
-      g = $('.tt-mobile-product-slider');
-      if (num && g.length && g.hasClass('slick-initialized')) {
-        var filter = '.filter' + variant.options[0].split(' ').join('_');
-        if (g.hasClass('withfiltres') && g.attr('data-cur') != filter) {
-          g.attr('data-cur', filter);
-          g.slick('slickUnfilter').slick('slickFilter', filter);
-        }
-        g.slick('slickGoTo', num, true);
-      }
-
-      addToCartHandler.initFormAddToCartButton(variant.id, _parent, _swatch);
-
-      $('.four-images-js').length && setFourSlider($('.four-images-js'), product, variant);
-
-      var buyinoneclick = _parent.find(".buyinoneclick");
-      buyinoneclick.length && buyinoneclick.removeClass("hide");
-
-      if (_parent.find('.compare-js').length) {
-        _parent.find('.compare-js').attr('data-compareid', variant.id);
-        $(window).trigger("compareevent");
-      }
-
-      var tfpw = $('.tt-fixed-product-wrapper');
-      if (tfpw.length) {
-        if (variant.featured_image) {
-          tfpw.find('img').attr('src', Shopify.resizeImage(variant.featured_image.src, 'x80'));
-        }
-
-        var s = tfpw.find('select');
-        s.val(variant.id);
-        variant.available ? s.removeClass('disabled') : s.addClass('disabled');
-
-        var v = $('.tt-product-single-info').find('.tt-input-counter').first().clone();
-        tfpw.find('.tt-input-counter').replaceWith(v);
-
-        // Update quote form variant_id when variant changes
-        $('#quote-request-form input[name="variant_id"]').val(variant.id);
-      }
-    }
-
-    function setDefaultSlider(variant, num, $container, target) {
       if (num && $container.length) {
         $container.slick('slickGoTo', num, true);
         $container.find('.zoomGalleryActive').removeClass('zoomGalleryActive');
         target.addClass('zoomGalleryActive');
         $(".zoom-product").attr('src', target.attr('data-image')).attr('data-zoom-image', target.attr('data-zoom-image'));
-      } else {
-        variant.featured_image && $(".zoom-product").attr('src', variant.featured_image.src).attr('data-zoom-image', variant.featured_image.src);
+      } else if (json_data.featured_image) {
+        $(".zoom-product").attr('src', json_data.featured_image.src).attr('data-zoom-image', json_data.featured_image.src);
       }
 
       !elevateZoomWidget.checkNoZoom() && elevateZoomWidget.configureZoomImage();
-    }
 
-    function setFourSlider($container, product, variant) {
-      if (product.images.length < 4 || variant.featured_image == null) return false;
+      // Update compare button if present
+      if ($('.compare-js').length) {
+        $('.compare-js').attr('data-compareid', json_data.id);
+        $(window).trigger("compareevent");
+      }
 
-      var c_img = variant.featured_image.src.replace(/https:/g, '');
-      var img_a = String(c_img + product.images.join(',').split(c_img).pop()).split(',');
+      // Update fixed product wrapper if present
+      var tfpw = $('.tt-fixed-product-wrapper');
+      if (tfpw.length && json_data.featured_image) {
+        tfpw.find('img').attr('src', Shopify.resizeImage(json_data.featured_image.src, 'x80'));
+      }
 
-      $container.find(".zoom-product").each(function(index) {
-        var src = Shopify.resizeImage(img_a[index], '600x');
-        $(this).attr('src', src);
-      });
-
-      !elevateZoomWidget.checkNoZoom() && elevateZoomWidget.configureZoomImage();
-    }
-
-    function setScrollSlider(num, $container) {
-      if (!(num && $container.length)) return false;
-      $container.slick('slickGoTo', num, true);
+      json_data = null;
     }
 
     Shopify.getProduct('{{ product.handle }}', productPageJsonLoaded);
