@@ -1,3 +1,24 @@
+{% comment %}
+  Snippet: quote-request.liquid
+  Purpose: Displays a "Request a Quote" button and modal form for products in the specified collection.
+  Usage: Include in your product template (e.g., main-product.liquid or product.liquid) with:
+    {% assign target_collection = collections['truck-parts-toppers-truck-caps'] %}
+    {% if product.collections contains target_collection %}
+      {% include 'quote-request' %}
+    {% endif %}
+  Dependencies: Requires jQuery and Bootstrap (or equivalent) for modal functionality.
+  Notes:
+  - The form submits to the specified API endpoint[](https://waldoch-rebate-popup.onrender.com/api/quote).
+  - Ensure the API endpoint is correctly configured to handle quote requests.
+  - The variant_id updates dynamically if included in the productPageVariant function.
+{% endcomment %}
+
+<div class="col-item">
+  <a href="#" data-toggle="modal" data-target="#modalQuoteRequest" class="btn btn-lg quote-request-btn">
+    Request a Quote for {{ product.title }}
+  </a>
+</div>
+
 <!-- Quote Request Modal -->
 <div class="modal fade" id="modalQuoteRequest" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -67,7 +88,12 @@
           <input
             type="hidden"
             name="collection_handle"
-            value="{% for collection in product.collections %}{{ collection.handle }}{% break %}{% endfor %}"
+            value="{{ target_collection.handle }}"
+          >
+          <input
+            type="hidden"
+            name="variant_id"
+            value="{{ product.selected_or_first_available_variant.id }}"
           >
           <button type="submit" class="btn btn-lg btn-primary" id="quote-submit-btn">
             <span class="btn-text">Submit Quote Request</span>
@@ -79,3 +105,121 @@
     </div>
   </div>
 </div>
+
+<style>
+  .btn-loading {
+    display: inline-block;
+    font-size: 14px;
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .quote-request-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .quote-request-btn:hover {
+    background-color: #0056b3;
+    color: #fff;
+    text-decoration: none;
+  }
+  .form-control.is-invalid {
+    border-color: #dc3545;
+  }
+  .invalid-feedback {
+    display: none;
+    color: #dc3545;
+    font-size: 12px;
+  }
+  .is-invalid ~ .invalid-feedback {
+    display: block;
+  }
+</style>
+
+<script>
+  $(function() {
+    $('#quote-request-form').on('submit', function(e) {
+      e.preventDefault();
+      var $form = $(this);
+      var $message = $('#quote-form-message');
+      var $submitBtn = $('#quote-submit-btn');
+      var $btnText = $submitBtn.find('.btn-text');
+      var $btnLoading = $submitBtn.find('.btn-loading');
+      $message.empty();
+
+      // Client-side validation
+      var isValid = true;
+      $form.find('input[required]').each(function() {
+        if (!$(this).val()) {
+          $(this).addClass('is-invalid');
+          isValid = false;
+        } else {
+          $(this).removeClass('is-invalid');
+        }
+      });
+      var email = $form.find('#quote-email').val();
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        $form.find('#quote-email').addClass('is-invalid');
+        isValid = false;
+      }
+      var phone = $form.find('#quote-phone').val();
+      if (phone && !/^[0-9]{10,15}$/.test(phone)) {
+        $form.find('#quote-phone').addClass('is-invalid');
+        isValid = false;
+      }
+
+      if (!isValid) {
+        $message.html('<div class="alert alert-danger">Please fill out all required fields correctly.</div>');
+        return;
+      }
+
+      // Show loading state
+      $submitBtn.prop('disabled', true);
+      $btnText.hide();
+      $btnLoading.show();
+
+      // Prepare form data
+      var formData = {
+        first_name: $form.find('#quote-first-name').val(),
+        last_name: $form.find('#quote-last-name').val(),
+        email: email,
+        phone: phone,
+        product_title: $form.find('input[name="product_title"]').val(),
+        collection_handle: $form.find('input[name="collection_handle"]').val(),
+        variant_id: $form.find('input[name="variant_id"]').val()
+      };
+
+      // AJAX submission to API
+      $.ajax({
+        url: 'https://waldoch-rebate-popup.onrender.com/api/quote',
+        type: 'POST',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function(response) {
+          $message.html('<div class="alert alert-success">' + (response.message || 'Quote request submitted successfully!') + '</div>');
+          $form[0].reset();
+          setTimeout(function() {
+            $('#modalQuoteRequest').modal('hide');
+            $message.empty();
+          }, 3000);
+        },
+        error: function(xhr) {
+          var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred. Please try again.';
+          $message.html('<div class="alert alert-danger">' + errorMsg + '</div>');
+        },
+        complete: function() {
+          $submitBtn.prop('disabled', false);
+          $btnText.show();
+          $btnLoading.hide();
+        }
+      });
+    });
+  });
+</script>
