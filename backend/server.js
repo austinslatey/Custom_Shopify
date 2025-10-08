@@ -9,14 +9,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({ origin: `${process.env.SHOPIFY_SHOP}` })); // Restrict to your Shopify store
+app.use(cors({ origin: process.env.SHOPIFY_SHOP }));
 app.use(express.json()); // Parse JSON bodies
 
 // SendGrid setup
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Shopify API base URL
-const SHOPIFY_API_URL = `${process.env.ADMIN_SHOP}/admin/api/2024-07`;
+// Shopify GraphQL API URL
+const SHOPIFY_API_URL = `${process.env.ADMIN_URL}`;
 
 // POST /api/quote endpoint
 app.post("/api/quote", async (req, res) => {
@@ -36,23 +36,50 @@ app.post("/api/quote", async (req, res) => {
       return res.status(400).json({ error: "Invalid phone number (10-15 digits)" });
     }
 
-    // Optional: Fetch product details from Shopify
+    // Optional: Fetch product details from Shopify GraphQL
     let productDetails = {};
     try {
-      const response = await fetch(`${SHOPIFY_API_URL}/products/${product_id}.json`, {
+      const query = `
+        query {
+          product(id: "gid://shopify/Product/${product_id}") {
+            vendor
+            variants(first: 1) {
+              edges {
+                node {
+                  price {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        }
+      `;
+      const response = await fetch(SHOPIFY_API_URL, {
+        method: "POST",
         headers: {
           "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ query }),
       });
       if (response.ok) {
         const data = await response.json();
-        productDetails = {
-          vendor: data.product?.vendor || "N/A",
-          price: data.product?.variants[0]?.price || "N/A",
-        };
+        if (data.errors) {
+          console.error("GraphQL errors:", data.errors);
+        } else {
+          const product = data.data.product;
+          productDetails = {
+            vendor: product?.vendor || "N/A",
+            price: product?.variants.edges[0]?.node.price.amount || "N/A",
+          };
+        }
+      } else {
+        console.error("Shopify API error:", response.status, response.statusText);
       }
     } catch (shopifyErr) {
-      console.error("Shopify fetch error:", shopifyErr);
+      console.error("Shopify GraphQL fetch error:", shopifyErr);
       // Continue without product details
     }
 
@@ -77,7 +104,12 @@ app.post("/api/quote", async (req, res) => {
     };
 
     // Send email via SendGrid
-    await sgMail.send(emailData);
+    try {
+      await sgMail.send(emailData);
+    } catch (emailErr) {
+      console.error("SendGrid error:", emailErr.response?.body || emailErr);
+      return res.status(500).json({ error: "Failed to send email" });
+    }
 
     res.json({ message: "Quote request submitted successfully!" });
   } catch (error) {
