@@ -6,166 +6,174 @@
   Notes: Sends product_id instead of variant_id. Uses new server URL. Validates phone numbers with special characters.
 {% endcomment %}
 
-<div class="col-item">
-  <a href="#" data-toggle="modal" data-target="#modalQuoteRequest" class="btn btn-lg quote-request-btn">
+<div class="col-item" style="padding: 0 1rem;">
+  <a href="#" data-toggle="modal" data-target="#modalQuoteRequest" class="quote-request-btn" style="display: block; background-color: #007bff; color: #fff; padding: 0.75rem 1.5rem; text-align: center; border-radius: 0.375rem; font-size: 1.125rem; font-weight: 500; transition: background-color 0.2s; width: 100%; box-sizing: border-box; text-decoration: none;">
     Request a Quote for {{ product.title }}
   </a>
 </div>
 
 <!-- Quote Request Modal -->
 <div class="modal fade" id="modalQuoteRequest" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 32rem;">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Request a Quote for {{ product.title }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+                <h5 class="modal-title" style="font-size: 1.25rem; font-weight: 600;">Request a Quote for {{ product.title }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #6c757d; font-size: 1.5rem;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form id="quote-request-form" novalidate>
-                    <div class="form-group">
-                        <label for="quote-first-name">First Name *</label>
-                        <input type="text" id="quote-first-name" name="first_name" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="Enter your first name">
-                        <div class="invalid-feedback">First name is required.</div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="quote-request-form" novalidate style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Personal Information -->
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="quote-first-name" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">First Name *</label>
+                            <input type="text" id="quote-first-name" name="first_name" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" required placeholder="Enter your first name">
+                            <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">First name is required.</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="quote-last-name" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Last Name *</label>
+                            <input type="text" id="quote-last-name" name="last_name" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" required placeholder="Enter your last name">
+                            <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Last name is required.</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="quote-last-name">Last Name *</label>
-                        <input type="text" id="quote-last-name" name="last_name" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="Enter your last name">
-                        <div class="invalid-feedback">Last name is required.</div>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="quote-email" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Email *</label>
+                            <input type="email" id="quote-email" name="email" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" required placeholder="Enter your email">
+                            <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">A valid email is required.</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="quote-phone" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Phone *</label>
+                            <input type="tel" id="quote-phone" name="phone" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" required placeholder="Enter your phone number">
+                            <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Please enter a valid phone number (10-15 digits).</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="quote-email">Email *</label>
-                        <input type="email" id="quote-email" name="email" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="Enter your email">
-                        <div class="invalid-feedback">A valid email is required.</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="quote-phone">Phone *</label>
-                        <input type="tel" id="quote-phone" name="phone" class="form-control avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" required placeholder="e.g., +1 (111) 111-1111">
-                        <div class="invalid-feedback">Please enter a valid phone number (10-15 digits, optional + prefix, parentheses, spaces, or hyphens).</div>
+                    <!-- Vehicle Information -->
+                    <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem;">
+                        <h6 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Vehicle Information</h6>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label for="vehicle-make" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Vehicle Make *</label>
+                                <select id="vehicle-make" name="Vehicle Make" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" autocomplete="off" required>
+                                    <option value="" disabled selected>Please select a make</option>
+                                    <option value="Chevrolet">Chevrolet</option>
+                                    <option value="Dodge/Ram">Dodge/Ram</option>
+                                    <option value="Ford">Ford</option>
+                                    <option value="GMC">GMC</option>
+                                    <option value="Toyota">Toyota</option>
+                                </select>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Vehicle make is required.</div>
+                            </div>
+                            <div class="form-group model-dropdown" id="chevrolet-models" style="display: none;">
+                                <label for="chevrolet-model" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Chevrolet Model *</label>
+                                <select id="chevrolet-model" name="Vehicle Model" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" autocomplete="off">
+                                    <option value="" disabled selected>Please select a model</option>
+                                    <option value="Silverado 1500">Silverado 1500</option>
+                                    <option value="Silverado 2500HD">Silverado 2500HD</option>
+                                    <option value="Silverado 3500HD">Silverado 3500HD</option>
+                                    <option value="Colorado">Colorado</option>
+                                </select>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Model is required.</div>
+                            </div>
+                            <div class="form-group model-dropdown" id="dodge-ram-models" style="display: none;">
+                                <label for="dodge-ram-model" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Dodge/Ram Model *</label>
+                                <select id="dodge-ram-model" name="Vehicle Model" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" autocomplete="off">
+                                    <option value="" disabled selected>Please select a model</option>
+                                    <option value="Ram 1500">Ram 1500</option>
+                                    <option value="Ram 2500">Ram 2500</option>
+                                    <option value="Ram 3500">Ram 3500</option>
+                                </select>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Model is required.</div>
+                            </div>
+                            <div class="form-group model-dropdown" id="ford-models" style="display: none;">
+                                <label for="ford-model" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Ford Model *</label>
+                                <select id="ford-model" name="Vehicle Model" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" autocomplete="off">
+                                    <option value="" disabled selected>Please select a model</option>
+                                    <option value="F-150">F-150</option>
+                                    <option value="F-250 Super Duty">F-250 Super Duty</option>
+                                    <option value="F-350 Super Duty">F-350 Super Duty</option>
+                                    <option value="Ranger">Ranger</option>
+                                </select>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Model is required.</div>
+                            </div>
+                            <div class="form-group model-dropdown" id="gmc-models" style="display: none;">
+                                <label for="gmc-model" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">GMC Model *</label>
+                                <select id="gmc-model" name="Vehicle Model" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" autocomplete="off">
+                                    <option value="" disabled selected>Please select a model</option>
+                                    <option value="Sierra 1500">Sierra 1500</option>
+                                    <option value="Sierra 2500HD">Sierra 2500HD</option>
+                                    <option value="Sierra 3500HD">Sierra 3500HD</option>
+                                    <option value="Canyon">Canyon</option>
+                                </select>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Model is required.</div>
+                            </div>
+                            <div class="form-group model-dropdown" id="toyota-models" style="display: none;">
+                                <label for="toyota-model" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Toyota Model *</label>
+                                <select id="toyota-model" name="Vehicle Model" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" autocomplete="off">
+                                    <option value="" disabled selected>Please select a model</option>
+                                    <option value="Tacoma">Tacoma</option>
+                                    <option value="Tundra">Tundra</option>
+                                </select>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Model is required.</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicle-year" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Vehicle Year *</label>
+                                <input type="number" id="vehicle-year" name="Vehicle Year" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" placeholder="Enter vehicle year (e.g., 2023)" min="1900" max="2026" required>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Please enter a valid year (1900-2026).</div>
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicle-vin" style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">VIN Number *</label>
+                                <input type="text" id="vehicle-vin" name="VIN Number" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" placeholder="Enter VIN (17 characters)" pattern="[A-HJ-NPR-Z0-9]{17}" maxlength="17" required>
+                                <div class="invalid-feedback" style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Please enter a valid 17-character VIN.</div>
+                            </div>
+                        </div>
                     </div>
                     <input type="hidden" name="product_title" value="{{ product.title | escape }}">
                     <input type="hidden" name="collection_handle" value="{{ target_collection.handle }}">
                     <input type="hidden" name="product_id" value="{{ product.id }}">
-                    <div class="form-group">
-                        <label for="vehicle-make">Vehicle Make *</label>
-                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="vehicle-make" name="Vehicle Make" autocomplete="off" field-name="Vehicle Make" data-type="select" required>
-                            <option value="" disabled selected>Please Select an option</option>
-                            <option value="Chevrolet">Chevrolet</option>
-                            <option value="Dodge/Ram">Dodge/Ram</option>
-                            <option value="Ford">Ford</option>
-                            <option value="GMC">GMC</option>
-                            <option value="Toyota">Toyota</option>
-                        </select>
-                    </div>
-                    <!-- Model Dropdowns -->
-                    <div class="form-group model-dropdown" id="chevrolet-models" style="display: none;">
-                        <label for="chevrolet-model">Chevrolet Model *</label>
-                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="chevrolet-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
-                            <option value="" disabled selected>Please Select a model</option>
-                            <option value="Silverado 1500">Silverado 1500</option>
-                            <option value="Silverado 2500HD">Silverado 2500HD</option>
-                            <option value="Silverado 3500HD">Silverado 3500HD</option>
-                            <option value="Colorado">Colorado</option>
-                        </select>
-                    </div>
-                    <div class="form-group model-dropdown" id="dodge-ram-models" style="display: none;">
-                        <label for="dodge-ram-model">Dodge/Ram Model *</label>
-                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="dodge-ram-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
-                            <option value="" disabled selected>Please Select a model</option>
-                            <option value="Ram 1500">Ram 1500</option>
-                            <option value="Ram 2500">Ram 2500</option>
-                            <option value="Ram 3500">Ram 3500</option>
-                        </select>
-                    </div>
-                    <div class="form-group model-dropdown" id="ford-models" style="display: none;">
-                        <label for="ford-model">Ford Model *</label>
-                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="ford-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
-                            <option value="" disabled selected>Please Select a model</option>
-                            <option value="F-150">F-150</option>
-                            <option value="F-250 Super Duty">F-250 Super Duty</option>
-                            <option value="F-350 Super Duty">F-350 Super Duty</option>
-                            <option value="Ranger">Ranger</option>
-                        </select>
-                    </div>
-                    <div class="form-group model-dropdown" id="gmc-models" style="display: none;">
-                        <label for="gmc-model">GMC Model *</label>
-                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="gmc-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
-                            <option value="" disabled selected>Please Select a model</option>
-                            <option value="Sierra 1500">Sierra 1500</option>
-                            <option value="Sierra 2500HD">Sierra 2500HD</option>
-                            <option value="Sierra 3500HD">Sierra 3500HD</option>
-                            <option value="Canyon">Canyon</option>
-                        </select>
-                    </div>
-                    <div class="form-group model-dropdown" id="toyota-models" style="display: none;">
-                        <label for="toyota-model">Toyota Model *</label>
-                        <select class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="toyota-model" name="Vehicle Model" autocomplete="off" field-name="Vehicle Model" data-type="select">
-                            <option value="" disabled selected>Please Select a model</option>
-                            <option value="Tacoma">Tacoma</option>
-                            <option value="Tundra">Tundra</option>
-                        </select>
-                    </div>
-                    <!-- Year Input -->
-                    <div class="form-group">
-                        <label for="vehicle-year">Vehicle Year *</label>
-                        <input type="number" class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="vehicle-year" name="Vehicle Year" autocomplete="off" field-name="Vehicle Year" placeholder="Enter vehicle year (e.g., 2023)" min="1900" max="2026" required>
-                        <div class="invalid-feedback">Please enter a valid year (1900-2026).</div>
-                    </div>
-                    <!-- VIN Number Input -->
-                    <div class="form-group">
-                        <label for="vehicle-vin">VIN Number *</label>
-                        <input type="text" class="avp-productdescfont avp-productoptiontextcolor avp-productoptionbackground" id="vehicle-vin" name="VIN Number" autocomplete="off" field-name="VIN Number" placeholder="Enter VIN (17 characters)" pattern="[A-HJ-NPR-Z0-9]{17}" maxlength="17" required>
-                        <div class="invalid-feedback">Please enter a valid 17-character VIN.</div>
-                    </div>
-                    <button type="submit" id="quote-submit-btn" class="btn btn-primary">
+                    <button type="submit" id="quote-submit-btn" class="btn btn-primary" style="width: 100%; background-color: #007bff; color: #fff; padding: 0.75rem; border-radius: 0.375rem; font-size: 1rem; font-weight: 500; transition: background-color 0.2s;">
                         <span class="btn-text">Submit Quote Request</span>
                         <span class="btn-loading" style="display: none;">Submitting...</span>
                     </button>
                 </form>
-                <div id="quote-form-message" class="mt-3"></div>
+                <div id="quote-form-message" style="margin-top: 1rem;"></div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-  .btn-loading {
-    display: inline-block;
-    font-size: 14px;
-  }
-  .btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  .quote-request-btn {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    text-align: center;
-    display: inline-block;
-    width: 100%;
-    box-sizing: border-box;
-  }
   .quote-request-btn:hover {
     background-color: #0056b3;
     color: #fff;
     text-decoration: none;
   }
-  .form-control.is-invalid, .avp-productdescfont.is-invalid {
-    border-color: #dc3545;
+  .btn-loading {
+    display: inline-block;
+    font-size: 0.875rem;
   }
-  .invalid-feedback {
-    display: none;
-    color: #dc3545;
-    font-size: 12px;
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .is-invalid {
+    border-color: #dc3545 !important;
   }
   .is-invalid ~ .invalid-feedback {
     display: block;
   }
-  .model-dropdown {
-    margin-top: 10px;
+  input:focus, select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+  @media (min-width: 640px) {
+    .modal-body > form > div:nth-child(1),
+    .modal-body > form > div:nth-child(2),
+    .modal-body > form > div:nth-child(3) > div {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 </style>
 
@@ -173,7 +181,7 @@
   $(function() {
     // Show/hide model dropdowns based on selected make
     $('#vehicle-make').on('change', function() {
-      $('.model-dropdown').hide(); // Hide all model dropdowns
+      $('.model-dropdown').hide();
       var selectedMake = $(this).val();
       if (selectedMake) {
         $('#' + selectedMake.toLowerCase().replace('/', '-') + '-models').show();
@@ -207,9 +215,9 @@
         isValid = false;
       }
 
-      // Phone validation (allows + prefix, parentheses, spaces, hyphens)
+      // Phone validation
       var phone = $form.find('#quote-phone').val();
-      const digitsOnly = phone.replace(/[^0-9]/g, ''); // Extract only digits
+      const digitsOnly = phone.replace(/[^0-9]/g, '');
       if (!/^\+?[0-9\s\(\)-]{10,20}$/.test(phone) || digitsOnly.length < 10 || digitsOnly.length > 15) {
         $form.find('#quote-phone').addClass('is-invalid');
         isValid = false;
@@ -217,7 +225,7 @@
         $form.find('#quote-phone').removeClass('is-invalid');
       }
 
-      // Model validation (ensure a model is selected if a make is chosen)
+      // Model validation
       var selectedMake = $form.find('#vehicle-make').val();
       var selectedModel = $form.find('.model-dropdown:visible select').val();
       if (selectedMake && !selectedModel) {
@@ -225,8 +233,22 @@
         isValid = false;
       }
 
+      // Year validation
+      var year = $form.find('#vehicle-year').val();
+      if (year < 1900 || year > 2026) {
+        $form.find('#vehicle-year').addClass('is-invalid');
+        isValid = false;
+      }
+
+      // VIN validation
+      var vin = $form.find('#vehicle-vin').val();
+      if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+        $form.find('#vehicle-vin').addClass('is-invalid');
+        isValid = false;
+      }
+
       if (!isValid) {
-        $message.html('<div class="alert alert-danger">Please fill out all required fields correctly.</div>');
+        $message.html('<div style="color: #dc3545; background-color: #fee2e2; border: 1px solid #f5c2c7; padding: 0.75rem; border-radius: 0.375rem;">Please fill out all required fields correctly.</div>');
         return;
       }
 
@@ -246,18 +268,18 @@
         product_id: $form.find('input[name="product_id"]').val(),
         vehicle_make: $form.find('#vehicle-make').val(),
         vehicle_model: selectedModel,
-        vehicle_year: $form.find('#vehicle-year').val(),
-        vin_number: $form.find('#vehicle-vin').val()
+        vehicle_year: year,
+        vin_number: vin
       };
 
-      // AJAX submission to new Render server
+      // AJAX submission
       $.ajax({
         url: 'https://custom-shopify.onrender.com/api/quote',
         type: 'POST',
         data: JSON.stringify(formData),
         contentType: 'application/json',
         success: function(response) {
-          $message.html('<div class="alert alert-success">' + (response.message || 'Quote request submitted successfully!') + '</div>');
+          $message.html('<div style="color: #166534; background-color: #dcfce7; border: 1px solid #bbffb3; padding: 0.75rem; border-radius: 0.375rem;">' + (response.message || 'Quote request submitted successfully!') + '</div>');
           $form[0].reset();
           $('.model-dropdown').hide();
           setTimeout(function() {
@@ -267,7 +289,7 @@
         },
         error: function(xhr) {
           var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred. Please try again.';
-          $message.html('<div class="alert alert-danger">' + errorMsg + '</div>');
+          $message.html('<div style="color: #dc3545; background-color: #fee2e2; border: 1px solid #f5c2c7; padding: 0.75rem; border-radius: 0.375rem;">' + errorMsg + '</div>');
         },
         complete: function() {
           $submitBtn.prop('disabled', false);
