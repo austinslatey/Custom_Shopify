@@ -1,9 +1,9 @@
 {% comment %}
   Snippet: quote-request.liquid
-  Purpose: Displays a "Request a Quote" button and modal form for products in the specified collection.
-  Usage: Included in product template for truck-parts-toppers-truck-caps collection.
+  Purpose: Displays a "Request a Quote" button and modal form for products in the truck-parts-toppers-truck-caps collection.
+  Usage: Included in product template.
   Dependencies: Requires jQuery and Bootstrap for modal functionality.
-  Notes: Sends product_id instead of variant_id to match server without variants.
+  Notes: Sends product_id instead of variant_id to match server without variants. Uses new server URL.
 {% endcomment %}
 
 <div class="col-item">
@@ -191,7 +191,7 @@
 
       // AJAX submission to new Render server
       $.ajax({
-        url: 'https://waldoch-quote-api-new.onrender.com/api/quote',
+        url: 'https://custom-shopify.onrender.com/api/quote',
         type: 'POST',
         data: JSON.stringify(formData),
         contentType: 'application/json',
