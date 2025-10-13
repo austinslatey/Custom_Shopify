@@ -26,10 +26,12 @@ app.post("/api/quote", async (req, res) => {
             product_title,
             product_id,
             sku,
+            collection_handle,
             vehicle_make,
             vehicle_model,
             vehicle_year,
-            vin_number
+            vin_number,
+            message // Optional
         } = req.body;
 
         // Validation
@@ -69,6 +71,7 @@ app.post("/api/quote", async (req, res) => {
         <p><strong>Vehicle Model:</strong> ${vehicle_model}</p>
         <p><strong>Vehicle Year:</strong> ${vehicle_year}</p>
         <p><strong>VIN:</strong> ${vin_number}</p>
+        ${message ? `<p><strong>Message:</strong> ${message}</p>` : ''}
         <hr>
         <p>Thank you,</p>
         <p>The Waldoch Team</p>
@@ -101,6 +104,7 @@ app.post("/api/quote", async (req, res) => {
         <p>Vehicle Model: ${vehicle_model}</p>
         <p>Vehicle Year: ${vehicle_year}</p>
         <p>VIN: ${vin_number}</p>
+        ${message ? `<p>Message: ${message}</p>` : ''}
         <hr>
         <p>Best regards,</p>
         <p>The Waldoch Team</p>
@@ -128,7 +132,8 @@ app.post("/api/quote", async (req, res) => {
                 { name: "vehicle_type", value: vehicle_model }, // vehicle_model maps to vehicle_type
                 { name: "vehicle_year", value: vehicle_year },
                 { name: "vehicle_vin", value: vin_number },
-                { name: "product_name", value: sku } // sku maps to product_name
+                { name: "product_name", value: sku }, // sku maps to product_name
+                ...(message ? [{ name: "message", value: message }] : []) // Include message if provided
             ],
             context: {
                 pageUri: req.headers.referer || "https://www.waldoch.com",
