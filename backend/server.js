@@ -239,6 +239,7 @@ app.post("/api/quote", async (req, res) => {
       memo: message || "No message provided",
     };
 
+    console.log("Server system time:", new Date().toISOString());
     console.log("NetSuite request timestamp:", new Date().toISOString());
     console.log("NetSuite payload:", JSON.stringify(netsuitePayload, null, 2));
     console.log("OAuth headers:", oauth.toHeader(oauth.authorize(requestData, token)));
