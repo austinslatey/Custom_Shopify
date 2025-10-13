@@ -4,7 +4,7 @@ import cors from "cors";
 import sgMail from "@sendgrid/mail";
 import axios from "axios";
 import OAuth from "oauth-1.0a";
-import crypto from "crypto";
+import crypto from "crypto"; // Uses Node.js built-in crypto module
 
 dotenv.config();
 const app = express();
@@ -38,6 +38,7 @@ app.post("/api/quote", async (req, res) => {
             email,
             phone,
             product_title,
+            product_id,
             sku,
             vehicle_make,
             vehicle_model,
