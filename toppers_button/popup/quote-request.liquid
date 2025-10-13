@@ -275,7 +275,8 @@
         vehicle_make: $form.find('#vehicle-make').val(),
         vehicle_model: selectedModel, // Maps to vehicle_type in HubSpot
         vehicle_year: year,
-        vin_number: vin
+        vin_number: vin,
+        message: $form.find('#quote-message').val() // Include message (optional)
       };
 
       // AJAX submission
