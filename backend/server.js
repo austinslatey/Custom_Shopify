@@ -210,13 +210,7 @@ app.post("/api/quote", async (req, res) => {
       method: "POST",
     };
 
-    console.log("NetSuite request timestamp:", new Date().toISOString());
-    console.log("NetSuite payload:", JSON.stringify(netsuitePayload, null, 2));
-    console.log("OAuth headers:", oauth.toHeader(oauth.authorize(requestData, token)));
-
-    const headers = oauth.toHeader(oauth.authorize(requestData, token));
-    headers["Content-Type"] = "application/json";
-
+    // Define netsuitePayload before logging
     const netsuitePayload = {
       customForm: "317_3461249_sb1_795",
       companyName: `${first_name} ${last_name}`,
@@ -244,6 +238,13 @@ app.post("/api/quote", async (req, res) => {
       custentity_vin_number: vin_number,
       memo: message || "No message provided",
     };
+
+    console.log("NetSuite request timestamp:", new Date().toISOString());
+    console.log("NetSuite payload:", JSON.stringify(netsuitePayload, null, 2));
+    console.log("OAuth headers:", oauth.toHeader(oauth.authorize(requestData, token)));
+
+    const headers = oauth.toHeader(oauth.authorize(requestData, token));
+    headers["Content-Type"] = "application/json";
 
     let quoteId;
     try {
