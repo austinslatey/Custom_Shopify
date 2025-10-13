@@ -26,7 +26,6 @@ app.post("/api/quote", async (req, res) => {
             product_title,
             product_id,
             sku,
-            collection_handle,
             vehicle_make,
             vehicle_model,
             vehicle_year,
@@ -129,14 +128,14 @@ app.post("/api/quote", async (req, res) => {
                 { name: "email", value: email },
                 { name: "phone", value: phone },
                 { name: "vehicle_make", value: vehicle_make },
-                { name: "vehicle_type", value: vehicle_model }, // vehicle_model maps to vehicle_type
+                { name: "vehicle_type", value: vehicle_model },
                 { name: "vehicle_year", value: vehicle_year },
                 { name: "vehicle_vin", value: vin_number },
-                { name: "product_name", value: sku }, // sku maps to product_name
-                ...(message ? [{ name: "message", value: message }] : []) // Include message if provided
+                { name: "product_name", value: sku },
+                ...(message ? [{ name: "message", value: message }] : [])
             ],
             context: {
-                pageUri: req.headers.referer || "https://www.waldoch.com",
+                pageUri: req.headers.referer || process.env.REF_URL,
                 pageName: product_title,
             },
         };
