@@ -11,6 +11,12 @@ I want the data collected inside of NetSuite
 
     Do you want each quote request to create a lead/prospect record, a custom record, or a sales transaction (Estimate/Quote) in NetSuite?
 
+    - Estimate/Quote is technically possible, I'm just not sure if an existing customer needs to exist before the Estimate/Quote data is submitted.
+
+    - I'm not sure simply setting the customer to lead/prospect in NetSuite will be enough
+
+    - A custom record may be suitable for strict data handling of this data instead of dumping it somewhere else.. Estimate/Quote or Custom Record probably would be the best options, I'm only worried about the traffic of quote submissions overcrowding the existing Estimate/Quotes workflow
+
 2. What information does your Shopify “Request a Quote” button collect?
 
     - first_name
@@ -25,9 +31,6 @@ I want the data collected inside of NetSuite
     - vehicle_year
     - vin_number
     - message
-    - product_title
-    - collection_handle
-    - product_id
     - sku
 
 3. Is this data stored in Shopify (e.g., as a draft order, metafield, or in a form app like Hulk, Globo, or a custom HTML form)?
