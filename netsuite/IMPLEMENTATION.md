@@ -75,3 +75,91 @@ Creates:
 - (Optionally) Prospect/Customer
 - (Optionally) Estimate/Quote Transaction
 ```
+
+## STEP 1: Decide What to Create in NetSuite
+### Option A — Custom Record: “Shopify Quote Request”
+
+- Safest approach for volume and workflow separation.
+
+- Data can later be reviewed, converted into a lead/prospect or Estimate manually or via workflow.
+
+- No need for a valid NetSuite customer record.
+
+#### Benefits:
+
+- Keeps sales transaction lists clean.
+
+- Allows you to add workflow approvals or email alerts in NetSuite.
+
+- Easy to expand with new fields (e.g., SKU, VIN, vehicle details).
+
+### Option B — Estimate Record
+
+- Only use if you want quotes directly accessible to your sales staff in Transactions > Sales > Estimates.
+
+- You’ll need to link to a Customer/Prospect.
+
+- If the customer doesn’t exist, the RESTlet must first create one (using record.create({ type: record.Type.CUSTOMER })).
+
+#### Note: 
+
+NetSuite allows Estimate creation under a Prospect or Lead, but it still needs a valid customer record.
+
+## STEP 2: Build a SuiteScript 2.1 RESTlet
+
+Example File Name: `/SuiteScripts/ShopifyQuoteRESTlet.js`
+
+Implementation example is located in `RESTlet.js`
+
+## STEP 3: Create the Custom Record Type in NetSuite
+
+#### Go to:
+
+`Customization → Lists, Records, & Fields → Record Types → New`
+
+#### Name:  `Shopify Quote Request`
+
+#### ID:  `customrecord_shopify_quote_request`
+
+Add custom fields for each form value (e.g., `custrecord_first_name`, `custrecord_vehicle_make`, etc.)
+
+#### Enable:
+
+- “Allow UI Access”
+
+- “Available for SuiteScript”
+
+- “Include in Search”
+
+#### Optional:
+Add a workflow or saved search email alert to notify Sales when a new record is created.
+
+
+## Step 4: Deploy the RESTlet
+
+#### Go to: `Customization → Scripting → Scripts → New`
+
+1. Upload your file.
+
+2. Create Script Record → RESTlet.
+
+3. Add a Script Deployment and set Status: Released.
+
+4 Note down the External URL looks like:
+`https://<account>.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=XXX&deploy=1`
+
+## Step 5: Authentication (No User Login Required)
+
+Use Token-Based Authentication (TBA) between your server and NetSuite.
+
+#### Steps:
+
+1. Enable TBA (Setup → Company → Enable Features → SuiteCloud tab).
+
+2. Create an Integration Record (Setup → Integrations → Manage Integrations → New).
+
+3. Generate Consumer Key / Consumer Secret.
+
+4. Assign a User + Role and generate Token ID / Token Secret.
+
+5. On your server, call the RESTlet using those credentials.
