@@ -1,29 +1,39 @@
-{
-    "name": "Header",
-    "settings": [
-        {
-            "type": "select",
-            "id": "header_design",
-            "label": "Header Design",
-            "options": [
-                {
-                    "value": "header_type_1",
-                    "label": "Header Type 1"
-                },
-                {
-                    "value": "header_type_2",
-                    "label": "Header Type 2"
-                },
-                {
-                    "value": "header_type_3",
-                    "label": "Header Type 3"
-                },
-                {
-                    "value": "header_type_custom",
-                    "label": "Custom Header (Simplified Dropdowns)"
-                }
-            ],
-            "default": "header_type_1"
-        }
-    ]
-}
+[
+    {
+        "name": "theme_info",
+        "theme_name": "Wokiee",
+        "theme_author": "p-themes",
+        "theme_version": "1.6.2",
+        "theme_documentation_url": "http://portotheme.com/shopify/wokiee/doc/index.html",
+        "theme_support_url": "http://www.portotheme.com/support"
+    },
+    {
+        "name": "Header",
+        "settings": [
+            {
+                "type": "select",
+                "id": "header_design",
+                "label": "Header Design",
+                "options": [
+                    {
+                        "value": "header_type_1",
+                        "label": "Header Type 1"
+                    },
+                    {
+                        "value": "header_type_2",
+                        "label": "Header Type 2"
+                    },
+                    {
+                        "value": "header_type_3",
+                        "label": "Header Type 3"
+                    },
+                    {
+                        "value": "header_type_custom",
+                        "label": "Custom Header (Simplified Dropdowns)"
+                    }
+                ],
+                "default": "header_type_1"
+            }
+        ]
+    }
+]
