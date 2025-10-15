@@ -1,0 +1,288 @@
+{% comment %}
+  Custom header for Wookie theme with simplified, dynamic dropdown menus.
+  Pulls navigation from Shopify's Main Menu (linklists.main-menu).
+  Replaces mega menu with hover-based dropdowns for TRUCKS, VANS, and WALDOCH GEAR.
+{% endcomment %}
+
+<div class="tt-header-holder">
+  <style>
+    /* Reset and base styles */
+    .tt-header-holder {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .tt-logo img {
+      max-width: 200px;
+      height: auto;
+    }
+    .tt-desctop-menu {
+      flex-grow: 1;
+      text-align: center;
+    }
+    .tt-desctop-menu nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .tt-desctop-menu nav ul li {
+      position: relative;
+      margin: 0 15px;
+    }
+    .tt-desctop-menu nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 10px;
+      display: block;
+    }
+    /* Dropdown styles */
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 100;
+      min-width: 200px;
+    }
+    .dropdown:hover .dropdown-menu {
+      display: block;
+    }
+    .dropdown-menu ul {
+      list-style: none;
+      padding: 10px 0;
+      margin: 0;
+    }
+    .dropdown-menu ul li a {
+      font-weight: normal;
+      padding: 8px 15px;
+      font-size: 14px;
+    }
+    .dropdown-menu ul li a:hover {
+      background: #f5f5f5;
+    }
+    /* Icons (Search, Cart, Account) */
+    .tt-col-obj.tt-obj-options {
+      display: flex;
+      align-items: center;
+    }
+    .tt-dropdown-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      font-size: 20px;
+    }
+    .tt-dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      padding: 10px;
+    }
+    .tt-dropdown-obj.active .tt-dropdown-menu {
+      display: block;
+    }
+    /* Mobile styles */
+    .tt-mobile-menu-toggle {
+      display: none;
+      font-size: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .tt-desctop-menu {
+        display: none;
+      }
+      .tt-desctop-menu.active {
+        display: block;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        z-index: 100;
+      }
+      .tt-desctop-menu nav ul {
+        flex-direction: column;
+      }
+      .tt-desctop-menu nav ul li {
+        margin: 10px 0;
+      }
+      .dropdown-menu {
+        position: static;
+        display: none;
+        border: none;
+        box-shadow: none;
+      }
+      .dropdown.active .dropdown-menu {
+        display: block;
+      }
+      .tt-mobile-menu-toggle {
+        display: block;
+      }
+    }
+  </style>
+
+  <!-- Logo -->
+  <div class="tt-col-obj tt-obj-logo menu-in-center" itemscope itemtype="http://schema.org/Organization">
+    <a href="/" class="tt-logo" itemprop="url">
+      <img src="https://store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_200x.png?v=1613604656" 
+           srcset="//store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_200x.png?v=1613604656 1x, //store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_400x.png?v=1613604656 2x" 
+           alt="Waldoch Logo" class="tt-retina" itemprop="logo">
+    </a>
+  </div>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="tt-mobile-menu-toggle">
+    <i class="icon-f-83"></i> <!-- Replace with Wookie theme's hamburger icon class if needed -->
+  </button>
+
+  <!-- Navigation (Dynamic from Main Menu) -->
+  <div class="tt-desctop-parent-menu tt-parent-box">
+    <div class="tt-desctop-menu">
+      <nav>
+        <ul>
+          {% for link in linklists.main-menu.links %}
+            <li{% if link.links != blank %} class="dropdown"{% endif %}>
+              <a href="{{ link.url }}">{{ link.title }}</a>
+              {% if link.links != blank %}
+                <div class="dropdown-menu">
+                  <ul>
+                    {% for child_link in link.links %}
+                      <li><a href="{{ child_link.url }}">{{ child_link.title }}</a></li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Search, Cart, Account -->
+  <div class="tt-col-obj tt-obj-options obj-move-right">
+    <!-- Search -->
+    <div class="tt-desctop-parent-search tt-parent-box">
+      <div class="tt-search tt-dropdown-obj">
+        <button class="tt-dropdown-toggle" data-tooltip="Search" data-tposition="bottom">
+          <i class="icon-f-85"></i>
+        </button>
+        <div class="tt-dropdown-menu">
+          <div class="container">
+            <form action="/search" method="get" role="search">
+              <div class="tt-col">
+                <input type="hidden" name="type" value="product">
+                <input class="tt-search-input" type="search" name="q" placeholder="SEARCH PRODUCTS..." aria-label="SEARCH PRODUCTS..." autocomplete="off">
+                <button type="submit" class="tt-btn-search"></button>
+              </div>
+              <div class="tt-col">
+                <button class="tt-btn-close icon-f-84"></button>
+              </div>
+              <div class="tt-info-text">What are you Looking for?</div>
+              <div class="search-results" style="display: none;"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Cart -->
+    <div class="tt-desctop-parent-cart tt-parent-box">
+      <div class="tt-cart tt-dropdown-obj">
+        <button class="tt-dropdown-toggle" data-tooltip="Cart" data-tposition="bottom">
+          <i class="icon-f-39"></i>
+          <span class="tt-badge-cart hide">0</span>
+        </button>
+        <div class="tt-dropdown-menu">
+          <div class="tt-mobile-add">
+            <h6 class="tt-title">SHOPPING CART</h6>
+            <button class="tt-close">CLOSE</button>
+          </div>
+          <div class="tt-dropdown-inner">
+            <div class="tt-cart-layout">
+              <div class="tt-cart-content">
+                <a href="/cart" class="tt-cart-empty" title="VIEW CART">
+                  <i class="icon-f-39"></i>
+                  <p>No Products in the Cart</p>
+                </a>
+                <div class="tt-cart-box hide">
+                  <div class="tt-cart-list"></div>
+                  <div class="tt-cart-total-row">
+                    <div class="tt-cart-total-title">TOTAL:</div>
+                    <div class="tt-cart-total-price">$0.00</div>
+                  </div>
+                  <div class="tt-cart-btn">
+                    <div class="tt-item">
+                      <a href="/checkout" class="btn">PROCEED TO CHECKOUT</a>
+                    </div>
+                    <div class="tt-item">
+                      <a href="/cart" class="btn-link-02">VIEW CART</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Account -->
+    <div class="tt-desctop-parent-account tt-parent-box">
+      <div class="tt-account tt-dropdown-obj">
+        <button class="tt-dropdown-toggle" data-tooltip="My Account" data-tposition="bottom">
+          <i class="icon-f-94"></i>
+        </button>
+        <div class="tt-dropdown-menu">
+          <div class="tt-mobile-add">
+            <button class="tt-close">Close</button>
+          </div>
+          <div class="tt-dropdown-inner">
+            <ul>
+              <li><a href="/account/login"><i class="icon-f-77"></i>Sign In</a></li>
+              <li><a href="/account/register"><i class="icon-f-94"></i>Register</a></li>
+              <li><a href="/checkout"><i class="icon-f-68"></i>Checkout</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Mobile menu toggle
+  document.querySelector('.tt-mobile-menu-toggle').addEventListener('click', function() {
+    document.querySelector('.tt-desctop-menu').classList.toggle('active');
+  });
+
+  // Dropdown toggle for mobile
+  document.querySelectorAll('.tt-desctop-menu nav ul li.dropdown').forEach(function(dropdown) {
+    dropdown.querySelector('a').addEventListener('click', function(e) {
+      if (window.innerWidth <= 768) {
+        e.preventDefault();
+        dropdown.classList.toggle('active');
+      }
+    });
+  });
+
+  // Toggle search, cart, account dropdowns
+  document.querySelectorAll('.tt-dropdown-toggle').forEach(function(toggle) {
+    toggle.addEventListener('click', function() {
+      const parent = this.parentElement;
+      parent.classList.toggle('active');
+    });
+  });
+</script>
