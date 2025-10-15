@@ -1,0 +1,34 @@
+{% comment %}
+  Modify header section in theme.liquid
+  Adding custom-header as a new option
+{% endcomment %}
+
+
+{%- if settings.header_design == 'header_type_1' -%}
+  {%- capture var_header -%}{%- section 'header-template' -%}{%- endcapture -%}
+  {{ var_header }}
+{%- elsif settings.header_design == 'header_type_2' -%}
+  {%- capture var_header -%}{%- section 'header-template-2' -%}{%- endcapture -%}
+{%- elsif settings.header_design == 'header_type_3' -%}
+  {%- capture var_header -%}{%- section 'header-template-3' -%}{%- endcapture -%}
+{%- elsif settings.header_design == 'header_type_custom' -%}
+  {%- capture var_header -%}{%- section 'custom-header' -%}{%- endcapture -%}
+{%- endif -%}
+{%- if var_header contains '<div class="CATEGORIE MOBILE"></div>' -%}
+  {%- capture var_categorie_button -%}{%- section 'categorie-button' -%}{%- endcapture -%}
+  {{ var_categorie_button | split: '[PARTMOBILE]' | first | append: '</div>' }}
+  {%- assign var_categorie_mobile = var_categorie_button
+    | split: '[PARTMOBILE]'
+    | last
+    | split: '[/PARTMOBILE]'
+    | first
+  -%}
+  {%- assign var_categorie_button = var_categorie_button | split: '[PART]' | last | split: '[/PART]' | first -%}
+  {{
+    var_header
+    | replace: '<div class="CATEGORIE MOBILE"></div>', var_categorie_mobile
+    | replace: '[CATEGORIE, PLEASE SAVE PAGE]', var_categorie_button
+  }}
+{%- else -%}
+  {{ var_header }}
+{%- endif -%}
