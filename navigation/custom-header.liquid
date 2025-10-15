@@ -2,142 +2,13 @@
   Custom header for Wookie theme with simplified, dynamic dropdown menus.
   Pulls navigation from Shopify's Main Menu (linklists.main-menu).
   Replaces mega menu with hover-based dropdowns for TRUCKS, VANS, and WALDOCH GEAR.
+  Uses Wookie's default styles for search, cart, and account icons.
 {% endcomment %}
 
-<div class="tt-header-holder">
-  <style>
-    /* Reset and base styles */
-    .tt-header-holder {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      background: #fff;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .tt-logo img {
-      max-width: 200px;
-      height: auto;
-    }
-    .tt-desctop-menu {
-      flex-grow: 1;
-      text-align: center;
-    }
-    .tt-desctop-menu nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-    }
-    .tt-desctop-menu nav ul li {
-      position: relative;
-      margin: 0 15px;
-    }
-    .tt-desctop-menu nav ul li a {
-      text-decoration: none;
-      color: #333;
-      font-size: 16px;
-      font-weight: bold;
-      padding: 10px;
-      display: block;
-    }
-    /* Dropdown styles */
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      z-index: 100;
-      min-width: 200px;
-    }
-    .dropdown:hover .dropdown-menu {
-      display: block;
-    }
-    .dropdown-menu ul {
-      list-style: none;
-      padding: 10px 0;
-      margin: 0;
-    }
-    .dropdown-menu ul li a {
-      font-weight: normal;
-      padding: 8px 15px;
-      font-size: 14px;
-    }
-    .dropdown-menu ul li a:hover {
-      background: #f5f5f5;
-    }
-    /* Icons (Search, Cart, Account) */
-    .tt-col-obj.tt-obj-options {
-      display: flex;
-      align-items: center;
-    }
-    .tt-dropdown-toggle {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 10px;
-      font-size: 20px;
-    }
-    .tt-dropdown-menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      padding: 10px;
-    }
-    .tt-dropdown-obj.active .tt-dropdown-menu {
-      display: block;
-    }
-    /* Mobile styles */
-    .tt-mobile-menu-toggle {
-      display: none;
-      font-size: 24px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-    @media (max-width: 768px) {
-      .tt-desctop-menu {
-        display: none;
-      }
-      .tt-desctop-menu.active {
-        display: block;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        width: 100%;
-        background: #fff;
-        z-index: 100;
-      }
-      .tt-desctop-menu nav ul {
-        flex-direction: column;
-      }
-      .tt-desctop-menu nav ul li {
-        margin: 10px 0;
-      }
-      .dropdown-menu {
-        position: static;
-        display: none;
-        border: none;
-        box-shadow: none;
-      }
-      .dropdown.active .dropdown-menu {
-        display: block;
-      }
-      .tt-mobile-menu-toggle {
-        display: block;
-      }
-    }
-  </style>
-
+<div class="tt-header-holder" style="background: #000; color: #fff;"> <!-- Match your image's black background -->
   <!-- Logo -->
   <div class="tt-col-obj tt-obj-logo menu-in-center" itemscope itemtype="http://schema.org/Organization">
-    <a href={{ routes.root_url }} class="tt-logo" itemprop="url">
+    <a href="{{ routes.root_url }}" class="tt-logo" itemprop="url">
       <img src="https://store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_200x.png?v=1613604656" 
            srcset="//store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_200x.png?v=1613604656 1x, //store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_400x.png?v=1613604656 2x" 
            alt="Waldoch Logo" class="tt-retina" itemprop="logo">
@@ -156,7 +27,7 @@
         <ul>
           {% for link in linklists.main-menu.links %}
             <li{% if link.links != blank %} class="dropdown"{% endif %}>
-              <a href="{{ link.url }}">{{ link.title }}</a>
+              <a href="{{ link.url }}" style="color: #fff; text-transform: uppercase;">{{ link.title }}</a>
               {% if link.links != blank %}
                 <div class="dropdown-menu">
                   <ul>
@@ -173,6 +44,12 @@
     </div>
   </div>
 
+  <!-- Financing Message (Affirm) -->
+  <div class="tt-financing affirm-as-low-as" data-page-type="header" data-amount="0">
+    Pay with <span class="__affirm-logo __affirm-logo-blue">Affirm</span> on orders over $50. 
+    <a class="affirm-modal-trigger" aria-label="See if you qualify" href="javascript:void(0)">Prequalify Now</a>
+  </div>
+
   <!-- Search, Cart, Account -->
   <div class="tt-col-obj tt-obj-options obj-move-right">
     <!-- Search -->
@@ -183,7 +60,7 @@
         </button>
         <div class="tt-dropdown-menu">
           <div class="container">
-            <form action={{ routes.search_url }} method="get" role="search">
+            <form action="{{ routes.search_url }}" method="get" role="search">
               <div class="tt-col">
                 <input type="hidden" name="type" value="product">
                 <input class="tt-search-input" type="search" name="q" placeholder="SEARCH PRODUCTS..." aria-label="SEARCH PRODUCTS..." autocomplete="off">
@@ -214,7 +91,7 @@
           <div class="tt-dropdown-inner">
             <div class="tt-cart-layout">
               <div class="tt-cart-content">
-                <a href={{ routes.cart_url }} class="tt-cart-empty" title="VIEW CART">
+                <a href="{{ routes.cart_url }}" class="tt-cart-empty" title="VIEW CART">
                   <i class="icon-f-39"></i>
                   <p>No Products in the Cart</p>
                 </a>
@@ -229,7 +106,7 @@
                       <a href="/checkout" class="btn">PROCEED TO CHECKOUT</a>
                     </div>
                     <div class="tt-item">
-                      <a href={{ routes.cart_url }} class="btn-link-02">VIEW CART</a>
+                      <a href="{{ routes.cart_url }}" class="btn-link-02">VIEW CART</a>
                     </div>
                   </div>
                 </div>
@@ -251,8 +128,8 @@
           </div>
           <div class="tt-dropdown-inner">
             <ul>
-              <li><a href={{ routes.account_login_url }}><i class="icon-f-77"></i>Sign In</a></li>
-              <li><a href={{ routes.account_register_url }}><i class="icon-f-94"></i>Register</a></li>
+              <li><a href="{{ routes.account_login_url }}"><i class="icon-f-77"></i>Sign In</a></li>
+              <li><a href="{{ routes.account_register_url }}"><i class="icon-f-94"></i>Register</a></li>
               <li><a href="/checkout"><i class="icon-f-68"></i>Checkout</a></li>
             </ul>
           </div>
