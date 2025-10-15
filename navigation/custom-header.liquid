@@ -137,7 +137,7 @@
 
   <!-- Logo -->
   <div class="tt-col-obj tt-obj-logo menu-in-center" itemscope itemtype="http://schema.org/Organization">
-    <a href="/" class="tt-logo" itemprop="url">
+    <a href={{ routes.root_url }} class="tt-logo" itemprop="url">
       <img src="https://store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_200x.png?v=1613604656" 
            srcset="//store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_200x.png?v=1613604656 1x, //store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_400x.png?v=1613604656 2x" 
            alt="Waldoch Logo" class="tt-retina" itemprop="logo">
@@ -183,7 +183,7 @@
         </button>
         <div class="tt-dropdown-menu">
           <div class="container">
-            <form action="/search" method="get" role="search">
+            <form action={{ routes.search_url }} method="get" role="search">
               <div class="tt-col">
                 <input type="hidden" name="type" value="product">
                 <input class="tt-search-input" type="search" name="q" placeholder="SEARCH PRODUCTS..." aria-label="SEARCH PRODUCTS..." autocomplete="off">
@@ -214,7 +214,7 @@
           <div class="tt-dropdown-inner">
             <div class="tt-cart-layout">
               <div class="tt-cart-content">
-                <a href="/cart" class="tt-cart-empty" title="VIEW CART">
+                <a href={{ routes.cart_url }} class="tt-cart-empty" title="VIEW CART">
                   <i class="icon-f-39"></i>
                   <p>No Products in the Cart</p>
                 </a>
@@ -229,7 +229,7 @@
                       <a href="/checkout" class="btn">PROCEED TO CHECKOUT</a>
                     </div>
                     <div class="tt-item">
-                      <a href="/cart" class="btn-link-02">VIEW CART</a>
+                      <a href={{ routes.cart_url }} class="btn-link-02">VIEW CART</a>
                     </div>
                   </div>
                 </div>
@@ -251,8 +251,8 @@
           </div>
           <div class="tt-dropdown-inner">
             <ul>
-              <li><a href="/account/login"><i class="icon-f-77"></i>Sign In</a></li>
-              <li><a href="/account/register"><i class="icon-f-94"></i>Register</a></li>
+              <li><a href={{ routes.account_login_url }}><i class="icon-f-77"></i>Sign In</a></li>
+              <li><a href={{ routes.account_register_url }}><i class="icon-f-94"></i>Register</a></li>
               <li><a href="/checkout"><i class="icon-f-68"></i>Checkout</a></li>
             </ul>
           </div>
