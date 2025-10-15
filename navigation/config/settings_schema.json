@@ -1,0 +1,29 @@
+{
+    "name": "Header",
+    "settings": [
+        {
+            "type": "select",
+            "id": "header_design",
+            "label": "Header Design",
+            "options": [
+                {
+                    "value": "header_type_1",
+                    "label": "Header Type 1"
+                },
+                {
+                    "value": "header_type_2",
+                    "label": "Header Type 2"
+                },
+                {
+                    "value": "header_type_3",
+                    "label": "Header Type 3"
+                },
+                {
+                    "value": "header_type_custom",
+                    "label": "Custom Header (Simplified Dropdowns)"
+                }
+            ],
+            "default": "header_type_1"
+        }
+    ]
+}
