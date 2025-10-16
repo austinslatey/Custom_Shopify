@@ -57,7 +57,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     }
 
     est.setValue({ fieldId: 'custbody_nscs_vehicle_make', value: data.vehicle_make });
-    est.setValue({ fieldId: 'custbody_vehicle_model', value: data.vehicle_model });
+    est.setValue({ fieldId: 'custbody_nscs_vehicle_model', value: data.vehicle_model });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_year', value: data.vehicle_year });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_vin', value: data.vin_number });
 
