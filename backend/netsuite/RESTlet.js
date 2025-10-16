@@ -30,8 +30,10 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
   const createEstimate = (data, customerId) => {
     const est = record.create({ type: record.Type.ESTIMATE, isDynamic: true });
+    const memoText = `Shopify Quote: ${data.message || ''} (${data.sku}: ${data.vehicle_make} ${data.vehicle_model})`;
+
     est.setValue({ fieldId: 'entity', value: customerId });
-    est.setValue({ fieldId: 'memo', value: `Shopify Quote Request for ${data.vehicle_make} ${data.vehicle_model}` });
+    est.setValue({ fieldId: 'memo', value: memoText.trim() });
 
     // Add item line
     if (data.sku) {
@@ -53,7 +55,6 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     est.setValue({ fieldId: 'custbody_vehicle_model', value: data.vehicle_model });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_year', value: data.vehicle_year });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_vin', value: data.vin_number });
-    est.setValue({ fieldId: 'memo', value: data.message });
 
     return est.save();
   };
