@@ -64,7 +64,7 @@ app.post("/api/quote", async (req, res) => {
             email,
             phone,
             product_title,
-            product_id,
+            //product_id,
             sku,
             vehicle_make,
             vehicle_model,
@@ -74,7 +74,7 @@ app.post("/api/quote", async (req, res) => {
         } = req.body;
 
         // Validation
-        if (!first_name || !last_name || !email || !phone || !product_title || !product_id || !sku || !vehicle_make || !vehicle_model || !vehicle_year || !vin_number) {
+        if (!first_name || !last_name || !email || !phone || !product_title || !sku || !vehicle_make || !vehicle_model || !vehicle_year || !vin_number) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
