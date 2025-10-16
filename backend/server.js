@@ -32,9 +32,10 @@ const netsuiteRequest = async (data) => {
     const requestData = { url, method: "POST", data };
     const headers = oauth.toHeader(oauth.authorize(requestData, token));
     headers["Content-Type"] = "application/json";
+    headers["Authorization"] += `, realm="${process.env.NETSUITE_SANDBOX_ACCOUNT_ID}"`;
 
     try {
-        const response = await axios.post(url, data, { headers });
+        const response = await axios.post(url, data, { headers, timeout: 30000 });
         return response.data;
     } catch (err) {
         console.error("NetSuite RESTlet Error:", err.response?.data || err.message);
