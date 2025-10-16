@@ -18,7 +18,8 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     if (existing.length) return existing[0].getValue('internalid');
 
     const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
-    cust.setValue({ fieldId: 'entitystatus', value: 6 }); // 6 = Prospect (adjust per your account)
+    const topperQuoteLeadId = 18
+    cust.setValue({ fieldId: 'entitystatus', value: topperQuoteLeadId }); 
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
@@ -48,12 +49,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       }
     }
 
-    // Optional custom fields
-    est.setValue({ fieldId: 'custbody_vehicle_make', value: data.vehicle_make });
+    est.setValue({ fieldId: 'custbody_nscs_vehicle_make', value: data.vehicle_make });
     est.setValue({ fieldId: 'custbody_vehicle_model', value: data.vehicle_model });
-    est.setValue({ fieldId: 'custbody_vehicle_year', value: data.vehicle_year });
-    est.setValue({ fieldId: 'custbody_vin_number', value: data.vin_number });
-    est.setValue({ fieldId: 'custbody_quote_message', value: data.message });
+    est.setValue({ fieldId: 'custbody_nscs_vehicle_year', value: data.vehicle_year });
+    est.setValue({ fieldId: 'custbody_nscs_vehicle_vin', value: data.vin_number });
+    est.setValue({ fieldId: 'memo', value: data.message });
 
     return est.save();
   };
