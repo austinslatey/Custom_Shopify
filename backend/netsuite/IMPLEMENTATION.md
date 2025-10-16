@@ -161,7 +161,15 @@ Use Token-Based Authentication (TBA) between your server and NetSuite.
 
 4. Assign a User + Role and generate Token ID / Token Secret.
 
-5. On your server, call the RESTlet using those credentials.
+5. On your server, call the RESTlet using those credentials using the `.env` variables below.
+
+```
+SANDBOX_RESTLET_URL=
+SANDBOX_CONSUMER_KEY=
+SANDBOX_CONSUMER_SECRET=
+SANDBOX_TOKEN_ID=
+SANDBOX_TOKEN_SECRET=
+```
 
 
 ## Finding Fields in NetSuite
