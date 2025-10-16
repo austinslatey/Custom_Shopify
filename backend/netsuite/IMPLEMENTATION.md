@@ -72,13 +72,15 @@ Creates:
 ## STEP 1: Decide What to Create in NetSuite
 ### Estimate Record
 
+This Estimate Record is a custom form `Field ID: customform` with a value set to `Waldoch Crafts - Quote`
+
 - Only use if you want quotes directly accessible to your sales staff in Transactions > Sales > Quote.
 
 - You’ll need to link to a Customer/Prospect.
 
 - If the customer doesn’t exist, the RESTlet must first create one (using record.create({ type: `record.Type.CUSTOMER` })).
 
-#### Field Mapping Reference
+### Field Mapping Reference
 
 | Shopify Field                            | NetSuite Target Field                                | Notes                                 |
 | ---------------------------------------- | ---------------------------------------------------- | ------------------------------------- |
@@ -87,9 +89,18 @@ Creates:
 | phone                                    | Customer → phone                                     |                                       |
 | address / state / country                | Customer → address subrecord                         | Optional                              |
 | sku                                      | Estimate → item sublist                              | Uses itemid lookup                    |
-| vehicle_make / model / year / vin_number | Custom body fields (`custbody_...`)                  | Create custom body fields on Estimate |
-| message                                  | Custom body field (`custbody_quote_message`) or Memo |                                       |
+| vehicle_make / model / year / vin_number | Custom body fields (`custbody_...`)                  | Create or find custom body fields on Estimate |
+| message                                  | Use Memo |                                       |
 
+#### Custom Body Fields on Estimate
+- vehicle_make:
+    - Field ID: `custbody_nscs_vehicle_make` 
+- vehicle_model:
+    - Field ID: `custbody_nscs_vehicle_model`
+- vehicle_year: 
+    - Field ID: `custbody_nscs_vehicle_year`
+- vin_number: 
+    - Field ID: `custbody_nscs_vehicle_vin`
 
 #### Note: 
 
@@ -152,3 +163,26 @@ Use Token-Based Authentication (TBA) between your server and NetSuite.
 
 5. On your server, call the RESTlet using those credentials.
 
+
+## Finding Fields in NetSuite
+### Entity Status
+1. Create a new Entity Status type by navigating to 
+`Setup > Sales > Customer Statuses`
+
+2. Create new lead named 
+`Lead - Topper Quote`
+- Type
+Lead
+
+- Label
+Topper Quote
+
+- Probablity
+66.0%
+
+### Custom Estimate Form
+1. Navigate to 
+`Customization → Forms → Transaction Forms`
+
+2. Find Custom Form and grab internal ID
+My internal id = 229
