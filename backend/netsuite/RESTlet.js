@@ -1,37 +1,71 @@
 /**
  * @NApiVersion 2.1
  * @NScriptType Restlet
- * @NModuleScope SameAccount
  */
-define(['N/record', 'N/log'], (record, log) => {
+
+define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
+
+  const findOrCreateCustomer = (data) => {
+    const email = data.email?.trim();
+    if (!email) throw 'Email is required for customer creation';
+
+    const existing = search.create({
+      type: search.Type.CUSTOMER,
+      filters: [['email', 'is', email]],
+      columns: ['internalid']
+    }).run().getRange({ start: 0, end: 1 });
+
+    if (existing.length) return existing[0].getValue('internalid');
+
+    const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
+    cust.setValue({ fieldId: 'entitystatus', value: 6 }); // 6 = Prospect (adjust per your account)
+    cust.setValue({ fieldId: 'firstname', value: data.first_name });
+    cust.setValue({ fieldId: 'lastname', value: data.last_name });
+    cust.setValue({ fieldId: 'email', value: email });
+    cust.setValue({ fieldId: 'phone', value: data.phone });
+    cust.setValue({ fieldId: 'comments', value: `Created via Shopify Quote form.` });
+    return cust.save();
+  };
+
+  const createEstimate = (data, customerId) => {
+    const est = record.create({ type: record.Type.ESTIMATE, isDynamic: true });
+    est.setValue({ fieldId: 'entity', value: customerId });
+    est.setValue({ fieldId: 'memo', value: `Shopify Quote Request for ${data.vehicle_make} ${data.vehicle_model}` });
+
+    // Add item line
+    if (data.sku) {
+      const itemSearch = search.create({
+        type: search.Type.ITEM,
+        filters: [['itemid', 'is', data.sku]],
+        columns: ['internalid']
+      }).run().getRange({ start: 0, end: 1 });
+
+      if (itemSearch.length) {
+        est.selectNewLine({ sublistId: 'item' });
+        est.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: itemSearch[0].getValue('internalid') });
+        est.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: 1 });
+        est.commitLine({ sublistId: 'item' });
+      }
+    }
+
+    // Optional custom fields
+    est.setValue({ fieldId: 'custbody_vehicle_make', value: data.vehicle_make });
+    est.setValue({ fieldId: 'custbody_vehicle_model', value: data.vehicle_model });
+    est.setValue({ fieldId: 'custbody_vehicle_year', value: data.vehicle_year });
+    est.setValue({ fieldId: 'custbody_vin_number', value: data.vin_number });
+    est.setValue({ fieldId: 'custbody_quote_message', value: data.message });
+
+    return est.save();
+  };
 
   const post = (data) => {
     try {
-      const rec = record.create({
-        type: 'customrecord_shopify_quote_request',
-        isDynamic: true,
-      });
-
-      rec.setValue({ fieldId: 'custrecord_first_name', value: data.first_name });
-      rec.setValue({ fieldId: 'custrecord_last_name', value: data.last_name });
-      rec.setValue({ fieldId: 'custrecord_email', value: data.email });
-      rec.setValue({ fieldId: 'custrecord_phone', value: data.phone });
-      rec.setValue({ fieldId: 'custrecord_address', value: data.address });
-      rec.setValue({ fieldId: 'custrecord_state', value: data.state });
-      rec.setValue({ fieldId: 'custrecord_country', value: data.country });
-      rec.setValue({ fieldId: 'custrecord_vehicle_make', value: data.vehicle_make });
-      rec.setValue({ fieldId: 'custrecord_vehicle_model', value: data.vehicle_model });
-      rec.setValue({ fieldId: 'custrecord_vehicle_year', value: data.vehicle_year });
-      rec.setValue({ fieldId: 'custrecord_vin_number', value: data.vin_number });
-      rec.setValue({ fieldId: 'custrecord_message', value: data.message });
-      rec.setValue({ fieldId: 'custrecord_sku', value: data.sku });
-
-      const id = rec.save();
-      return { success: true, recordId: id };
-
+      const customerId = findOrCreateCustomer(data);
+      const estimateId = createEstimate(data, customerId);
+      return { success: true, customerId, estimateId };
     } catch (e) {
-      log.error('Shopify Quote Error', e);
-      return { success: false, message: e.message };
+      log.error('Shopify Quote Integration Error', e);
+      return { success: false, message: e.message || e };
     }
   };
 
