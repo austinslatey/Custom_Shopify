@@ -76,7 +76,7 @@ Creates:
 
 - You’ll need to link to a Customer/Prospect.
 
-- If the customer doesn’t exist, the RESTlet must first create one (using record.create({ type: record.Type.CUSTOMER })).
+- If the customer doesn’t exist, the RESTlet must first create one (using record.create({ type: `record.Type.CUSTOMER` })).
 
 #### Note: 
 
@@ -87,6 +87,28 @@ NetSuite allows Estimate creation under a Prospect or Lead, but it still needs a
 Example File Name: `/SuiteScripts/ShopifyQuoteRESTlet.js`
 
 Implementation example is located in `RESTlet.js`
+
+### Refinements
+1. Customer Lookup / Create Logic
+
+- Before creating an Estimate, the RESTlet must:
+    - Search by email address (`record.Type.CUSTOMER`)
+    - If found → use existing internalId
+    - If not found → create a new record with status Prospect and assign to the Estimate
+
+2. Estimate Creation
+- Minimum required fields for an Estimate:
+    - `entity` (Customer internalId)
+    - `trandate` (Date)
+    - `item sublist` → `item`, `quantity`, `rate`, `amount`
+- Optional custom body fields: VIN, vehicle details, etc.
+
+3. Item Handling
+- Use SKU to lookup the NetSuite Item (`search.lookupFields` on `itemid`)
+- Add that line to the `item` sublist.
+
+4. Data Normalization
+- Map your Shopify form fields to NetSuite’s standard Estimate fields and/or custom body fields.
 
 ## Step 4: Deploy the RESTlet
 
