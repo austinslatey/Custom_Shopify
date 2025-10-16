@@ -3,10 +3,44 @@ import dotenv from "dotenv";
 import cors from "cors";
 import sgMail from "@sendgrid/mail";
 import axios from "axios";
+import crypto from "crypto";
+import OAuth from "oauth-1.0a";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const netsuiteRequest = async (data) => {
+    const url = process.env.SANDBOX_RESTLET_URL;
+
+    const oauth = OAuth({
+        consumer: {
+            key: process.env.SANDBOX_CONSUMER_KEY,
+            secret: process.env.SANDBOX_CONSUMER_SECRET,
+        },
+        signature_method: "HMAC-SHA256",
+        hash_function(baseString, key) {
+            return crypto.createHmac("sha256", key).update(baseString).digest("base64");
+        },
+    });
+
+    const token = {
+        key: process.env.SANDBOX_TOKEN_ID,
+        secret: process.env.SANDBOX_TOKEN_SECRET,
+    };
+
+    const requestData = { url, method: "POST", data };
+    const headers = oauth.toHeader(oauth.authorize(requestData, token));
+    headers["Content-Type"] = "application/json";
+
+    try {
+        const response = await axios.post(url, data, { headers });
+        return response.data;
+    } catch (err) {
+        console.error("NetSuite RESTlet Error:", err.response?.data || err.message);
+        throw new Error(`NetSuite RESTlet Error: ${err.response?.data?.error || err.message}`);
+    }
+};
 
 // Middleware
 app.use(cors({ origin: process.env.SHOPIFY_SHOP }));
