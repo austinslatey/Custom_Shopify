@@ -30,13 +30,15 @@ const netsuiteRequest = async (data) => {
     };
 
     const requestData = { url, method: "POST", data };
-    const oauthHeader = oauth.toHeader(oauth.authorize(requestData, token));
-
-    const authHeader = `OAuth realm="${process.env.NETSUITE_SANDBOX_ACCOUNT_ID}",${oauthHeader.substring(6)}`;
-
+    const oauthHeaderObj = oauth.toHeader(oauth.authorize(requestData, token));
+    
+    // Extract the Authorization string and prepend realm
+    const oauthHeaderString = oauthHeaderObj.Authorization;
+    const authHeader = `OAuth realm="${process.env.NETSUITE_SANDBOX_ACCOUNT_ID}",${oauthHeaderString.substring(6)}`;
+    
     const headers = {
-        "Authorization": authHeader,
-        "Content-Type": "application/json"
+        Authorization: authHeader,
+        "Content-Type": "application/json",
     };
 
     try {
@@ -44,7 +46,7 @@ const netsuiteRequest = async (data) => {
         return response.data;
     } catch (err) {
         console.error("NetSuite RESTlet Error:", err.response?.data || err.message);
-        throw new Error(`NetSuite RESTlet Error: ${err.response?.data?.error || err.message}`);
+        throw new Error(`NetSuite RESTlet Error: ${JSON.stringify(err.response?.data?.error || err.message)}`);
     }
 };
 
