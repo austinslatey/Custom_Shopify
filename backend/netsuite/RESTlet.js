@@ -19,7 +19,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
     const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
     const topperQuoteLeadId = 18
-    cust.setValue({ fieldId: 'entitystatus', value: topperQuoteLeadId }); 
+    cust.setValue({ fieldId: 'entitystatus', value: topperQuoteLeadId });
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
@@ -30,11 +30,12 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
   const createEstimate = (data, customerId) => {
     const est = record.create({ type: record.Type.ESTIMATE, isDynamic: true });
-    
+
     // Waldoch Crafts - Quote 
     const customFormId = 229
+
     const memoText = `Shopify Quote: ${data.message || ''} (${data.sku}: ${data.vehicle_make} ${data.vehicle_model})`;
-    
+
     est.setValue({ fieldId: 'customform', value: customFormId });
     est.setValue({ fieldId: 'entity', value: customerId });
     est.setValue({ fieldId: 'memo', value: memoText.trim() });
@@ -69,8 +70,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       const estimateId = createEstimate(data, customerId);
       return { success: true, customerId, estimateId };
     } catch (e) {
-      log.error('Shopify Quote Integration Error', e);
-      return { success: false, message: e.message || e };
+      log.error({
+        title: 'Shopify Quote Error',
+        details: JSON.stringify({ message: e.message, stack: e.stack, data })
+      });
+      return { success: false, error: e.message || e.toString() };
     }
   };
 
