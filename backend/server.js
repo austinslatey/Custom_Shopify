@@ -43,7 +43,11 @@ const netsuiteRequest = async (data) => {
 };
 
 // Middleware
-app.use(cors({ origin: process.env.SHOPIFY_SHOP }));
+//app.use(cors({ origin: process.env.SHOPIFY_SHOP }));
+
+// Temporary cors restriction relief for testing 
+app.use(cors());
+
 app.use(express.json());
 
 // SendGrid setup
@@ -196,6 +200,10 @@ app.post("/api/quote", async (req, res) => {
             });
 
             console.log("NetSuite Response:", netsuiteResponse);
+            
+            if (!netsuiteResponse?.success) {
+                console.warn("NetSuite reported failure:", netsuiteResponse);
+            }
         } catch (netsuiteError) {
             console.error("NetSuite submission error:", netsuiteError.message);
             // Optionally continue to success response to not block user
