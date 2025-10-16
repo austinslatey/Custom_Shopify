@@ -70,13 +70,26 @@ Creates:
 ```
 
 ## STEP 1: Decide What to Create in NetSuite
-### Option B — Estimate Record
+### Estimate Record
 
 - Only use if you want quotes directly accessible to your sales staff in Transactions > Sales > Quote.
 
 - You’ll need to link to a Customer/Prospect.
 
 - If the customer doesn’t exist, the RESTlet must first create one (using record.create({ type: `record.Type.CUSTOMER` })).
+
+#### Field Mapping Reference
+
+| Shopify Field                            | NetSuite Target Field                                | Notes                                 |
+| ---------------------------------------- | ---------------------------------------------------- | ------------------------------------- |
+| first_name / last_name                   | Customer → firstname / lastname                      |                                       |
+| email                                    | Customer → email                                     | Used for lookup                       |
+| phone                                    | Customer → phone                                     |                                       |
+| address / state / country                | Customer → address subrecord                         | Optional                              |
+| sku                                      | Estimate → item sublist                              | Uses itemid lookup                    |
+| vehicle_make / model / year / vin_number | Custom body fields (`custbody_...`)                  | Create custom body fields on Estimate |
+| message                                  | Custom body field (`custbody_quote_message`) or Memo |                                       |
+
 
 #### Note: 
 
@@ -110,7 +123,7 @@ Implementation example is located in `RESTlet.js`
 4. Data Normalization
 - Map your Shopify form fields to NetSuite’s standard Estimate fields and/or custom body fields.
 
-## Step 4: Deploy the RESTlet
+## Step 3: Deploy the RESTlet
 
 #### Go to: `Customization → Scripting → Scripts → New`
 
@@ -123,7 +136,7 @@ Implementation example is located in `RESTlet.js`
 4 Note down the External URL looks like:
 `https://<account>.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=XXX&deploy=1`
 
-## Step 5: Authentication (No User Login Required)
+## Step 4: Authentication (No User Login Required)
 
 Use Token-Based Authentication (TBA) between your server and NetSuite.
 
@@ -138,3 +151,4 @@ Use Token-Based Authentication (TBA) between your server and NetSuite.
 4. Assign a User + Role and generate Token ID / Token Secret.
 
 5. On your server, call the RESTlet using those credentials.
+
