@@ -30,9 +30,14 @@ const netsuiteRequest = async (data) => {
     };
 
     const requestData = { url, method: "POST", data };
-    const headers = oauth.toHeader(oauth.authorize(requestData, token));
-    headers["Content-Type"] = "application/json";
-    headers["Authorization"] += `, realm="${process.env.NETSUITE_SANDBOX_ACCOUNT_ID}"`;
+    const oauthHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+    const authHeader = `OAuth realm="${process.env.NETSUITE_SANDBOX_ACCOUNT_ID}",${oauthHeader.substring(6)}`;
+
+    const headers = {
+        "Authorization": authHeader,
+        "Content-Type": "application/json"
+    };
 
     try {
         const response = await axios.post(url, data, { headers, timeout: 30000 });
