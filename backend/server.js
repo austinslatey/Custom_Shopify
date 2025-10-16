@@ -50,6 +50,7 @@ const netsuiteRequest = async (data) => {
 app.use(cors());
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // SendGrid setup
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
