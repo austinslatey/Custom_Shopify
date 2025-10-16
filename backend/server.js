@@ -148,10 +148,10 @@ app.post("/api/quote", async (req, res) => {
         };
 
         // Send emails via SendGrid
-        await Promise.all([
-            sgMail.send(salesEmailData),
-            sgMail.send(customerEmailData),
-        ]);
+        // await Promise.all([
+        //     sgMail.send(salesEmailData),
+        //     sgMail.send(customerEmailData),
+        // ]);
 
         // Submit to HubSpot Forms API
         const hubspotUrl = process.env.HUBSPOT_URL;
@@ -174,11 +174,31 @@ app.post("/api/quote", async (req, res) => {
             },
         };
 
+        // try {
+        //     await axios.post(hubspotUrl, hubspotData);
+        // } catch (hubspotError) {
+        //     console.error("HubSpot submission error:", hubspotError.response?.data || hubspotError.message);
+        //     // Continue despite HubSpot error to ensure user gets success response
+        // }
+
         try {
-            await axios.post(hubspotUrl, hubspotData);
-        } catch (hubspotError) {
-            console.error("HubSpot submission error:", hubspotError.response?.data || hubspotError.message);
-            // Continue despite HubSpot error to ensure user gets success response
+            const netsuiteResponse = await netsuiteRequest({
+                first_name,
+                last_name,
+                email,
+                phone,
+                vehicle_make,
+                vehicle_model,
+                vehicle_year,
+                vin_number,
+                sku,
+                message,
+            });
+
+            console.log("NetSuite Response:", netsuiteResponse);
+        } catch (netsuiteError) {
+            console.error("NetSuite submission error:", netsuiteError.message);
+            // Optionally continue to success response to not block user
         }
 
         res.json({ message: "Quote request submitted successfully!" });
