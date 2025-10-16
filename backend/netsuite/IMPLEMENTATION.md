@@ -171,6 +171,27 @@ SANDBOX_TOKEN_ID=
 SANDBOX_TOKEN_SECRET=
 ```
 
+## Step 5: Update & Deploy Server
+Add in the necessary code to sucessfully send a reqeust to NetSuite
+
+### Request in Postman
+Send a `JSON` object to `/api/quote`
+
+```json
+{
+  "first_name": "Austin",
+  "last_name": "Testing",
+  "email": "atester@test.com",
+  "phone": "+15551234567",
+  "product_title": "Testing Tool: 8-test-8",
+  "sku": "8-test-8",
+  "vehicle_make": "Ford",
+  "vehicle_model": "F250",
+  "vehicle_year": "2024",
+  "vin_number": "1FTEW1E59KFA12345",
+  "message": "Please quote the full topper package."
+}
+```
 
 ## Finding Fields in NetSuite
 ### Entity Status
