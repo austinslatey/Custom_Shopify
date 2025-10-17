@@ -36,12 +36,9 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     }
 
     // Create a new customer
-    const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
+    const cust = record.create({ type: record.Type.LEAD, isDynamic: true });
 
-    // Force stage first
-    cust.setValue({ fieldId: 'stage', value: 'LEAD' });
     cust.setValue({ fieldId: 'entitystatus', value: entityStatusId });
-
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
