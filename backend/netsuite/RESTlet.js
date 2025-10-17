@@ -35,8 +35,9 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       isDynamic: true
     });
 
-    // Use the same custom form (229) if you prefer
+    // Waldoch Quote Form
     const customFormId = 229;
+
     est.setValue({ fieldId: 'customform', value: customFormId });
     est.setValue({ fieldId: 'entity', value: customerId });
 
