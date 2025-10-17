@@ -18,8 +18,13 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     if (existing.length) return existing[0].getValue('internalid');
 
     const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
-    const topperQuoteLeadId = 18
-    cust.setValue({ fieldId: 'entitystatus', value: topperQuoteLeadId });
+
+    // Lead-Topper Quote
+    const entityStatusId = 18
+    
+    //const entityStatusString = "Topper Quote"
+    
+    cust.setValue({ fieldId: 'entitystatus', value: entityStatusId.toString() });
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
