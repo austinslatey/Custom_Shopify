@@ -29,19 +29,15 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
   };
 
   const createEstimate = (data, customerId) => {
-    // Create the estimate record
-    const est = record.create({
-      type: record.Type.ESTIMATE,
-      isDynamic: true
-    });
+    const est = record.create({ type: record.Type.ESTIMATE, isDynamic: true });
 
-    // Waldoch Quote Form
-    const customFormId = 229;
+    // Waldoch Crafts - Quote 
+    const customFormId = 229
+
+    const memoText = `Shopify Quote: ${data.message || ''} (${data.sku}: ${data.vehicle_make} ${data.vehicle_model})`;
 
     est.setValue({ fieldId: 'customform', value: customFormId });
     est.setValue({ fieldId: 'entity', value: customerId });
-
-    const memoText = `Shopify Quote: ${data.message || ''} (${data.sku}: ${data.vehicle_make} ${data.vehicle_model})`;
     est.setValue({ fieldId: 'memo', value: memoText.trim() });
 
     // Add item line
@@ -54,42 +50,19 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
       if (itemSearch.length) {
         est.selectNewLine({ sublistId: 'item' });
-        est.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'item',
-          value: itemSearch[0].getValue('internalid')
-        });
-        est.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'quantity',
-          value: 1
-        });
+        est.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: itemSearch[0].getValue('internalid') });
+        est.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: 1 });
         est.commitLine({ sublistId: 'item' });
       }
     }
 
-    // Vehicle info
     est.setValue({ fieldId: 'custbody_nscs_vehicle_make', value: data.vehicle_make });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_model', value: data.vehicle_model });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_year', value: data.vehicle_year });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_vin', value: data.vin_number });
 
-    // --- Safe save ---
-    let estimateId;
-    try {
-      // disable sourcing & mandatory checks for cleaner REST context
-      estimateId = est.save({
-        enableSourcing: false,
-        ignoreMandatoryFields: true
-      });
-    } catch (e) {
-      log.error('Estimate save error', e);
-      throw e;
-    }
-
-    return estimateId;
+    return est.save();
   };
-
 
   const post = (data) => {
     try {
