@@ -23,10 +23,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       const id = existing[0].getValue('internalid');
       const cust = record.load({ type: record.Type.CUSTOMER, id, isDynamic: true });
 
-      // Force stage first
-      cust.setValue({ fieldId: 'stage', value: 'LEAD' });
       cust.setValue({ fieldId: 'entitystatus', value: entityStatusId });
-
       if (data.phone) cust.setValue({ fieldId: 'phone', value: data.phone });
       if (data.first_name) cust.setValue({ fieldId: 'firstname', value: data.first_name });
       if (data.last_name) cust.setValue({ fieldId: 'lastname', value: data.last_name });
