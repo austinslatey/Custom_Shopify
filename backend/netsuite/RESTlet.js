@@ -9,28 +9,48 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     const email = data.email?.trim();
     if (!email) throw 'Email is required for customer creation';
 
+    // Lead-Topper Quote
+    const entityStatusId = 18
+
     const existing = search.create({
       type: search.Type.CUSTOMER,
       filters: [['email', 'is', email]],
       columns: ['internalid']
     }).run().getRange({ start: 0, end: 1 });
 
-    if (existing.length) return existing[0].getValue('internalid');
+    if (existing.length) {
+      // Load and update existing record
+      const id = existing[0].getValue('internalid');
+      const cust = record.load({ type: record.Type.CUSTOMER, id, isDynamic: true });
 
+      if (data.phone) cust.setValue({ fieldId: 'phone', value: data.phone });
+
+      cust.setValue({ fieldId: 'entitystatus', value: entityStatusId });
+      cust.save();
+
+      return id;
+    }
+
+    // Create a new customer
     const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
-
-    // Lead-Topper Quote
-    // const entityStatusId = "18"
-    
-    const entityStatusString = "Topper Quote"
-    
-    cust.setValue({ fieldId: 'entitystatus', value: entityStatusString });
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
     cust.setValue({ fieldId: 'phone', value: data.phone });
     cust.setValue({ fieldId: 'comments', value: `Created via Shopify Quote form.` });
-    return cust.save();
+
+    const newCustomerId = cust.save();
+
+    // Update the new record with lead status
+    try {
+      const reloaded = record.load({ type: record.Type.CUSTOMER, id: newCustomerId, isDynamic: true });
+      reloaded.setValue({ fieldId: 'entitystatus', value: entityStatusId });
+      reloaded.save();
+    } catch (err) {
+      log.error('Customer Update Failed', err);
+    }
+
+    return newCustomerId;
   };
 
   const createEstimate = (data, customerId) => {
