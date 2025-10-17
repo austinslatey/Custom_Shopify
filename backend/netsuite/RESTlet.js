@@ -20,11 +20,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
 
     // Lead-Topper Quote
-    const entityStatusId = 18
+    // const entityStatusId = "18"
     
-    //const entityStatusString = "Topper Quote"
+    const entityStatusString = "Topper Quote"
     
-    cust.setValue({ fieldId: 'entitystatus', value: entityStatusId.toString() });
+    cust.setValue({ fieldId: 'entitystatus', value: entityStatusString });
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
