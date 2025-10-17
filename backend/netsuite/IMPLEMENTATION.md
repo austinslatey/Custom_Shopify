@@ -112,6 +112,12 @@ Example File Name: `/SuiteScripts/ShopifyQuoteRESTlet.js`
 
 Implementation example is located in `RESTlet.js`
 
+### IMPORTANT
+To ensure your script actually runs:
+- Make sure you append .js file extension after File Name on the script file record, even if the File Type is JavaScript File already.
+
+I.E. Make sure to include `.js` when naming your script else it will not run.
+
 ### Refinements
 1. Customer Lookup / Create Logic
 
@@ -215,3 +221,12 @@ Topper Quote
 
 2. Find Custom Form and grab internal ID
 My internal id = 229
+
+### Internal IDs for Custom Lists in Quote Form
+1. Navigate to: 
+`Customization > Lists, Records, & Fields > Lists`
+2. Search for the Custom List and open it's Field Record
+
+If you need to find a custom field definition
+1. Navigate to: 
+`Customization > Lists, Records, & Fields > Transaction Body Fields`
