@@ -9,8 +9,6 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     const email = data.email?.trim();
     if (!email) throw 'Email is required for customer creation';
 
-    // Lead-Topper Quote
-    const entityStatusId = 18
 
     const existing = search.create({
       type: search.Type.CUSTOMER,
@@ -23,7 +21,6 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       const id = existing[0].getValue('internalid');
       const cust = record.load({ type: record.Type.CUSTOMER, id, isDynamic: true });
 
-      cust.setValue({ fieldId: 'entitystatus', value: entityStatusId });
       if (data.phone) cust.setValue({ fieldId: 'phone', value: data.phone });
       if (data.first_name) cust.setValue({ fieldId: 'firstname', value: data.first_name });
       if (data.last_name) cust.setValue({ fieldId: 'lastname', value: data.last_name });
@@ -33,9 +30,8 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     }
 
     // Create a new customer
-    const cust = record.create({ type: record.Type.LEAD, isDynamic: true });
+    const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
 
-    cust.setValue({ fieldId: 'entitystatus', value: entityStatusId });
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
