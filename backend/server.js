@@ -50,10 +50,10 @@ const netsuiteRequest = async (data) => {
 };
 
 // Middleware
-//app.use(cors({ origin: process.env.SHOPIFY_SHOP }));
+app.use(cors({ origin: process.env.SHOPIFY_SHOP }));
 
 // Temporary cors restriction relief for testing 
-app.use(cors());
+// app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -160,10 +160,10 @@ app.post("/api/quote", async (req, res) => {
         };
 
         // Send emails via SendGrid
-        // await Promise.all([
-        //     sgMail.send(salesEmailData),
-        //     sgMail.send(customerEmailData),
-        // ]);
+        await Promise.all([
+            sgMail.send(salesEmailData),
+            sgMail.send(customerEmailData),
+        ]);
 
         // Submit to HubSpot Forms API
         const hubspotUrl = process.env.HUBSPOT_URL;
@@ -186,12 +186,12 @@ app.post("/api/quote", async (req, res) => {
             },
         };
 
-        // try {
-        //     await axios.post(hubspotUrl, hubspotData);
-        // } catch (hubspotError) {
-        //     console.error("HubSpot submission error:", hubspotError.response?.data || hubspotError.message);
-        //     // Continue despite HubSpot error to ensure user gets success response
-        // }
+        try {
+            await axios.post(hubspotUrl, hubspotData);
+        } catch (hubspotError) {
+            console.error("HubSpot submission error:", hubspotError.response?.data || hubspotError.message);
+            // Continue despite HubSpot error to ensure user gets success response
+        }
 
         try {
             const netsuiteResponse = await netsuiteRequest({
