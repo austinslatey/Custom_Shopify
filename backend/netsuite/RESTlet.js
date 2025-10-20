@@ -74,7 +74,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       'SIERRA 3500': 61,
       'CANYON': 72
     },
-    'HONDA': { 'RIDGELINE': 926 },
+    'HONDA': { 'RIDGELINE': 903 },
     'NISSAN': { 'TITAN': 927, 'FRONTIER': 928 },
     'RAM': { '1500': 312, '2500': 313, '3500': 311 },
     'TOYOTA': { 'TACOMA': 326, 'TUNDRA': 328 }
