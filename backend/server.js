@@ -11,12 +11,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const netsuiteRequest = async (data) => {
-    const url = process.env.SANDBOX_RESTLET_URL;
+    const url = process.env.RESTLET_URL;
 
     const oauth = OAuth({
         consumer: {
-            key: process.env.SANDBOX_CONSUMER_KEY,
-            secret: process.env.SANDBOX_CONSUMER_SECRET,
+            key: process.env.NETSUITE_CONSUMER_KEY,
+            secret: process.env.NETSUITE_CONSUMER_SECRET,
         },
         signature_method: "HMAC-SHA256",
         hash_function(baseString, key) {
@@ -25,8 +25,8 @@ const netsuiteRequest = async (data) => {
     });
 
     const token = {
-        key: process.env.SANDBOX_TOKEN_ID,
-        secret: process.env.SANDBOX_TOKEN_SECRET,
+        key: process.env.NETSUITE_TOKEN_ID,
+        secret: process.env.NETSUITE_TOKEN_SECRET,
     };
 
     const requestData = { url, method: "POST" };
@@ -34,7 +34,7 @@ const netsuiteRequest = async (data) => {
     
     // Extract the Authorization string and prepend realm
     const oauthHeaderString = oauthHeaderObj.Authorization;
-    const authHeader = `OAuth realm="${process.env.NETSUITE_SANDBOX_ACCOUNT_ID}",${oauthHeaderString.substring(6)}`;
+    const authHeader = `OAuth realm="${process.env.NETSUITE_ACCOUNT_ID}",${oauthHeaderString.substring(6)}`;
     
     const headers = {
         Authorization: authHeader,
