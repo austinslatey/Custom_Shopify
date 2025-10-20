@@ -1,0 +1,139 @@
+{% comment %} Shopify Returns Form {% endcomment %}
+<style>
+  .returns-form { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+  .returns-form label { display: block; margin: 10px 0 5px; }
+  .returns-form input, .returns-form select, .returns-form textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
+  .returns-form .product-entry { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+  .returns-form button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+  .returns-form button:hover { background: #0056b3; }
+  .returns-form .error { color: red; }
+</style>
+
+<form id="returns-form" class="returns-form">
+  <label for="email">Email (required)</label>
+  <input type="email" id="email" name="email" required>
+
+  <label for="firstName">First Name</label>
+  <input type="text" id="firstName" name="firstName">
+
+  <label for="lastName">Last Name</label>
+  <input type="text" id="lastName" name="lastName">
+
+  <label for="orderNumber">Order Number (required)</label>
+  <input type="text" id="orderNumber" name="orderNumber" required>
+
+  <h3>Products to Return</h3>
+  <div id="products-container">
+    <div class="product-entry">
+      <label for="product-0-sku">Product SKU</label>
+      <input type="text" id="product-0-sku" name="products[0][sku]" required>
+      <label for="product-0-reason">Reason for Return</label>
+      <select id="product-0-reason" name="products[0][reason]" required>
+        <option value="">Select a reason</option>
+        <option value="Ordered wrong item">Ordered wrong item</option>
+        <option value="Duplicate order of product">Duplicate order of product</option>
+        <option value="Wrong part">Wrong part</option>
+        <option value="Damaged in shipping">Damaged in shipping</option>
+        <option value="Did not fit">Did not fit</option>
+        <option value="Changed my mind">Changed my mind</option>
+      </select>
+    </div>
+  </div>
+  <button type="button" id="add-product">Add Another Product</button>
+
+  <label for="message">Message</label>
+  <textarea id="message" name="message"></textarea>
+
+  <button type="submit">Submit Return</button>
+  <p id="error" class="error" style="display: none;"></p>
+</form>
+
+<script>
+  let productCount = 1;
+
+  // Add new product entry
+  document.getElementById('add-product').addEventListener('click', () => {
+    const container = document.getElementById('products-container');
+    const newEntry = document.createElement('div');
+    newEntry.className = 'product-entry';
+    newEntry.innerHTML = `
+      <label for="product-${productCount}-sku">Product SKU</label>
+      <input type="text" id="product-${productCount}-sku" name="products[${productCount}][sku]" required>
+      <label for="product-${productCount}-reason">Reason for Return</label>
+      <select id="product-${productCount}-reason" name="products[${productCount}][reason]" required>
+        <option value="">Select a reason</option>
+        <option value="Ordered wrong item">Ordered wrong item</option>
+        <option value="Duplicate order of product">Duplicate order of product</option>
+        <option value="Wrong part">Wrong part</option>
+        <option value="Damaged in shipping">Damaged in shipping</option>
+        <option value="Did not fit">Did not fit</option>
+        <option value="Changed my mind">Changed my mind</option>
+      </select>
+    `;
+    container.appendChild(newEntry);
+    productCount++;
+  });
+
+  // Handle form submission
+  document.getElementById('returns-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('error');
+    errorEl.style.display = 'none';
+
+    const formData = new FormData(e.target);
+    const data = {
+      email: formData.get('email'),
+      firstName: formData.get('firstName'),
+      lastName: formData.get('lastName'),
+      orderNumber: formData.get('orderNumber'),
+      message: formData.get('message'),
+      products: []
+    };
+
+    // Collect products
+    for (let i = 0; i < productCount; i++) {
+      const sku = formData.get(`products[${i}][sku]`);
+      const reason = formData.get(`products[${i}][reason]`);
+      if (sku && reason) {
+        data.products.push({ sku, reason });
+      }
+    }
+
+    try {
+      const response = await fetch('https://<your-render-app>.onrender.com/api/returns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        alert('Return request submitted successfully!');
+        e.target.reset();
+        document.getElementById('products-container').innerHTML = `
+          <div class="product-entry">
+            <label for="product-0-sku">Product SKU</label>
+            <input type="text" id="product-0-sku" name="products[0][sku]" required>
+            <label for="product-0-reason">Reason for Return</label>
+            <select id="product-0-reason" name="products[0][reason]" required>
+              <option value="">Select a reason</option>
+              <option value="Ordered wrong item">Ordered wrong item</option>
+              <option value="Duplicate order of product">Duplicate order of product</option>
+              <option value="Wrong part">Wrong part</option>
+              <option value="Damaged in shipping">Damaged in shipping</option>
+              <option value="Did not fit">Did not fit</option>
+              <option value="Changed my mind">Changed my mind</option>
+            </select>
+          </div>
+        `;
+        productCount = 1;
+      } else {
+        const error = await response.json();
+        errorEl.textContent = error.error || 'Submission failed';
+        errorEl.style.display = 'block';
+      }
+    } catch (error) {
+      errorEl.textContent = 'Error: ' + error.message;
+      errorEl.style.display = 'block';
+    }
+  });
+</script>
