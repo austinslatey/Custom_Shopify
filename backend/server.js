@@ -29,7 +29,7 @@ const netsuiteRequest = async (data) => {
         secret: process.env.SANDBOX_TOKEN_SECRET,
     };
 
-    const requestData = { url, method: "POST", data };
+    const requestData = { url, method: "POST" };
     const oauthHeaderObj = oauth.toHeader(oauth.authorize(requestData, token));
     
     // Extract the Authorization string and prepend realm
