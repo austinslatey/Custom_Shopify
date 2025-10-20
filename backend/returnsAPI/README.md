@@ -24,7 +24,17 @@ RMAs appear for employee review/refunding.
 Free on Render's free tier; one-time dev effort
 
 ## Form Criteria
-Product is any of the following:
+1. Email (Required)
+2. First Name
+3. Last Name
+
+4. Order Number
+
+5. Select the products you want to return
+- One product at a time
+- Enter new product (triggered by button)
+
+6. Reason for return should include a dropdown of the following:
 - Ordered wrong item
 - Duplicate order of product
 - Wrong part
@@ -32,3 +42,4 @@ Product is any of the following:
 - Did not fit
 - Changed my mind
 
+7. Message
