@@ -33,8 +33,7 @@ const netsuiteRequest = async (data) => {
     const oauthHeaderObj = oauth.toHeader(oauth.authorize(requestData, token));
     
     // Extract the Authorization string and prepend realm
-    const oauthHeaderString = oauthHeaderObj.Authorization;
-    const authHeader = `OAuth realm="${process.env.NETSUITE_ACCOUNT_ID}",${oauthHeaderString.substring(6)}`;
+    const authHeader = `${oauthHeaderObj.Authorization}, realm="${process.env.NETSUITE_ACCOUNT_ID}"`;
     
     const headers = {
         Authorization: authHeader,
