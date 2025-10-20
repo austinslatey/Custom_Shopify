@@ -146,7 +146,7 @@ router.post("/", async (req, res) => {
                 vin_number,
                 sku,
                 message,
-            }, process.env.RESTLET_URL);
+            }, process.env.NETSUITE_QUOTE_RESTLET);
 
             console.log("NetSuite Response:", netsuiteResponse);
             
