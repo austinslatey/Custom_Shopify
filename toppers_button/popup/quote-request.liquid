@@ -351,150 +351,156 @@ VIN, and new address fields.
 
 <script>
   $(function () {
-    // Show/hide model dropdowns based on selected make
-    $('#vehicle-make').on('change', function () {
-      $('.model-dropdown').hide();
-      var selectedMake = $(this).val();
-      if (selectedMake) {
-        $('#' + selectedMake.toLowerCase().replace('/', '-') + '-models').show();
-      }
-    });
+  // Show/hide model dropdowns based on selected make
+  $('#vehicle-make').on('change', function () {
+    $('.model-dropdown').hide();
+    var selectedMake = $(this).val();
+    if (selectedMake) {
+      $('#' + selectedMake.toLowerCase().replace('/', '-') + '-models').show();
+    }
+  });
 
-    $('#quote-request-form').on('submit', function (e) {
-      e.preventDefault();
-      var $form = $(this);
-      var $message = $('#quote-form-message');
-      var $submitBtn = $('#quote-submit-btn');
-      var $btnText = $submitBtn.find('.btn-text');
-      var $btnLoading = $submitBtn.find('.btn-loading');
-      $message.empty();
+  $('#quote-request-form').on('submit', function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var $message = $('#quote-form-message');
+    var $submitBtn = $('#quote-submit-btn');
+    var $btnText = $submitBtn.find('.btn-text');
+    var $btnLoading = $submitBtn.find('.btn-loading');
+    $message.empty();
 
-      // Client-side validation
-      var isValid = true;
-      $form.find('input[required], select[required]').each(function () {
-        if (!$(this).val()) {
-          $(this).addClass('is-invalid');
-          isValid = false;
-        } else {
-          $(this).removeClass('is-invalid');
-        }
-      });
-
-      // Email validation
-      var email = $form.find('#quote-email').val();
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        $form.find('#quote-email').addClass('is-invalid');
-        isValid = false;
-      }
-
-      // Phone validation
-      var phone = $form.find('#quote-phone').val();
-      const digitsOnly = phone.replace(/[^0-9]/g, '');
-      if (!/^\+?[0-9\s\(\)-]{10,20}$/.test(phone) || digitsOnly.length < 10 || digitsOnly.length > 15) {
-        $form.find('#quote-phone').addClass('is-invalid');
+    // Client-side validation
+    var isValid = true;
+    $form.find('input[required], select[required]').each(function () {
+      if (!$(this).val()) {
+        $(this).addClass('is-invalid');
         isValid = false;
       } else {
-        $form.find('#quote-phone').removeClass('is-invalid');
+        $(this).removeClass('is-invalid');
       }
+    });
 
-      // Address validation
-      var address = $form.find('#quote-address').val();
-      if (address && address.length < 5) {
-        $form.find('#quote-address').addClass('is-invalid');
-        isValid = false;
+    // Email validation
+    var email = $form.find('#quote-email').val();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      $form.find('#quote-email').addClass('is-invalid');
+      isValid = false;
+    }
+
+    // Phone validation
+    var phone = $form.find('#quote-phone').val();
+    const digitsOnly = phone.replace(/[^0-9]/g, '');
+    if (!/^\+?[0-9\s\(\)-]{10,20}$/.test(phone) || digitsOnly.length < 10 || digitsOnly.length > 15) {
+      $form.find('#quote-phone').addClass('is-invalid');
+      isValid = false;
+    } else {
+      $form.find('#quote-phone').removeClass('is-invalid');
+    }
+
+    // Address validation
+    var address = $form.find('#quote-address').val();
+    if (address && address.length < 5) {
+      $form.find('#quote-address').addClass('is-invalid');
+      isValid = false;
+    }
+
+    // State validation
+    var state = $form.find('#quote-state').val();
+    if (state && state.length < 2) {
+      $form.find('#quote-state').addClass('is-invalid');
+      isValid = false;
+    }
+
+    // Country validation
+    var country = $form.find('#quote-country').val();
+    if (!country) {
+      $form.find('#quote-country').addClass('is-invalid');
+      isValid = false;
+    }
+
+    // Model validation
+    var selectedMake = $form.find('#vehicle-make').val();
+    var selectedModel = $form.find('.model-dropdown:visible select').val();
+    if (selectedMake && !selectedModel) {
+      $form.find('.model-dropdown:visible select').addClass('is-invalid');
+      isValid = false;
+    }
+
+    // Year validation
+    var year = $form.find('#vehicle-year').val();
+    if (year < 1900 || year > 2026) {
+      $form.find('#vehicle-year').addClass('is-invalid');
+      isValid = false;
+    }
+
+    // VIN validation
+    var vin = $form.find('#vehicle-vin').val();
+    if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+      $form.find('#vehicle-vin').addClass('is-invalid');
+      isValid = false;
+    }
+
+    if (!isValid) {
+      $message.html('<div style="color: #dc3545; background-color: #fee2e2; border: 1px solid #f5c2c7; padding: 0.75rem; border-radius: 0.375rem;">Please fill out all required fields correctly.</div>');
+      return;
+    }
+
+    // Show loading state
+    $submitBtn.prop('disabled', true);
+    $btnText.hide();
+    $btnLoading.show();
+
+    // Prepare form data
+    var formData = {
+      first_name: $form.find('#quote-first-name').val(),
+      last_name: $form.find('#quote-last-name').val(),
+      email: email,
+      phone: phone,
+      product_title: $form.find('input[name="product_title"]').val(),
+      collection_handle: $form.find('input[name="collection_handle"]').val(),
+      product_id: $form.find('input[name="product_id"]').val(),
+      sku: $form.find('input[name="sku"]').val(),
+      vehicle_make: $form.find('#vehicle-make').val(),
+      vehicle_model: selectedModel,
+      vehicle_year: year,
+      vin_number: vin,
+      address: address,
+      state: state,
+      country: country,
+      message: $form.find('#quote-message').val()
+    };
+
+    console.log('Submitting Form Data:', JSON.stringify(formData, null, 2));
+
+    // AJAX submission
+    $.ajax({
+      url: 'https://custom-shopify.onrender.com/api/quote',
+      type: 'POST',
+      data: JSON.stringify(formData),
+      contentType: 'application/json',
+      timeout: 60000,
+      success: function (response) {
+        console.log('Success Response:', response);
+        $message.html('<div style="color: #166534; background-color: #dcfce7; border: 1px solid #bbffb3; padding: 0.75rem; border-radius: 0.375rem;">' + (response.message || 'Quote request submitted successfully!') + '</div>');
+        $form[0].reset();
+        $('.model-dropdown').hide();
+        setTimeout(function () {
+          $('#modalQuoteRequest').modal('hide');
+          $message.empty();
+        }, 3000);
+      },
+      error: function (xhr, status, error) {
+        console.error('AJAX Error:', status, error, xhr.responseJSON);
+        var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred. Please try again.';
+        $message.html('<div style="color: #dc3545; background-color: #fee2e2; border: 1px solid #f5c2c7; padding: 0.75rem; border-radius: 0.375rem;">' + errorMsg + '</div>');
+      },
+      complete: function () {
+        console.log('AJAX Complete');
+        $submitBtn.prop('disabled', false);
+        $btnText.show();
+        $btnLoading.hide();
       }
-
-      // State validation
-      var state = $form.find('#quote-state').val();
-      if (state && state.length < 2) {
-        $form.find('#quote-state').addClass('is-invalid');
-        isValid = false;
-      }
-
-      // Country validation
-      var country = $form.find('#quote-country').val();
-      if (!country) {
-        $form.find('#quote-country').addClass('is-invalid');
-        isValid = false;
-      }
-
-      // Model validation
-      var selectedMake = $form.find('#vehicle-make').val();
-      var selectedModel = $form.find('.model-dropdown:visible select').val();
-      if (selectedMake && !selectedModel) {
-        $form.find('.model-dropdown:visible select').addClass('is-invalid');
-        isValid = false;
-      }
-
-      // Year validation
-      var year = $form.find('#vehicle-year').val();
-      if (year < 1900 || year > 2026) {
-        $form.find('#vehicle-year').addClass('is-invalid');
-        isValid = false;
-      }
-
-      // VIN validation
-      var vin = $form.find('#vehicle-vin').val();
-      if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
-        $form.find('#vehicle-vin').addClass('is-invalid');
-        isValid = false;
-      }
-
-      if (!isValid) {
-        $message.html('<div style="color: #dc3545; background-color: #fee2e2; border: 1px solid #f5c2c7; padding: 0.75rem; border-radius: 0.375rem;">Please fill out all required fields correctly.</div>');
-        return;
-      }
-
-      // Show loading state
-      $submitBtn.prop('disabled', true);
-      $btnText.hide();
-      $btnLoading.show();
-
-      // Prepare form data
-      var formData = {
-        first_name: $form.find('#quote-first-name').val(),
-        last_name: $form.find('#quote-last-name').val(),
-        email: email,
-        phone: phone,
-        product_title: $form.find('input[name="product_title"]').val(),
-        collection_handle: $form.find('input[name="collection_handle"]').val(),
-        product_id: $form.find('input[name="product_id"]').val(),
-        sku: $form.find('input[name="sku"]').val(),
-        vehicle_make: $form.find('#vehicle-make').val(),
-        vehicle_model: selectedModel,
-        vehicle_year: year,
-        vin_number: vin,
-        address: address,
-        state: state,
-        country: country,
-        message: $form.find('#quote-message').val()
-      };
-
-      // AJAX submission
-      $.ajax({
-        url: 'https://custom-shopify.onrender.com/api/quote',
-        type: 'POST',
-        data: JSON.stringify(formData),
-        contentType: 'application/json',
-        success: function (response) {
-          $message.html('<div style="color: #166534; background-color: #dcfce7; border: 1px solid #bbffb3; padding: 0.75rem; border-radius: 0.375rem;">' + (response.message || 'Quote request submitted successfully!') + '</div>');
-          $form[0].reset();
-          $('.model-dropdown').hide();
-          setTimeout(function () {
-            $('#modalQuoteRequest').modal('hide');
-            $message.empty();
-          }, 3000);
-        },
-        error: function (xhr) {
-          var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'An error occurred. Please try again.';
-          $message.html('<div style="color: #dc3545; background-color: #fee2e2; border: 1px solid #f5c2c7; padding: 0.75rem; border-radius: 0.375rem;">' + errorMsg + '</div>');
-        },
-        complete: function () {
-          $submitBtn.prop('disabled', false);
-          $btnText.show();
-          $btnLoading.hide();
-        }
-      });
     });
   });
+});
 </script>
