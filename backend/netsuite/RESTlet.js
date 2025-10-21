@@ -32,29 +32,36 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
     cust.setValue({ fieldId: 'phone', value: data.phone });
-    cust.setValue({ fieldId: 'comments', value: `Created via Shopify Quote form.` });
+    cust.setValue({ fieldId: 'comments', value: 'Created via Shopify Quote form.' });
 
     return cust.save();
   };
 
-  // --- Helper: find custom list ID by name ---
+  // --- Helper: find custom list ID by name (case-insensitive, reusable) ---
   const getListIdByName = (listId, name) => {
     if (!name) return null;
     try {
-      const result = search.create({
+      const results = search.create({
         type: listId,
-        filters: [['name', 'contains', name.toUpperCase()]],
+        filters: [['name', 'is', name.toUpperCase().trim()]],
         columns: ['internalid']
       }).run().getRange({ start: 0, end: 1 });
 
-      return result.length ? result[0].getValue('internalid') : null;
+      if (results.length) {
+        const id = results[0].getValue('internalid');
+        log.debug('Custom List Lookup', `${listId} → ${name} = ${id}`);
+        return id;
+      } else {
+        log.error('Custom List Value Not Found', `${listId} → ${name}`);
+        return null;
+      }
     } catch (e) {
       log.error('List Lookup Failed', `${listId} - ${name}: ${e.message}`);
       return null;
     }
   };
 
-  // --- Static mapping for vehicle model internal IDs ---
+  // --- Vehicle model internal ID map ---
   const vehicleModelMap = {
     'CHEVROLET': {
       'SILVERADO 1500': 623,
@@ -86,12 +93,12 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     data.vehicle_model = data.vehicle_model?.toUpperCase().trim();
 
     const est = record.create({ type: record.Type.ESTIMATE, isDynamic: true });
-    const customFormId = 229;
-
-    const memoText = `Shopify Quote: ${data.message || ''} (${data.sku}: ${data.vehicle_make} ${data.vehicle_model})`;
-    est.setValue({ fieldId: 'customform', value: customFormId });
+    est.setValue({ fieldId: 'customform', value: 229 });
     est.setValue({ fieldId: 'entity', value: customerId });
-    est.setValue({ fieldId: 'memo', value: memoText.trim() });
+    est.setValue({
+      fieldId: 'memo',
+      value: `Shopify Quote: ${data.message || ''} (${data.sku}: ${data.vehicle_make} ${data.vehicle_model})`.trim()
+    });
 
     const makeId = getListIdByName('customlist_nscs_vehicle_make', data.vehicle_make);
     const modelId = vehicleModelMap?.[data.vehicle_make]?.[data.vehicle_model] || null;
@@ -100,12 +107,10 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     if (makeId) est.setValue({ fieldId: 'custbody_nscs_vehicle_make', value: makeId });
     if (modelId) est.setValue({ fieldId: 'custbody_nscs_vehicle_model', value: modelId });
     if (yearId) est.setValue({ fieldId: 'custbody_nscs_vehicle_year', value: yearId });
-
-    est.setValue({ fieldId: 'custbody_nscs_vehicle_vin', value: data.vin_number });
+    if (data.vin_number) est.setValue({ fieldId: 'custbody_nscs_vehicle_vin', value: data.vin_number });
 
     return est.save();
   };
-
 
   // --- POST handler ---
   const post = (data) => {
