@@ -23,9 +23,9 @@ const netsuiteRequest = async (data) => {
 
     const requestData = { url, method: "POST" };
     const oauthHeaderObj = oauth.toHeader(oauth.authorize(requestData, token));
-    
+
     const authHeader = `${oauthHeaderObj.Authorization}, realm="${process.env.NETSUITE_ACCOUNT_ID}"`;
-    
+
     const headers = {
         Authorization: authHeader,
         "Content-Type": "application/json",

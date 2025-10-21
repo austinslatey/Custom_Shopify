@@ -7,7 +7,7 @@ const router = Router();
 router.use('/api', apiRoutes);
 
 router.use((req, res) => {
-  res.status(404).send('<h1>Check Your Routes!!!!</h1>');
+    res.status(404).send('<h1>Check Your Routes!!!!</h1>');
 });
 
 export default router;

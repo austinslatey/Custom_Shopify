@@ -149,7 +149,7 @@ router.post('/', async (req, res) => {
             });
 
             console.log("NetSuite Response:", netsuiteResponse);
-            
+
             if (!netsuiteResponse?.success) {
                 console.warn("NetSuite reported failure:", netsuiteResponse);
             }
