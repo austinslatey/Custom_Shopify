@@ -43,7 +43,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     try {
       const result = search.create({
         type: listId,
-        filters: [['name', 'is', name]],
+        filters: [['name', 'contains', name.toUpperCase()]],
         columns: ['internalid']
       }).run().getRange({ start: 0, end: 1 });
 
@@ -82,6 +82,9 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
 
   // --- Create estimate ---
   const createEstimate = (data, customerId) => {
+    data.vehicle_make = data.vehicle_make?.toUpperCase().trim();
+    data.vehicle_model = data.vehicle_model?.toUpperCase().trim();
+
     const est = record.create({ type: record.Type.ESTIMATE, isDynamic: true });
     const customFormId = 229;
 
@@ -90,42 +93,19 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     est.setValue({ fieldId: 'entity', value: customerId });
     est.setValue({ fieldId: 'memo', value: memoText.trim() });
 
-    // --- Add item line ---
-    if (data.sku) {
-      const itemSearch = search.create({
-        type: search.Type.ITEM,
-        filters: [['itemid', 'is', data.sku]],
-        columns: ['internalid']
-      }).run().getRange({ start: 0, end: 1 });
-
-      if (itemSearch.length) {
-        est.selectNewLine({ sublistId: 'item' });
-        est.setCurrentSublistValue({
-          sublistId: 'item',
-          fieldId: 'item',
-          value: itemSearch[0].getValue('internalid')
-        });
-        est.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: 1 });
-        est.commitLine({ sublistId: 'item' });
-      }
-    }
-
-    // --- Vehicle fields ---
     const makeId = getListIdByName('customlist_nscs_vehicle_make', data.vehicle_make);
     const modelId = vehicleModelMap?.[data.vehicle_make]?.[data.vehicle_model] || null;
     const yearId = getListIdByName('customlist_nscs_model_year', data.vehicle_year);
 
-    if (!makeId) log.error('Vehicle Make Not Found', data.vehicle_make);
-    if (!modelId) log.error('Vehicle Model Not Found', `${data.vehicle_make} ${data.vehicle_model}`);
-    if (!yearId) log.error('Vehicle Year Not Found', data.vehicle_year);
+    if (makeId) est.setValue({ fieldId: 'custbody_nscs_vehicle_make', value: makeId });
+    if (modelId) est.setValue({ fieldId: 'custbody_nscs_vehicle_model', value: modelId });
+    if (yearId) est.setValue({ fieldId: 'custbody_nscs_vehicle_year', value: yearId });
 
-    est.setValue({ fieldId: 'custbody_nscs_vehicle_make', value: makeId });
-    est.setValue({ fieldId: 'custbody_nscs_vehicle_model', value: modelId });
-    est.setValue({ fieldId: 'custbody_nscs_vehicle_year', value: yearId });
     est.setValue({ fieldId: 'custbody_nscs_vehicle_vin', value: data.vin_number });
 
     return est.save();
   };
+
 
   // --- POST handler ---
   const post = (data) => {
