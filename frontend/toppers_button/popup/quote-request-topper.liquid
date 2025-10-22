@@ -7,7 +7,8 @@ Dependencies: Requires jQuery and Bootstrap for modal functionality.
 Notes: Sends product_id instead of variant_id. Uses server URL https://custom-shopify.onrender.com. Validates phone,
 VIN, and address fields. Layout on tablet and wider: First Name | Last Name, Email | Phone Number, Country | State,
 Vehicle Year | VIN Number in two columns; Address, Vehicle Make, Vehicle Model, Message in single columns. Vehicle Model
-is dependent on Vehicle Make. State dropdown is disabled until a country is selected and shows only relevant states/provinces.
+is dependent on Vehicle Make. State dropdown is disabled until a country is selected and shows only relevant
+states/provinces.
 {% endcomment %}
 
 <div class="col-item" style="padding: 0 1rem;">
@@ -22,7 +23,7 @@ is dependent on Vehicle Make. State dropdown is disabled until a country is sele
   <div class="modal-dialog modal-dialog-centered" style="max-width: 32rem;">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <h5 class="modal-title" style="font-size: 1.25rem; font-weight: 600;">Request a Quote for {{ product.title }}
+        <h5 style="font-size: 1rem; font-weight: 600;">Request a Quote for {{ product.title }}
         </h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
           style="color: #6c757d; font-size: 1.5rem;">
