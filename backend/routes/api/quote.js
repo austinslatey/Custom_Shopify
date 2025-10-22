@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
         }
 
         // Send emails
-        await sendEmails({ first_name, last_name, email, phone, product_title, sku,  message, isTopper: false });
+        await sendEmails({ first_name, last_name, email, phone, product_title, sku, quantity,  message, isTopper: false });
 
         // Submit to HubSpot
         const hubspotResult = await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, quantity, address, state, country, message, isTopper: false, req });
