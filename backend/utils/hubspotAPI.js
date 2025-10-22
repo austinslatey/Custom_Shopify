@@ -2,7 +2,10 @@ import axios from 'axios';
 
 // Submits quote request data to HubSpot
 export const submitToHubSpot = async ({ first_name, last_name, email, phone, product_title, sku, message, vehicle_make, vehicle_model, vehicle_year, vin_number, isTopper, req }) => {
-    const hubspotUrl = process.env.HUBSPOT_URL;
+    
+    // If topper use topper url else use general quote form
+    const hubspotUrl = isTopper ? process.env.HUBSPOT_TOPPER_QUOTE_URL : process.env.HUBSPOT_QUOTE_URL;
+
     const hubspotData = {
         fields: [
             { name: 'firstname', value: first_name },
