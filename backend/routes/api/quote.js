@@ -75,13 +75,13 @@ router.post('/topper', async (req, res) => {
         }
 
         // Send emails
-        // await sendEmails({ first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, vin_number, message, isTopper: true });
+        await sendEmails({ first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, vin_number, message, isTopper: true });
 
         // Submit to HubSpot
-        // const hubspotResult = await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, address, state, country, vin_number, message, isTopper: true, req });
-        // if (!hubspotResult.success) {
-        //     console.warn('HubSpot submission failed:', hubspotResult.error);
-        // }
+        const hubspotResult = await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, address, state, country, vin_number, message, isTopper: true, req });
+        if (!hubspotResult.success) {
+            console.warn('HubSpot submission failed:', hubspotResult.error);
+        }
 
         // Submit to NetSuite
         try {
