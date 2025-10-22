@@ -3,6 +3,7 @@
  * @NScriptType Restlet
  */
 define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
+
   // --- Find or create customer ---
   const findOrCreateCustomer = (data) => {
     const email = data.email?.trim();
@@ -14,22 +15,38 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       columns: ['internalid'],
     }).run().getRange({ start: 0, end: 1 });
 
+    let cust;
+    let id;
+
+    // ---------- CUSTOMER EXISTS ----------
     if (existing.length) {
-      const id = existing[0].getValue('internalid');
-      const cust = record.load({ type: record.Type.CUSTOMER, id, isDynamic: true });
+      id = existing[0].getValue('internalid');
+      cust = record.load({ type: record.Type.CUSTOMER, id, isDynamic: true });
 
       if (data.phone) cust.setValue({ fieldId: 'phone', value: data.phone });
       if (data.first_name) cust.setValue({ fieldId: 'firstname', value: data.first_name });
       if (data.last_name) cust.setValue({ fieldId: 'lastname', value: data.last_name });
 
-      // Update address subrecord
+      // --- Add a new address line if provided ---
       if (data.address && data.state && data.country) {
-        const addressSubrecord = cust.selectNewLine({ sublistId: 'addressbook' });
-        addressSubrecord.setValue({ fieldId: 'defaultbilling', value: true });
-        const address = addressSubrecord.getSubrecord({ fieldId: 'addressbookaddress' });
-        address.setValue({ fieldId: 'country', value: data.country });
-        address.setValue({ fieldId: 'addr1', value: data.address });
-        address.setValue({ fieldId: 'state', value: data.state });
+        cust.selectNewLine({ sublistId: 'addressbook' });
+        cust.setCurrentSublistValue({
+          sublistId: 'addressbook',
+          fieldId: 'defaultbilling',
+          value: false // don’t override existing billing address
+        });
+
+        const addrSubrecord = cust.getCurrentSublistSubrecord({
+          sublistId: 'addressbook',
+          fieldId: 'addressbookaddress'
+        });
+
+        addrSubrecord.setValue({ fieldId: 'country', value: data.country });
+        addrSubrecord.setValue({ fieldId: 'addr1', value: data.address });
+        if (data.city) addrSubrecord.setValue({ fieldId: 'city', value: data.city });
+        if (data.zip) addrSubrecord.setValue({ fieldId: 'zip', value: data.zip });
+        addrSubrecord.setValue({ fieldId: 'state', value: data.state });
+
         cust.commitLine({ sublistId: 'addressbook' });
       }
 
@@ -37,21 +54,34 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       return id;
     }
 
-    const cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
+    // ---------- NEW CUSTOMER ----------
+    cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
     cust.setValue({ fieldId: 'firstname', value: data.first_name });
     cust.setValue({ fieldId: 'lastname', value: data.last_name });
     cust.setValue({ fieldId: 'email', value: email });
     cust.setValue({ fieldId: 'phone', value: data.phone });
     cust.setValue({ fieldId: 'comments', value: `Created via Shopify General Quote form.` });
 
-    // Create address subrecord
+    // --- Create address subrecord for new customer ---
     if (data.address && data.state && data.country) {
-      const addressSubrecord = cust.selectNewLine({ sublistId: 'addressbook' });
-      addressSubrecord.setValue({ fieldId: 'defaultbilling', value: true });
-      const address = addressSubrecord.getSubrecord({ fieldId: 'addressbookaddress' });
-      address.setValue({ fieldId: 'country', value: data.country });
-      address.setValue({ fieldId: 'addr1', value: data.address });
-      address.setValue({ fieldId: 'state', value: data.state });
+      cust.selectNewLine({ sublistId: 'addressbook' });
+      cust.setCurrentSublistValue({
+        sublistId: 'addressbook',
+        fieldId: 'defaultbilling',
+        value: true
+      });
+
+      const addrSubrecord = cust.getCurrentSublistSubrecord({
+        sublistId: 'addressbook',
+        fieldId: 'addressbookaddress'
+      });
+
+      addrSubrecord.setValue({ fieldId: 'country', value: data.country });
+      addrSubrecord.setValue({ fieldId: 'addr1', value: data.address });
+      if (data.city) addrSubrecord.setValue({ fieldId: 'city', value: data.city });
+      if (data.zip) addrSubrecord.setValue({ fieldId: 'zip', value: data.zip });
+      addrSubrecord.setValue({ fieldId: 'state', value: data.state });
+
       cust.commitLine({ sublistId: 'addressbook' });
     }
 
@@ -68,14 +98,16 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     est.setValue({ fieldId: 'entity', value: customerId });
     est.setValue({ fieldId: 'memo', value: memoText.trim() });
 
-    // Set billing address
+    // --- Set billing address (optional) ---
     if (data.address && data.state && data.country) {
       est.setValue({ fieldId: 'billcountry', value: data.country });
       est.setValue({ fieldId: 'billaddr1', value: data.address });
       est.setValue({ fieldId: 'billstate', value: data.state });
+      if (data.city) est.setValue({ fieldId: 'billcity', value: data.city });
+      if (data.zip) est.setValue({ fieldId: 'billzip', value: data.zip });
     }
 
-    // Add item line
+    // --- Add item line ---
     if (data.sku) {
       const itemSearch = search.create({
         type: search.Type.ITEM,
