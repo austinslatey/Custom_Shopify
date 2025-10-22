@@ -23,7 +23,10 @@ router.post('/', async (req, res) => {
         await sendEmails({ first_name, last_name, email, phone, product_title, sku, message, isTopper: false });
 
         // Submit to HubSpot
-        await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, message, isTopper: false, req });
+        const hubspotResult = await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, message, isTopper: false, req });
+        if (!hubspotResult.success) {
+            console.warn('HubSpot submission failed:', hubspotResult.error);
+        }
 
         // Submit to NetSuite
         try {
@@ -71,7 +74,10 @@ router.post('/topper', async (req, res) => {
         await sendEmails({ first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, vin_number, message, isTopper: true });
 
         // Submit to HubSpot
-        await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, vin_number, message, isTopper: true, req });
+        const hubspotResult = await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, vin_number, message, isTopper: true, req });
+        if (!hubspotResult.success) {
+            console.warn('HubSpot submission failed:', hubspotResult.error);
+        }
 
         // Submit to NetSuite
         try {
