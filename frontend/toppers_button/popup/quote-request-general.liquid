@@ -1,9 +1,12 @@
 {% comment %}
 Snippet: quote-request-general.liquid
-Purpose: Displays a "Request a Quote" button and modal form for truck parts, with separate dropdowns for truck makes and models.
+Purpose: Displays a "Request a Quote" button and modal form for truck parts, with a custom layout for tablet and wider
+screens.
 Usage: Included in product template.
 Dependencies: Requires jQuery and Bootstrap for modal functionality.
-Notes: Sends product_id instead of variant_id. Uses server URL https://custom-shopify.onrender.com. Validates phone, address fields, and quantity.
+Notes: Sends product_id instead of variant_id. Uses server URL https://custom-shopify.onrender.com. Validates phone,
+address fields, and quantity. Layout: Quantity (single), First Name | Last Name, Email | Phone, Address (single),
+Country | State, Message (single) on tablet and wider.
 {% endcomment %}
 
 <div class="col-item" style="padding: 0 1rem;">
@@ -18,7 +21,8 @@ Notes: Sends product_id instead of variant_id. Uses server URL https://custom-sh
   <div class="modal-dialog modal-dialog-centered" style="max-width: 32rem;">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <h5 class="modal-title" style="font-size: 1.25rem; font-weight: 600;">Request a Quote for {{ product.title }}</h5>
+        <h5 class="modal-title" style="font-size: 1.25rem; font-weight: 600;">Request a Quote for {{ product.title }}
+        </h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
           style="color: #6c757d; font-size: 1.5rem;">
           <span aria-hidden="true">&times;</span>
@@ -29,11 +33,16 @@ Notes: Sends product_id instead of variant_id. Uses server URL https://custom-sh
           <!-- Quantity -->
           <div class="form-group">
             <label for="quantity"
-              style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Quantity *</label>
-            <div class="quantity-stepper" style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 0.375rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;">
-              <button type="button" class="quantity-decrement" style="width: 2.5rem; height: 2.25rem; background: none; border: none; font-size: 1rem; color: #374151; cursor: pointer; transition: color 0.2s;">-</button>
-              <span id="quantity-display" style="flex: 1; text-align: center; font-size: 0.875rem; padding: 0.5rem;">1</span>
-              <button type="button" class="quantity-increment" style="width: 2.5rem; height: 2.25rem; background: none; border: none; font-size: 1rem; color: #374151; cursor: pointer; transition: color 0.2s;">+</button>
+              style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Quantity
+              *</label>
+            <div class="quantity-stepper"
+              style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 0.375rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;">
+              <button type="button" class="quantity-decrement"
+                style="width: 2.5rem; height: 2.25rem; background: none; border: none; font-size: 1rem; color: #374151; cursor: pointer; transition: color 0.2s;">-</button>
+              <span id="quantity-display"
+                style="flex: 1; text-align: center; font-size: 0.875rem; padding: 0.5rem;">1</span>
+              <button type="button" class="quantity-increment"
+                style="width: 2.5rem; height: 2.25rem; background: none; border: none; font-size: 1rem; color: #374151; cursor: pointer; transition: color 0.2s;">+</button>
             </div>
             <input type="hidden" id="quantity" name="quantity" value="1" required>
             <div class="invalid-feedback"
@@ -41,90 +50,111 @@ Notes: Sends product_id instead of variant_id. Uses server URL https://custom-sh
               Quantity is required and must be a positive integer.
             </div>
           </div>
-          <!-- Personal Information -->
-          <div class="form-group">
-            <label for="quote-first-name"
-              style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">First Name *</label>
-            <input type="text" id="quote-first-name" name="first_name"
-              style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
-              required placeholder="Enter your first name">
-            <div class="invalid-feedback"
-              style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">First name is required.</div>
+
+          <!-- First Name | Last Name -->
+          <div class="form-group-pair" style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label for="quote-first-name"
+                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">First
+                Name *</label>
+              <input type="text" id="quote-first-name" name="first_name"
+                style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
+                required placeholder="Enter your first name">
+              <div class="invalid-feedback"
+                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">First name is required.
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="quote-last-name"
+                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Last
+                Name *</label>
+              <input type="text" id="quote-last-name" name="last_name"
+                style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
+                required placeholder="Enter your last name">
+              <div class="invalid-feedback"
+                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Last name is required.
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="quote-last-name"
-              style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Last Name *</label>
-            <input type="text" id="quote-last-name" name="last_name"
-              style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
-              required placeholder="Enter your last name">
-            <div class="invalid-feedback"
-              style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Last name is required.</div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+
+          <!-- Email | Phone -->
+          <div class="form-group-pair" style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
             <div class="form-group">
               <label for="quote-email"
-                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Email *</label>
+                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Email
+                *</label>
               <input type="email" id="quote-email" name="email"
                 style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
                 required placeholder="Enter your email">
               <div class="invalid-feedback"
-                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">A valid email is required.</div>
+                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">A valid email is
+                required.</div>
             </div>
             <div class="form-group">
               <label for="quote-phone"
-                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Phone *</label>
+                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Phone
+                *</label>
               <input type="tel" id="quote-phone" name="phone"
                 style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
                 required placeholder="Enter your phone number">
               <div class="invalid-feedback"
-                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Please enter a valid phone number (10-15 digits).</div>
+                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Please enter a valid
+                phone number (10-15 digits).</div>
             </div>
           </div>
-          <!-- Address Information -->
-          <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem;">
-            <h6 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Address Information</h6>
-            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
-              <div class="form-group">
-                <label for="quote-address"
-                  style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Address *</label>
-                <input type="text" id="quote-address" name="address"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
-                  required placeholder="Enter your address">
-                <div class="invalid-feedback"
-                  style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Address is required.</div>
-              </div>
-              <div class="form-group">
-                <label for="quote-state"
-                  style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">State *</label>
-                <input type="text" id="quote-state" name="state"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
-                  required placeholder="Enter your state">
-                <div class="invalid-feedback"
-                  style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">State is required.</div>
-              </div>
-              <div class="form-group">
-                <label for="quote-country"
-                  style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Country *</label>
-                <select id="quote-country" name="country"
-                  style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
-                  required>
-                  <option value="" disabled selected>Select a country</option>
-                  <option value="US">United States</option>
-                  <option value="CA">Canada</option>
-                  <!-- Add more countries as needed -->
-                </select>
-                <div class="invalid-feedback"
-                  style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Country is required.</div>
+
+          <!-- Address -->
+          <div class="form-group">
+            <label for="quote-address"
+              style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Address
+              *</label>
+            <input type="text" id="quote-address" name="address"
+              style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
+              required placeholder="Enter your address">
+            <div class="invalid-feedback"
+              style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Address is required.</div>
+          </div>
+
+          <!-- Country | State -->
+          <div class="form-group-pair" style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label for="quote-country"
+                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Country
+                *</label>
+              <select id="quote-country" name="country"
+                style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
+                required>
+                <option value="" disabled selected>Select a country</option>
+                <option value="US">United States</option>
+                <option value="CA">Canada</option>
+                <!-- Add more countries as needed -->
+              </select>
+              <div class="invalid-feedback"
+                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">Country is required.
               </div>
             </div>
+            <div class="form-group">
+              <label for="quote-state"
+                style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">State
+                *</label>
+              <input type="text" id="quote-state" name="state"
+                style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;"
+                required placeholder="Enter your state">
+              <div class="invalid-feedback"
+                style="display: none; color: #dc3545; font-size: 0.75rem; margin-top: 0.25rem;">State is required.</div>
+            </div>
           </div>
+
+          <!-- Message -->
           <div class="form-group">
             <label for="quote-message"
-              style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Message (Optional)</label>
+              style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Message
+              (Optional)</label>
             <textarea id="quote-message" name="message"
               style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s; resize: vertical;"
               placeholder="Add any additional details or questions"></textarea>
           </div>
+
           <input type="hidden" name="product_title" value="{{ product.title | escape }}">
           <input type="hidden" name="collection_handle" value="{{ target_collection.handle }}">
           <input type="hidden" name="product_id" value="{{ product.id }}">
@@ -140,6 +170,8 @@ Notes: Sends product_id instead of variant_id. Uses server URL https://custom-sh
     </div>
   </div>
 </div>
+
+
 
 <style>
   .quote-request-btn:hover {
@@ -171,7 +203,7 @@ Notes: Sends product_id instead of variant_id. Uses server URL https://custom-sh
     border-color: #dc3545 !important;
   }
 
-  .is-invalid~.invalid-feedback {
+  .is-invalid ~ .invalid-feedback {
     display: block;
   }
 
@@ -183,10 +215,36 @@ Notes: Sends product_id instead of variant_id. Uses server URL https://custom-sh
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
 
-  @media (min-width: 640px) {
-    .modal-body>form>div:nth-child(2),
-    .modal-body>form>div:nth-child(4)>div {
-      grid-template-columns: 1fr 1fr;
+  /* Ensure form-group-pair is reset to avoid inherited styles */
+  .form-group-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Target tablet and wider screens */
+  @media (min-width: 768px) {
+    #modalQuoteRequest .form-group-pair {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 1rem !important;
+      margin-bottom: 1rem;
+    }
+
+    /* Ensure individual form groups remain single-column */
+    #modalQuoteRequest .form-group {
+      display: block !important;
+      flex: none !important;
+    }
+
+    /* Adjust modal width for better spacing */
+    #modalQuoteRequest .modal-dialog {
+      max-width: 700px !important;
+    }
+
+    /* Override any Bootstrap or Shopify padding/margin conflicts */
+    #modalQuoteRequest .modal-body {
+      padding: 1.5rem !important;
     }
   }
 </style>
