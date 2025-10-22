@@ -21,6 +21,8 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
         phone: String(phone || '').trim(),
         product_title: String(product_title || '').trim(),
         sku: String(sku || '').trim(),
+        // Quantity is only for General Quotes
+        quantity: isTopper ? '' : String(quantity || '').trim(),
         message: String(message || '').trim(),
         vehicle_make: String(vehicle_make || '').trim(),
         vehicle_model: String(vehicle_model || '').trim(),
@@ -35,6 +37,7 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
             { name: 'email', value: sanitizedData.email },
             { name: 'phone', value: sanitizedData.phone },
             { name: 'product_name', value: sanitizedData.sku },
+            ...(!isTopper ? [{ name: 'quantity', value: sanitizedData.quantity }] : []),
             ...(isTopper ? [
                 { name: 'vehicle_make', value: sanitizedData.vehicle_make },
                 { name: 'vehicle_type', value: sanitizedData.vehicle_model },
