@@ -1,6 +1,6 @@
 // Validates quote request data
 export const validateRequest = (data, isTopper = false) => {
-    const { first_name, last_name, email, phone, product_title, sku, vehicle_make, vehicle_model, vehicle_year, vin_number } = data;
+    const { first_name, last_name, email, phone, product_title, sku, quantity, vehicle_make, vehicle_model, vehicle_year, vin_number } = data;
 
     // Required fields for all requests
     if (!first_name || !last_name || !email || !phone || !product_title || !sku) {
@@ -15,6 +15,13 @@ export const validateRequest = (data, isTopper = false) => {
     // Phone validation
     if (!/^\+?[0-9\s\(\)-]{10,20}$/.test(phone) || !/^[0-9\s\(\)-]{10,20}$/.test(phone.replace(/^\+/, ''))) {
         return { valid: false, error: 'Invalid phone number (10-15 digits, optional + prefix, parentheses, spaces, or hyphens)' };
+    }
+
+    // Quantity validation for general quotes
+    if (!isTopper) {
+        if (quantity == null || isNaN(quantity) || !Number.isInteger(Number(quantity)) || Number(quantity) < 1) {
+            return { valid: false, error: 'Quantity is required and must be a positive integer for general quotes' };
+        }
     }
 
     // Topper-specific validations
