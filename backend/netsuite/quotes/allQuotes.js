@@ -41,7 +41,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     const est = record.create({ type: record.Type.ESTIMATE, isDynamic: true });
     const customFormId = 229;
 
-    const memoText = `Shopify General Quote: ${data.message || ''} (${data.sku})`;
+    const memoText = `Shopify General Quote: ${data.message || ''} (${data.sku}), Quantity: ${data.quantity}`;
     est.setValue({ fieldId: 'customform', value: customFormId });
     est.setValue({ fieldId: 'entity', value: customerId });
     est.setValue({ fieldId: 'memo', value: memoText.trim() });
@@ -61,7 +61,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
           fieldId: 'item',
           value: itemSearch[0].getValue('internalid'),
         });
-        est.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: 1 });
+        est.setCurrentSublistValue({ 
+          sublistId: 'item', 
+          fieldId: 'quantity', 
+          value: data.quantity || 1, 
+        });
         est.commitLine({ sublistId: 'item' });
       }
     }
