@@ -23,6 +23,17 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       if (data.first_name) cust.setValue({ fieldId: 'firstname', value: data.first_name });
       if (data.last_name) cust.setValue({ fieldId: 'lastname', value: data.last_name });
 
+      // Update address subrecord
+      if (data.address && data.state && data.country) {
+        const addressSubrecord = cust.selectNewLine({ sublistId: 'addressbook' });
+        addressSubrecord.setValue({ fieldId: 'defaultbilling', value: true });
+        const address = addressSubrecord.getSubrecord({ fieldId: 'addressbookaddress' });
+        address.setValue({ fieldId: 'country', value: data.country });
+        address.setValue({ fieldId: 'addr1', value: data.address });
+        address.setValue({ fieldId: 'state', value: data.state });
+        cust.commitLine({ sublistId: 'addressbook' });
+      }
+
       cust.save();
       return id;
     }
@@ -33,6 +44,17 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     cust.setValue({ fieldId: 'email', value: email });
     cust.setValue({ fieldId: 'phone', value: data.phone });
     cust.setValue({ fieldId: 'comments', value: `Created via Shopify Quote form.` });
+
+    // Create address subrecord
+    if (data.address && data.state && data.country) {
+      const addressSubrecord = cust.selectNewLine({ sublistId: 'addressbook' });
+      addressSubrecord.setValue({ fieldId: 'defaultbilling', value: true });
+      const address = addressSubrecord.getSubrecord({ fieldId: 'addressbookaddress' });
+      address.setValue({ fieldId: 'country', value: data.country });
+      address.setValue({ fieldId: 'addr1', value: data.address });
+      address.setValue({ fieldId: 'state', value: data.state });
+      cust.commitLine({ sublistId: 'addressbook' });
+    }
 
     return cust.save();
   };
@@ -53,7 +75,6 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       return null;
     }
   };
-
 
   const vehicleMakeMap = {
     'BUICK': 9,
@@ -78,7 +99,6 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     'VOLKS WAGON': 20
   };
 
-  // --- Static mapping for vehicle model internal IDs ---
   const vehicleModelMap = {
     'CHEVROLET': {
       'SILVERADO 1500': 623,
@@ -114,7 +134,14 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
     est.setValue({ fieldId: 'entity', value: customerId });
     est.setValue({ fieldId: 'memo', value: memoText.trim() });
 
-    // --- Add item line ---
+    // Set billing address
+    if (data.address && data.state && data.country) {
+      est.setValue({ fieldId: 'billcountry', value: data.country });
+      est.setValue({ fieldId: 'billaddr1', value: data.address });
+      est.setValue({ fieldId: 'billstate', value: data.state });
+    }
+
+    // Add item line
     if (data.sku) {
       const itemSearch = search.create({
         type: search.Type.ITEM,
@@ -134,7 +161,7 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
       }
     }
 
-    // --- Vehicle fields ---
+    // Vehicle fields
     const makeId = vehicleMakeMap[data.vehicle_make?.toUpperCase().trim()] || null;
     const modelId = vehicleModelMap?.[data.vehicle_make]?.[data.vehicle_model] || null;
     const yearId = getListIdByName('customlist_nscs_model_year', data.vehicle_year);
