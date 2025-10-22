@@ -1,7 +1,7 @@
 import sgMail from '@sendgrid/mail';
 
 // Sends emails for quote requests
-export const sendEmails = async ({ first_name, last_name, email, phone, product_title, sku, message, vehicle_make, vehicle_model, vehicle_year, vin_number, isTopper }) => {
+export const sendEmails = async ({ first_name, last_name, email, phone, product_title, sku, quantity, message, vehicle_make, vehicle_model, vehicle_year, vin_number, isTopper }) => {
     const salesEmailData = {
         to: process.env.SALES_EMAIL,
         from: process.env.EMAIL_FROM,
@@ -10,6 +10,7 @@ export const sendEmails = async ({ first_name, last_name, email, phone, product_
       <h2>New Quote Request for: ${sku}</h2>
       <p><strong>Product:</strong> ${product_title}</p>
       <p><strong>SKU:</strong> ${sku}</p>
+      ${!isTopper ? `<p><strong>Quantity:</strong> ${quantity}</p>` : ''}
       <p><strong>Customer:</strong> ${first_name} ${last_name}</p>
       <p><strong>Email:</strong> ${email}</p>
       <p><strong>Phone:</strong> ${phone}</p>
@@ -44,6 +45,7 @@ export const sendEmails = async ({ first_name, last_name, email, phone, product_
       <h2>Quote Request Received</h2>
       <p>Dear ${first_name} ${last_name},</p>
       <p>Thank you for requesting a quote for <strong>${product_title}</strong> (SKU: ${sku || 'N/A'}).</p>
+      ${!isTopper ? `<p>Quantity: ${quantity}</p>` : ''}
       <p>Our team at Waldoch Truck Accessories Store has received your request and will respond soon.</p>
       <p><strong>Your Details:</strong></p>
       <p>Email: ${email}</p>
