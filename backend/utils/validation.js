@@ -1,9 +1,9 @@
 // Validates quote request data
 export const validateRequest = (data, isTopper = false) => {
-    const { first_name, last_name, email, phone, product_title, sku, quantity, vehicle_make, vehicle_model, vehicle_year, vin_number } = data;
+    const { first_name, last_name, email, phone, product_title, sku, quantity, vehicle_make, vehicle_model, vehicle_year, vin_number, address, state, country } = data;
 
     // Required fields for all requests
-    if (!first_name || !last_name || !email || !phone || !product_title || !sku) {
+    if (!first_name || !last_name || !email || !phone || !product_title || !sku || !address || !state || !country) {
         return { valid: false, error: 'Missing required fields' };
     }
 
@@ -15,6 +15,30 @@ export const validateRequest = (data, isTopper = false) => {
     // Phone validation
     if (!/^\+?[0-9\s\(\)-]{10,20}$/.test(phone) || !/^[0-9\s\(\)-]{10,20}$/.test(phone.replace(/^\+/, ''))) {
         return { valid: false, error: 'Invalid phone number (10-15 digits, optional + prefix, parentheses, spaces, or hyphens)' };
+    }
+
+    // Address validation
+    if (address.length < 5) {
+        return { valid: false, error: 'Address must be at least 5 characters long' };
+    }
+
+    // State validation (US states and Canadian provinces)
+    const validStates = [
+        // US States
+        'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA',
+        'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+        'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT',
+        'VA', 'WA', 'WV', 'WI', 'WY',
+        // Canadian Provinces
+        'AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'ON', 'PE', 'QC', 'SK'
+    ];
+    if (!validStates.includes(state)) {
+        return { valid: false, error: 'Invalid state/province code' };
+    }
+
+    // Country validation
+    if (!/^[A-Z]{2}$/.test(country)) {
+        return { valid: false, error: 'Country must be a valid two-letter ISO code (e.g., US, CA)' };
     }
 
     // Quantity validation for general quotes
