@@ -11,10 +11,10 @@ const router = Router();
 // Quote Request for All except toppers
 router.post('/', async (req, res) => {
     try {
-        const { first_name, last_name, email, phone, product_title, sku, message } = req.body;
+        const { first_name, last_name, email, phone, product_title, sku, quantity, message } = req.body;
 
         // Validate request
-        const validation = validateRequest({ first_name, last_name, email, phone, product_title, sku });
+        const validation = validateRequest({ first_name, last_name, email, phone, product_title, sku, quantity });
         if (!validation.valid) {
             return res.status(400).json({ error: validation.error });
         }
@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
         await sendEmails({ first_name, last_name, email, phone, product_title, sku, message, isTopper: false });
 
         // Submit to HubSpot
-        const hubspotResult = await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, message, isTopper: false, req });
+        const hubspotResult = await submitToHubSpot({ first_name, last_name, email, phone, product_title, sku, quantity, message, isTopper: false, req });
         if (!hubspotResult.success) {
             console.warn('HubSpot submission failed:', hubspotResult.error);
         }
@@ -36,6 +36,7 @@ router.post('/', async (req, res) => {
                 email,
                 phone,
                 sku,
+                quantity,
                 message,
                 isTopperQuote: false,
             });
