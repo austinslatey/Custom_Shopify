@@ -70,7 +70,7 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
             { name: 'address', value: sanitizedData.address },
             { name: 'state', value: hubspotState },  // Use full name
             { name: 'country', value: hubspotCountry },  // Use full name or code (test both)
-            ...(!isTopper ? [{ name: 'quantity', value: sanitizedData.quantity }] : []),
+            ...(!isTopper ? [{ name: 'product_quantity', value: sanitizedData.quantity }] : []),
             ...(isTopper ? [
                 { name: 'vehicle_make', value: sanitizedData.vehicle_make },
                 { name: 'vehicle_type', value: sanitizedData.vehicle_model },
