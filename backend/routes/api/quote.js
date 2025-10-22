@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
         const salesEmailData = {
             to: process.env.SALES_EMAIL,
             from: process.env.EMAIL_FROM,
-            subject: `New  Quote Request: ${product_title}`,
+            subject: `New Quote Request: ${product_title}`,
             html: `
         <h2>New Quote Request for: ${sku}</h2>
         <p><strong>Product:</strong> ${product_title}</p>
@@ -112,6 +112,7 @@ router.post('/', async (req, res) => {
                 phone,
                 sku,
                 message,
+                isTopperQuote: false,
             });
 
             console.log('NetSuite Response:', netsuiteResponse);
@@ -275,6 +276,7 @@ router.post('/topper', async (req, res) => {
                 vin_number,
                 sku,
                 message,
+                isTopperQuote: true,
             });
 
             console.log("NetSuite Response:", netsuiteResponse);
