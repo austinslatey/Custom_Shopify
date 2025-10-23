@@ -1,20 +1,8 @@
-// NetSuite Restlet needs to create/update customer 
-// first_name, last_name, email, phone, address, city, state, country, zip, 
-// Set message equal to Field ID: Comments
-// File Submission
-    // Attach from
-    // File name
-    // Folder
-        // Perform a lookup for a designated folder for file storage
-    // Select File
-        // Insert File
-    // Character Encoding
-        // Default 
 /**
  * @NApiVersion 2.1
  * @NScriptType Restlet
  */
-define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
+define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) => {
 
     // --- Find or create customer ---
     const findOrCreateCustomer = (data) => {
@@ -62,44 +50,89 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
                 cust.commitLine({ sublistId: 'addressbook' });
             }
 
-            cust.save();
-            return id;
+            id = cust.save();
+        } else {
+            // ---------- NEW CUSTOMER ----------
+            cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
+            cust.setValue({ fieldId: 'firstname', value: data.first_name });
+            cust.setValue({ fieldId: 'lastname', value: data.last_name });
+            cust.setValue({ fieldId: 'email', value: email });
+            cust.setValue({ fieldId: 'phone', value: data.phone });
+
+            // Set message equal to Field ID: Comments
+            cust.setValue({ fieldId: 'comments', value: data.message || 'Created via Vehicle Builder form.' });
+
+            // --- Create address subrecord for new customer ---
+            if (data.address && data.state && data.country) {
+                cust.selectNewLine({ sublistId: 'addressbook' });
+                cust.setCurrentSublistValue({
+                    sublistId: 'addressbook',
+                    fieldId: 'defaultbilling',
+                    value: true
+                });
+
+                const addrSubrecord = cust.getCurrentSublistSubrecord({
+                    sublistId: 'addressbook',
+                    fieldId: 'addressbookaddress'
+                });
+
+                addrSubrecord.setValue({ fieldId: 'country', value: data.country });
+                addrSubrecord.setValue({ fieldId: 'addr1', value: data.address });
+                if (data.city) addrSubrecord.setValue({ fieldId: 'city', value: data.city });
+                if (data.zip) addrSubrecord.setValue({ fieldId: 'zip', value: data.zip });
+                addrSubrecord.setValue({ fieldId: 'state', value: data.state });
+
+                cust.commitLine({ sublistId: 'addressbook' });
+            }
+
+            id = cust.save();
         }
 
-        // ---------- NEW CUSTOMER ----------
-        cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
-        cust.setValue({ fieldId: 'firstname', value: data.first_name });
-        cust.setValue({ fieldId: 'lastname', value: data.last_name });
-        cust.setValue({ fieldId: 'email', value: email });
-        cust.setValue({ fieldId: 'phone', value: data.phone });
+        // File Submission (data.file = {name: string, content: base64 string}, always PDF)
+        if (data.file && data.file.name && data.file.content) {
+            // Perform a lookup for a designated folder for file storage
+            // Assuming a folder named 'Vehicle Builder Attachments' exists; adjust as needed
+            const folderSearch = search.create({
+                type: search.Type.FOLDER,
+                filters: [['name', 'is', 'Vehicle Builder Attachments']],
+                columns: ['internalid']
+            }).run().getRange({ start: 0, end: 1 });
 
-        // ----- Value needs to be changed to data.comments
-        cust.setValue({ fieldId: 'comments', value: `Created via Shopify General Quote form.` });
+            let folderId;
+            if (folderSearch.length > 0) {
+                folderId = folderSearch[0].getValue('internalid');
+            } else {
+                // Create the folder if it doesn't exist
+                const folderRecord = record.create({ type: record.Type.FOLDER });
+                folderRecord.setValue({ fieldId: 'name', value: 'Vehicle Builder Attachments' });
+                // Set parent folder if needed, e.g., folderRecord.setValue({ fieldId: 'parent', value: parentFolderId });
+                folderId = folderRecord.save();
+            }
 
-        // --- Create address subrecord for new customer ---
-        if (data.address && data.state && data.country) {
-            cust.selectNewLine({ sublistId: 'addressbook' });
-            cust.setCurrentSublistValue({
-                sublistId: 'addressbook',
-                fieldId: 'defaultbilling',
-                value: true
+            // Create the file (always PDF)
+            const fileObj = file.create({
+                name: data.file.name.endsWith('.pdf') ? data.file.name : `${data.file.name}.pdf`,
+                fileType: 'PDF',
+
+                // Base64 encoded content
+                contents: data.file.content,
+                 
+                // Use BASE64 for PDF binary content
+                encoding: file.Encoding.BASE64, 
+                folder: folderId,
+                isOnline: false
             });
 
-            const addrSubrecord = cust.getCurrentSublistSubrecord({
-                sublistId: 'addressbook',
-                fieldId: 'addressbookaddress'
+            const fileId = fileObj.save();
+
+            // Attach file to customer
+            record.attach({
+                record: { type: 'file', id: fileId },
+                to: { type: 'customer', id: id }
             });
-
-            addrSubrecord.setValue({ fieldId: 'country', value: data.country });
-            addrSubrecord.setValue({ fieldId: 'addr1', value: data.address });
-            if (data.city) addrSubrecord.setValue({ fieldId: 'city', value: data.city });
-            if (data.zip) addrSubrecord.setValue({ fieldId: 'zip', value: data.zip });
-            addrSubrecord.setValue({ fieldId: 'state', value: data.state });
-
-            cust.commitLine({ sublistId: 'addressbook' });
         }
 
-        return cust.save();
+        return id;
     };
 
     // --- POST handler ---
@@ -107,10 +140,11 @@ define(['N/record', 'N/search', 'N/log'], (record, search, log) => {
         try {
             const customerId = findOrCreateCustomer(data);
 
+            // TODO: If needed, use customerId to create a quote or sales order
             return { success: true, customerId };
         } catch (e) {
             log.error({
-                title: 'Wordpress Builder Error',
+                title: 'Vehicle Builder Error',
                 details: JSON.stringify({ message: e.message, stack: e.stack, data })
             });
             return { success: false, error: e.message || e.toString() };
