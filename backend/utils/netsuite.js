@@ -3,10 +3,15 @@ import crypto from 'crypto';
 import OAuth from 'oauth-1.0a';
 
 const netsuiteRequest = async (data) => {
-    const url = data.isTopperQuote
-    ? process.env.NETSUITE_TOPPER_QUOTE_RESTLET_URL
-    : process.env.NETSUITE_QUOTE_RESTLET_URL;
-
+    let url; 
+     if (data.isTopperQuote) {
+        url = process.env.NETSUITE_TOPPER_QUOTE_RESTLET_URL;
+     } else if (data.isBuilder) {
+        url = process.env.NETSUITE_BUILDER_RESTLET_URL;
+     } else {
+        process.env.NETSUITE_QUOTE_RESTLET_URL;
+     }
+    
     const oauth = OAuth({
         consumer: {
             key: process.env.NETSUITE_CONSUMER_KEY,
