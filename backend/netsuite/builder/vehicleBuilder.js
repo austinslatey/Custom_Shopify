@@ -114,9 +114,25 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
                     folderId = folderRec.save();
                 }
 
+                // Generate unique timestamp (to seconds)
+                const now = new Date();
+                const ts = [
+                    now.getFullYear(),
+                    ('0' + (now.getMonth() + 1)).slice(-2),
+                    ('0' + now.getDate()).slice(-2),
+                    ('0' + now.getHours()).slice(-2),
+                    ('0' + now.getMinutes()).slice(-2),
+                    ('0' + now.getSeconds()).slice(-2)
+                ].join('-');
+
+                // Sanitize file name and append timestamp
+                let baseName = data.file.name.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                if (baseName.toLowerCase().endsWith('.pdf')) baseName = baseName.slice(0, -4);
+                const uniqueName = `${baseName}_${ts}.pdf`;
+
                 // Create PDF file
                 const fileObj = file.create({
-                    name: data.file.name.endsWith('.pdf') ? data.file.name : `${data.file.name}.pdf`,
+                    name: uniqueName,
                     fileType: file.Type.PDF,
                     contents: data.file.content,
                     encoding: file.Encoding.BASE64,
