@@ -1,8 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
 import sgMail from "@sendgrid/mail";
 import routes from "./routes/index.js";
+import corsMiddleware from "./middleware/cors.js";
 
 dotenv.config();
 const app = express();
@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 
 // Middleware
-app.use(cors({ origin: process.env.SHOPIFY_SHOP }));
+app.use(corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
