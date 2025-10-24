@@ -11,8 +11,11 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(corsMiddleware);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Increase JSON payload limit to 5MB
+app.use(express.json({ limit: '5mb' })); 
+ // Increase URL-encoded payload limit
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // SendGrid setup
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
