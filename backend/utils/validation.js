@@ -100,16 +100,25 @@ export const validateBuilderRequest = (data) => {
         // Canadian Provinces
         'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador',
         'Nova Scotia', 'Northwest Territories', 'Nunavut', 'Ontario', 'Prince Edward Island',
-        'Quebec', 'Saskatchewan', 'Yukon'
+        'Quebec', 'Saskatchewan', 'Yukon',
+        // Other Selection
+        'Other'
     ];
+
+    // Country validation
+    const validCountries = [
+        'United States', 'Canada', 'Other'
+    ];
+
     if (!validStates.includes(state)) {
         return { valid: false, error: 'Invalid state/province name' };
     }
-
-    // Country validation
-    if (!/^[A-Z]{2}$/.test(country)) {
-        return { valid: false, error: 'Country must be a valid two-letter ISO code (e.g., US, CA)' };
+    else if (!validCountries.includes(country)) {
+        return { valid: false, error: 'Invalid country name' };
     }
 
+
     return { valid: true };
+
+
 };
