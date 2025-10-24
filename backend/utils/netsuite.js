@@ -29,8 +29,8 @@ const stateMap = {
     'Northwest Territories': 'NT', 'Nunavut': 'NU', 'Yukon': 'YT'
 };
 
-const nsCountry = countryMap[country] || country;
-const nsState = stateMap[state] || state;
+const nsCountry = (country) => countryMap[country] || country;
+const nsState = (state) => stateMap[state] || state;
 
 
 const netsuiteRequest = async (data) => {
@@ -79,4 +79,4 @@ const netsuiteRequest = async (data) => {
 };
 
 
-export { netsuiteRequest, nsCountry, nsState };
+export { netsuiteRequest, countryMap, stateMap, nsCountry, nsState };
