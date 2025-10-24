@@ -3153,18 +3153,18 @@ async function submitForm() {
     };
 
     try {
-        const response = await fetch('/wp-json/vehicle-config/v1/mailer', {
-            method: 'POST',
-            body: formData
-        });
+        // const response = await fetch('/wp-json/vehicle-config/v1/mailer', {
+        //     method: 'POST',
+        //     body: formData
+        // });
 
-        if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error || 'Unknown error occurred');
-        }
+        // if (!response.ok) {
+        //     const err = await response.json();
+        //     throw new Error(err.error || 'Unknown error occurred');
+        // }
 
-        const data = await response.json();
-        console.log('Email sent successfully!', data.status);
+        // const data = await response.json();
+        // console.log('Email sent successfully!', data.status);
 
         // Express server request (new)
         const expressResponse = await fetch('https://custom-shopify.onrender.com/api/builder', {
