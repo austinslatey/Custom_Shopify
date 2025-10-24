@@ -4,7 +4,10 @@ import cors from 'cors';
 const allowedOrigins = [
     process.env.SHOPIFY_SHOP,
     process.env.WORDPRESS_SITE,
-    process.env.LOCAL_URL
+
+    // Uncomment for testing and add variable back to server
+    // process.env.LOCAL_URL
+
 ].filter(Boolean); // Remove undefined/null values
 
 // CORS middleware configuration
