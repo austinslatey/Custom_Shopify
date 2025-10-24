@@ -1,0 +1,1426 @@
+/* Global Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Subheading */
+.subHeading {
+    background: linear-gradient(to right, #004080, #007bff);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.subHeading h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+.subHeading p {
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+/* Sections */
+main>section,
+section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Fieldsets */
+form fieldset,
+fieldset {
+    margin: 2rem 0;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+legend {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:hover,
+.form-group input[type="email"]:hover,
+.form-group input[type="tel"]:hover,
+.form-group select:hover,
+.form-group textarea:hover,
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="tel"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    outline: none;
+}
+
+.form-group label[for="first_name"]::after,
+.form-group label[for="last_name"]::after,
+.form-group label[for="your_email"]::after,
+.form-group label[for="phone"]::after,
+.form-group label[for="country"]::after,
+.form-group label[for="state_province"]::after {
+    content: " *";
+    color: red;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Radio and Checkbox Groups */
+.radio-group,
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-group label,
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.radio-group .option-row {
+    display: block;
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.radio-group.image-options .option-row input {
+    display: none;
+}
+
+.radio-group .option-row input:checked+.option-content {
+    background-color: #e6f2ff;
+}
+
+.radio-group .option-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.radio-group .option-content span {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.radio-group .option-content img {
+    max-width: 200px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Option Row */
+.option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+/* Inputs */
+input[type="radio"],
+input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+    accent-color: #007bff;
+}
+
+select,
+input[type="radio"],
+input[type="checkbox"] {
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+    background-color: #fff;
+    transition: border-color 0.2s ease;
+}
+
+select:focus,
+input[type="radio"]:focus,
+input[type="checkbox"]:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+select {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 1rem;
+}
+
+select option[data-included="true"] {
+    font-style: italic;
+    color: #555;
+}
+
+/* Buttons */
+button[type="submit"],
+.toggle-btn,
+.overlay-button,
+#toggle-chassis-info,
+#show-pricing-btn,
+#save-config-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button[type="submit"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px;
+    font-weight: bold;
+    margin-top: 1.5rem;
+}
+
+.toggle-btn,
+.overlay-button,
+#toggle-chassis-info {
+    font-size: 0.9rem;
+}
+
+#show-pricing-btn {
+    padding: 8px 16px;
+}
+
+button[type="submit"]:hover,
+.toggle-btn:hover,
+.overlay-button:hover,
+#toggle-chassis-info:hover,
+#show-pricing-btn:hover,
+#save-config-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Vehicle Builder */
+.vehicle-builder {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Selection Summary */
+#selection-summary {
+    background: #f4f8fc;
+    border: 1px solid #cce0ff;
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+#selection-summary h2 {
+    margin-top: 0;
+    color: #004080;
+    font-size: 1.5rem;
+}
+
+#total-price {
+    color: #004080;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #cce0ff;
+    text-align: right;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    font-size: 1rem;
+}
+
+th {
+    background: #f2f2f2;
+    font-weight: bold;
+}
+
+.price-cell {
+    text-align: right;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Galaxy Packages */
+.galaxy-package-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.package-card {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 1rem;
+    flex: 1 1 30%;
+    min-width: 200px;
+    cursor: pointer;
+    transition: border 0.2s;
+    background: #fff;
+}
+
+.package-card label {
+    display: block;
+    margin: 0;
+}
+
+.package-card.selected {
+    border: 2px solid #007bff;
+    background-color: #e6f0ff;
+}
+
+.galaxy-info {
+    max-height: 300px;
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+}
+
+.galaxy-info ul {
+    list-style: disc inside;
+    padding-left: 1rem;
+    margin: 0;
+}
+
+.galaxy-info ul li {
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.galaxy-info ul li strong {
+    display: block;
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: #333;
+}
+
+.galaxy-info.expanded,
+#galaxy-standard-features.expanded {
+    max-height: none;
+    overflow-y: visible;
+}
+
+#galaxy-standard-features {
+    max-height: 300px;
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+}
+
+/* Paint Picker */
+.paint-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.paint-card {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    background: #fff;
+    transition: box-shadow 0.2s ease;
+    position: relative;
+}
+
+.paint-card:hover {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.paint-card input[type="checkbox"] {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+}
+
+.paint-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-top: 20px;
+}
+
+.paint-swatch {
+    width: 80px;
+    height: 60px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.paint-price {
+    margin-top: 6px;
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+/* Locked Evolution */
+.locked-evolution {
+    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.locked-evolution .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    z-index: 10;
+    pointer-events: auto;
+    text-align: center;
+}
+
+.locked-evolution.show-disabled {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.locked-evolution.show-disabled .overlay {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.overlay-message {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.overlay-details {
+    margin-top: 1rem;
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 4px;
+    max-width: 100%;
+}
+
+.overlay-details ul.overlay-list {
+    padding-left: 1.25rem;
+    margin: 0;
+}
+
+.overlay-details ul.overlay-list li {
+    margin-bottom: 0.4rem;
+    font-size: 1.1rem;
+}
+
+/* Chassis Section (Reverted to Original) */
+#chassis-dropdown {
+    margin-top: 1rem;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    background-color: #fff;
+    width: 100%;
+}
+
+.standard-features-heading {
+    text-align: center;
+}
+
+.chassis-section {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    background-color: #f9f9f9;
+    padding: 2rem 1rem;
+    box-sizing: border-box;
+}
+
+.chassis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.chassis-header h3 {
+    font-size: 1.5rem;
+    color: #222;
+    margin: 0;
+}
+
+.chassis-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    display: table;
+}
+
+.chassis-table tbody {
+    display: table-row-group;
+    max-height: none;
+    overflow-y: visible;
+}
+
+.chassis-table thead,
+.chassis-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.chassis-table td,
+.chassis-table th {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.chassis-table tr:nth-child(even) {
+    background-color: #f1f5f9;
+}
+
+.chassis-table.scrollable tbody {
+    display: block;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.chassis-table.scrollable thead,
+.chassis-table.scrollable tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.chassis-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.chassis-column {
+    width: 100%;
+    flex: 1 1 48%;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.chassis-column h4 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #004080;
+}
+
+/* Seating Options (Reverted to Original) */
+.seating-options {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    background: #f9f9f9;
+}
+
+.seating-options legend {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0 0.5rem;
+    color: #333;
+}
+
+.seating-options-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.seating-options .option-row {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.seating-options .option-row:hover {
+    border-color: #0073e6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.seating-options input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.seating-options .option-content {
+    cursor: pointer;
+    text-align: center;
+    padding: 0.75rem;
+}
+
+.seating-options .option-content span {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #444;
+}
+
+.seating-options .option-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+.seating-options input[type="radio"]:checked+.option-content {
+    border: 2px solid #0073e6;
+    border-radius: 8px;
+    background: #eef6ff;
+}
+
+/* Seating Color Options */
+.seating-color-options {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    background: #f9f9f9;
+}
+
+.seating-color-options legend {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0 0.5rem;
+    color: #333;
+}
+
+.seating-color-options-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.seating-color-options .option-row {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.seating-color-options .option-row:hover {
+    border-color: #0073e6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.seating-color-options input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.seating-color-options .option-content {
+    cursor: pointer;
+    text-align: center;
+    padding: 0.75rem;
+}
+
+.seating-color-options .option-content span {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #444;
+}
+
+.seating-color-options .option-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+.seating-color-options input[type="radio"]:checked+.option-content {
+    border: 2px solid #0073e6;
+    border-radius: 8px;
+    background: #eef6ff;
+}
+
+#seating-options-number img {
+    width: 450px;
+    /* Fixed width for consistency */
+    height: auto;
+    /* Fixed height for consistency */
+    object-fit: contain;
+    /* Preserve aspect ratio, fit within bounds */
+    border-radius: 6px;
+    display: block;
+    /* Ensure proper alignment */
+    margin: 0 auto;
+    /* Center images */
+}
+
+
+/* Van Trim and Flooring Options */
+.van-trim-options,
+.flooring-options {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    background: #f9f9f9;
+}
+
+.van-trim-options legend,
+.flooring-options legend {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0 0.5rem;
+    color: #333;
+}
+
+.van-trim-options-group,
+.flooring-options-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.van-trim-options .option-row,
+.flooring-options .option-row {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.van-trim-options .option-row:hover,
+.flooring-options .option-row:hover {
+    border-color: #0073e6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.van-trim-options input[type="radio"],
+.flooring-options input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: auto;
+    cursor: pointer;
+}
+
+.van-trim-options .option-content,
+.flooring-options .option-content {
+    cursor: pointer;
+    text-align: center;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.van-trim-options .option-content img,
+.flooring-options .option-content img {
+    max-width: 180px;
+    max-height: 120px;
+    /* Add max-height to constrain image height */
+    object-fit: contain;
+    /* Change to contain to avoid stretching/cropping */
+    border-radius: 6px;
+}
+
+/* Ensure option-row and option-content don't overflow */
+.flooring-options .option-row {
+    overflow: hidden;
+    /* Prevent content from overflowing */
+}
+
+.van-trim-options input[type="radio"]:checked+.option-content,
+.flooring-options input[type="radio"]:checked+.option-content {
+    border: 2px solid #0073e6;
+    border-radius: 8px;
+    background: #eef6ff;
+}
+
+/* Save Button */
+.save-button-container {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+#save-config-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #0073e6;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+#save-config-btn:hover {
+    background: #005bb5;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+#save-config-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.modal-content p {
+    margin: 0 0 1.5rem;
+    color: #555;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem;
+    text-align: left;
+}
+
+.modal-content ul li {
+    margin: 0.5rem 0;
+    color: #d32f2f;
+}
+
+.modal-content button {
+    padding: 0.75rem 1.5rem;
+    margin: 0 0.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#confirm-submit-btn {
+    background: #0073e6;
+    color: #fff;
+}
+
+#cancel-submit-btn,
+#close-missing-modal {
+    background: #ccc;
+    color: #333;
+}
+
+/* Wheels and Tires Overlay */
+#wheels-tires-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#wheels-tires-overlay.overlay-visible {
+    display: flex;
+}
+
+/* Disabled State */
+.category-container.disabled input {
+    pointer-events: none;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 80%;
+    text-align: center;
+}
+
+.modal-buttons {
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+}
+
+#confirm-submit-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#cancel-submit-btn,
+#close-missing-modal {
+    background-color: #808080;
+    color: white;
+}
+
+#chassis-details,
+#galaxy-standard-features {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    display: table;
+}
+
+#chassis-details th,
+#chassis-details td,
+#galaxy-standard-features th,
+#galaxy-standard-features td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#chassis-details th,
+#galaxy-standard-features th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+#chassis-details tbody,
+#galaxy-standard-features tbody {
+    background-color: #fff;
+}
+
+.scrollable {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
+
+.expanded {
+    max-height: none !important;
+    overflow-y: visible !important;
+}
+
+.toggle-btn {
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    background-color: #007bff;
+    color: white;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background-color: #0056b3;
+}
+
+#chassis-details+.toggle-btn,
+#galaxy-standard-features+.toggle-btn {
+    margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+
+    #chassis-details,
+    #galaxy-standard-features {
+        font-size: 14px;
+    }
+
+    .toggle-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+
+
+/* Media Queries */
+
+/* Tablet (601px–768px) */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    .subHeading {
+        padding: 1.5rem;
+    }
+
+    .subHeading h1 {
+        font-size: 2rem;
+    }
+
+    .subHeading p {
+        font-size: 1rem;
+    }
+
+    main>section,
+    section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+    }
+
+    fieldset {
+        padding: 12px;
+    }
+
+    legend {
+        font-size: 1.1rem;
+    }
+
+    .form-group {
+        max-width: 100%;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group select,
+    .form-group textarea {
+        padding: 0.6rem;
+        font-size: 0.95rem;
+    }
+
+    .radio-group .option-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .radio-group .option-content img {
+        max-width: 150px;
+    }
+
+    .seating-options-group {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 columns (2 rows) */
+    }
+
+    .seating-color-options-group,
+    .van-trim-options-group,
+    .flooring-options-group {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .seating-options .option-content img,
+    .seating-color-options .option-content img,
+    .van-trim-options .option-content img,
+    .flooring-options .option-content img {
+        max-width: 150px;
+    }
+
+    .galaxy-package-columns {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .package-card {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .paint-picker-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+    }
+
+    .paint-swatch {
+        width: 70px;
+        height: 50px;
+    }
+
+    .paint-label {
+        font-size: 0.8rem;
+    }
+
+    .chassis-section {
+        left: 0;
+        right: 0;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        padding: 1.5rem;
+    }
+
+    .chassis-columns {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .chassis-table {
+        font-size: 0.9rem;
+    }
+
+    .chassis-table.scrollable tbody {
+        max-height: 150px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .modal-content {
+        width: 85%;
+        padding: 1.5rem;
+    }
+
+    .modal-content h2 {
+        font-size: 1.4rem;
+    }
+
+    button[type="submit"],
+    #save-config-btn {
+        max-width: 300px;
+        padding: 0.6rem 1rem;
+    }
+}
+
+/* Mobile (≤600px) */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .subHeading {
+        padding: 1rem;
+    }
+
+    .subHeading h1 {
+        font-size: 1.8rem;
+    }
+
+    .subHeading p {
+        font-size: 0.9rem;
+    }
+
+    main>section,
+    section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+
+    fieldset {
+        padding: 10px;
+    }
+
+    legend {
+        font-size: 1rem;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group select,
+    .form-group textarea {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .radio-group,
+    .checkbox-group {
+        gap: 8px;
+    }
+
+    .radio-group .option-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .radio-group .option-content img {
+        max-width: 100px;
+    }
+
+    .seating-options-group {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .seating-options-group .option-row {
+        width: 100%;
+        /* Ensure the option container fills the grid */
+    }
+
+    .seating-options-group .option-content {
+        display: flex;
+        flex-direction: column;
+        /* Stack image above text */
+        align-items: center;
+        /* Center horizontally */
+        width: 100%;
+    }
+
+    .seating-options-group .option-content img {
+        width: 90%;
+        /* Wider image, almost full container */
+        max-width: 800px;
+        min-width: auto;
+        /* Optional: prevent extremely huge images on large phones */
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .seating-options-group .option-content span {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+
+    .option-content img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .seating-color-options-group,
+    .van-trim-options-group,
+    .flooring-options-group {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .seating-options .option-content img,
+    .seating-color-options .option-content img,
+    .van-trim-options .option-content img,
+    .flooring-options .option-content img {
+        max-width: 300px;
+        max-height: auto;
+        /* Smaller height for mobile */
+        object-fit: contain;
+    }
+
+    .package-card {
+        padding: 0.75rem;
+    }
+
+    .paint-picker-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .paint-swatch {
+        width: 60px;
+        height: 40px;
+    }
+
+    .chassis-table {
+        font-size: 0.85rem;
+    }
+
+    .chassis-table.scrollable tbody {
+        max-height: 120px;
+    }
+
+    table {
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 1rem;
+    }
+
+    .modal-content h2 {
+        font-size: 1.2rem;
+    }
+
+    .modal-content p,
+    .modal-content ul li {
+        font-size: 0.85rem;
+    }
+
+    button[type="submit"],
+    #save-config-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    #selection-summary {
+        padding: 1rem;
+    }
+
+    #total-price {
+        font-size: 1.2rem;
+    }
+}
+
+/* Laptop (1024px–1440px) */
+@media (min-width: 769px) and (max-width: 1440px) {
+    .seating-options-group {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .seating-color-options-group,
+    .van-trim-options-group,
+    .flooring-options-group {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+
+    .flooring-options .option-content img {
+        max-width: 150px;
+        max-height: 100px;
+        /* Constrain height for tablets */
+        object-fit: contain;
+    }
+}
