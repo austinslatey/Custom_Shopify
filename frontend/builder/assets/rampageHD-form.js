@@ -2165,11 +2165,6 @@ const optionsData = {
             "description": "Waldoch Black Leather w/ Grey Accents and Heat",
             "price": 2000
         },
-        {
-            "part_number": "T305",
-            "description": "Window Tint (Legal by State Purchased In)",
-            "price": 225
-        }
     ],
     "performance_package": [
         {
@@ -2204,6 +2199,8 @@ const optionsData = {
 
 // helper functions
 let showPrices = false;
+let isSubmitting = false;
+let submissionCount = 0;
 
 function validateRequiredFields() {
     const form = document.querySelector('#vehicle-form');
@@ -2766,6 +2763,7 @@ function renderExteriorPaintPicker(brandName, brands, selectedPartNumber) {
 }
 
 async function submitForm() {
+    console.log('submitForm called, submissionCount:', submissionCount);
     const form = document.querySelector('#vehicle-form');
     const totalDisplay = document.querySelector('#total-price');
     const selectedChassis = chassisController.getSelectedChassis();
@@ -3114,37 +3112,12 @@ async function submitForm() {
     const pdfFile = new File([pdfBlob], `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`, { type: 'application/pdf' });
     formData.append('pdf', pdfFile);
 
-
     console.log('FormData contents:');
     for (const [key, value] of formData.entries()) {
         console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
     }
 
-    console.log('PDF Blob:', pdfBlob);
-    console.log('Blob type:', pdfBlob?.type, 'size:', pdfBlob?.size);
-
-    // Convert pdfBlob to Base64
-    async function blobToBase64(blob) {
-        if (!(blob instanceof Blob)) throw new Error('Invalid blob');
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result;
-                if (typeof result === 'string' && result.includes(',')) {
-                    resolve(result.split(',')[1]);
-                } else {
-                    reject(new Error('Base64 conversion failed'));
-                }
-            };
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(blob);
-        });
-    }
-
-    // Usage
-    const base64Content = await blobToBase64(pdfBlob);
-    console.log('Base64 length:', base64Content?.length);
-
+    // New Express server request
     const expressPayload = {
         first_name: vehicleConfig.customer_info.first_name,
         last_name: vehicleConfig.customer_info.last_name,
@@ -3157,28 +3130,29 @@ async function submitForm() {
         zip: vehicleConfig.customer_info.zip,
         message: vehicleConfig.customer_info.comments, // Map comments to message
         file: {
-            name: pdfFile.name,
-            // Base64-encoded PDF
-            content: base64Content
+            name: `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`,
+            content: doc.output('datauristring').split(',')[1] // Base64-encoded PDF
         }
     };
 
-
+    console.log('Express payload:', expressPayload);
 
     try {
-        // const response = await fetch('/wp-json/vehicle-config/v1/mailer', {
+        // WordPress request (existing)
+        // const wordpressResponse = await fetch('/wp-json/vehicle-config/v1/mailer', {
         //     method: 'POST',
         //     body: formData
         // });
 
-        // if (!response.ok) {
-        //     const err = await response.json();
-        //     throw new Error(err.error || 'Unknown error occurred');
+        // if (!wordpressResponse.ok) {
+        //     const err = await wordpressResponse.json();
+        //     throw new Error(`WordPress error: ${err.error || 'Unknown error'}`);
         // }
 
-        // const data = await response.json();
-        // console.log('Email sent successfully!', data.status);
+        // const wordpressData = await wordpressResponse.json();
+        // console.log('WordPress email sent successfully:', wordpressData.status);
 
+        // Express server request (new)
         const expressResponse = await fetch('https://custom-shopify.onrender.com/api/builder', {
             method: 'POST',
             headers: {
@@ -3195,17 +3169,19 @@ async function submitForm() {
         const expressData = await expressResponse.json();
         console.log('Express submission successful:', expressData);
 
-
+        // Success for both requests
         alert('Configuration saved successfully!');
         updateSummary();
     } catch (error) {
-        console.error('Error sending PDF:', error.message);
+        console.error('Submission error:', error.message);
         alert('Failed to save configuration: ' + error.message);
     }
 }
 
+
 function handleFormSubmit(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    console.log('handleFormSubmit called, submissionCount:', submissionCount);
 
     const form = document.querySelector('#vehicle-form');
     const missingFieldsModal = document.getElementById('missing-fields-modal');
@@ -3216,7 +3192,7 @@ function handleFormSubmit(e) {
     const cancelSubmitBtn = document.getElementById('cancel-submit-btn');
 
     if (!form || !missingFieldsModal || !confirmModal || !missingFieldsList || !closeMissingModalBtn || !confirmSubmitBtn || !cancelSubmitBtn) {
-        console.error('One or more critical elements not found:', {
+        console.error('Critical elements missing:', {
             form, missingFieldsModal, confirmModal, missingFieldsList, closeMissingModalBtn, confirmSubmitBtn, cancelSubmitBtn
         });
         alert('An error occurred. Please try again or contact support.');
@@ -3225,48 +3201,76 @@ function handleFormSubmit(e) {
 
     const missingFields = validateRequiredFields();
     if (missingFields.length > 0) {
+        console.log('Missing fields detected:', missingFields);
         missingFieldsList.innerHTML = missingFields.map(field => `<li>${field}</li>`).join('');
         missingFieldsModal.style.display = 'flex';
         closeMissingModalBtn.focus();
 
-        closeMissingModalBtn.onclick = null;
-        missingFieldsModal.onclick = null;
-
-        closeMissingModalBtn.addEventListener('click', () => {
+        // Clone and reassign close button handler
+        closeMissingModalBtn.replaceWith(closeMissingModalBtn.cloneNode(true));
+        const newCloseMissingModalBtn = document.getElementById('close-missing-modal');
+        newCloseMissingModalBtn.onclick = () => {
+            console.log('Closing missing fields modal');
             missingFieldsModal.style.display = 'none';
-        });
+        };
 
-        missingFieldsModal.addEventListener('click', (event) => {
+        missingFieldsModal.onclick = (event) => {
             if (event.target === missingFieldsModal) {
+                console.log('Closing missing fields modal via background click');
                 missingFieldsModal.style.display = 'none';
             }
-        });
+        };
         return;
     }
 
+    // Guard: Skip if modal is visible or submission in progress
+    if (confirmModal.style.display === 'flex' || isSubmitting) {
+        console.log('Blocked: Confirm modal already visible or submission in progress');
+        return;
+    }
+
+    console.log('Showing confirm modal');
     confirmModal.style.display = 'flex';
     confirmSubmitBtn.focus();
 
-    confirmSubmitBtn.onclick = null;
-    cancelSubmitBtn.onclick = null;
-    confirmModal.onclick = null;
+    // Clone buttons to clear any existing listeners
+    confirmSubmitBtn.replaceWith(confirmSubmitBtn.cloneNode(true));
+    cancelSubmitBtn.replaceWith(cancelSubmitBtn.cloneNode(true));
 
-    cancelSubmitBtn.addEventListener('click', () => {
+    // Re-select cloned buttons
+    const newConfirmSubmitBtn = document.getElementById('confirm-submit-btn');
+    const newCancelSubmitBtn = document.getElementById('cancel-submit-btn');
+
+    newCancelSubmitBtn.onclick = () => {
+        console.log('Cancel button clicked, hiding confirm modal');
         confirmModal.style.display = 'none';
-    });
+    };
 
-    confirmSubmitBtn.addEventListener('click', () => {
+    newConfirmSubmitBtn.onclick = () => {
+        if (isSubmitting) {
+            console.log('Blocked: Submission already in progress');
+            return;
+        }
+        console.log('Confirm button clicked, starting submission');
+        isSubmitting = true;
+        submissionCount++; // Debug: Increment counter
+        newConfirmSubmitBtn.disabled = true;
         confirmModal.style.display = 'none';
         showPrices = true;
         updateSummary();
-        submitForm();
-    });
+        submitForm().finally(() => {
+            console.log('Submission completed, resetting isSubmitting');
+            isSubmitting = false;
+            newConfirmSubmitBtn.disabled = false;
+        });
+    };
 
-    confirmModal.addEventListener('click', (event) => {
+    confirmModal.onclick = (event) => {
         if (event.target === confirmModal) {
+            console.log('Closing confirm modal via background click');
             confirmModal.style.display = 'none';
         }
-    });
+    };
 }
 
 document.addEventListener('chassisChanged', () => {
