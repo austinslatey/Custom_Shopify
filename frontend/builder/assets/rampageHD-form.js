@@ -3114,13 +3114,43 @@ async function submitForm() {
     const pdfFile = new File([pdfBlob], `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`, { type: 'application/pdf' });
     formData.append('pdf', pdfFile);
 
-    
+    // Convert pdfBlob to Base64
+    const base64Content = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64String = reader.result.split(',')[1]; // Extract Base64 part
+            if (!base64String) {
+                reject(new Error('Failed to convert PDF to Base64'));
+            } else {
+                resolve(base64String);
+            }
+        };
+        reader.onerror = () => reject(new Error('Error reading PDF blob'));
+        reader.readAsDataURL(pdfBlob);
+    });
+
     console.log('FormData contents:');
     for (const [key, value] of formData.entries()) {
         console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
     }
 
-    
+    const expressPayload = {
+        first_name: vehicleConfig.customer_info.first_name,
+        last_name: vehicleConfig.customer_info.last_name,
+        email: vehicleConfig.customer_info.email,
+        phone: vehicleConfig.customer_info.phone,
+        address: vehicleConfig.customer_info.address,
+        city: vehicleConfig.customer_info.city,
+        state: vehicleConfig.customer_info.state_province,
+        country: vehicleConfig.customer_info.country,
+        zip: vehicleConfig.customer_info.zip,
+        message: vehicleConfig.customer_info.comments, // Map comments to message
+        file: {
+            name: pdfFile.name,
+            // Base64-encoded PDF
+            content: base64Content
+        }
+    };
 
     try {
         const response = await fetch('/wp-json/vehicle-config/v1/mailer', {
@@ -3136,7 +3166,22 @@ async function submitForm() {
         const data = await response.json();
         console.log('Email sent successfully!', data.status);
 
-        
+        // Express server request (new)
+        const expressResponse = await fetch('https://custom-shopify.onrender.com/api/builder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(expressPayload)
+        });
+
+        if (!expressResponse.ok) {
+            const err = await expressResponse.json();
+            throw new Error(`Express server error: ${err.error || 'Unknown error'}`);
+        }
+
+        const expressData = await expressResponse.json();
+        console.log('Express submission successful:', expressData);
         alert('Configuration saved successfully!');
         updateSummary();
     } catch (error) {
