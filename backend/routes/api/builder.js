@@ -4,7 +4,7 @@ import { Router } from 'express';
 import { validateBuilderRequest } from '../../utils/validation.js';
 // import { sendEmails } from '../../utils/emailAPI.js';
 // import { submitToHubSpot } from '../../utils/hubspotAPI.js';
-import { netsuiteRequest } from '../../utils/netsuite.js';
+import { netsuiteRequest, nsCountry, nsState } from '../../utils/netsuite.js';
 
 const router = Router();
 
@@ -33,8 +33,8 @@ router.post('/', async (req, res) => {
                 phone,
                 address,
                 city,
-                state,
-                country,
+                state: nsState,
+                country: nsCountry,
                 zip,
                 message,
                 file,
