@@ -3114,25 +3114,36 @@ async function submitForm() {
     const pdfFile = new File([pdfBlob], `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`, { type: 'application/pdf' });
     formData.append('pdf', pdfFile);
 
-    // Convert pdfBlob to Base64
-    const base64Content = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const base64String = reader.result.split(',')[1]; // Extract Base64 part
-            if (!base64String) {
-                reject(new Error('Failed to convert PDF to Base64'));
-            } else {
-                resolve(base64String);
-            }
-        };
-        reader.onerror = () => reject(new Error('Error reading PDF blob'));
-        reader.readAsDataURL(pdfBlob);
-    });
 
     console.log('FormData contents:');
     for (const [key, value] of formData.entries()) {
         console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
     }
+
+    console.log('PDF Blob:', pdfBlob);
+    console.log('Blob type:', pdfBlob?.type, 'size:', pdfBlob?.size);
+
+    // Convert pdfBlob to Base64
+    async function blobToBase64(blob) {
+        if (!(blob instanceof Blob)) throw new Error('Invalid blob');
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = reader.result;
+                if (typeof result === 'string' && result.includes(',')) {
+                    resolve(result.split(',')[1]);
+                } else {
+                    reject(new Error('Base64 conversion failed'));
+                }
+            };
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // Usage
+    const base64Content = await blobToBase64(pdfBlob);
+    console.log('Base64 length:', base64Content?.length);
 
     const expressPayload = {
         first_name: vehicleConfig.customer_info.first_name,
@@ -3152,6 +3163,8 @@ async function submitForm() {
         }
     };
 
+
+
     try {
         // const response = await fetch('/wp-json/vehicle-config/v1/mailer', {
         //     method: 'POST',
@@ -3166,7 +3179,6 @@ async function submitForm() {
         // const data = await response.json();
         // console.log('Email sent successfully!', data.status);
 
-        // Express server request (new)
         const expressResponse = await fetch('https://custom-shopify.onrender.com/api/builder', {
             method: 'POST',
             headers: {
@@ -3182,6 +3194,8 @@ async function submitForm() {
 
         const expressData = await expressResponse.json();
         console.log('Express submission successful:', expressData);
+
+
         alert('Configuration saved successfully!');
         updateSummary();
     } catch (error) {
