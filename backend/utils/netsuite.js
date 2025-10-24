@@ -9,7 +9,7 @@ const netsuiteRequest = async (data) => {
      } else if (data.isBuilder) {
         url = process.env.NETSUITE_BUILDER_RESTLET_URL;
      } else {
-        process.env.NETSUITE_QUOTE_RESTLET_URL;
+        url = process.env.NETSUITE_QUOTE_RESTLET_URL;
      }
     
     const oauth = OAuth({
