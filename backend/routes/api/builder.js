@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import fs from 'fs/promises';
-import { validateVehicleConfigRequest, sanitizeVehicleConfigInput } from '../../utils/validation.js';
-import { submitToVehicleConfigHubspot } from '../../utils/hubspotAPI.js';
-import { sendVehicleConfigEmail } from '../../utils/emailAPI.js';
+import { validateVehicleConfigRequest, sanitizeVehicleConfigData } from '../../utils/builder/vehicleValidation.js';
+import { submitToVehicleConfigHubspot } from '../../utils/builder/vehicleConfigHubSpot.js';
+import { sendVehicleConfigEmail } from '../../utils/builder/sendVehicleEmail.js';
 import { netsuiteRequest, nsCountry, nsState } from '../../utils/netsuite.js';
 import { vehicleConfigUpload } from '../../middleware/multer.js';
 
@@ -16,7 +16,7 @@ router.post('/', vehicleConfigUpload, async (req, res) => {
     console.log('Files:', req.file);
 
     // Sanitize inputs
-    const data = sanitizeVehicleConfigInput(req.body);
+    const data = sanitizeVehicleConfigData(req.body);
 
     // Validate inputs and file
     const validation = validateVehicleConfigRequest(data, req.file);
