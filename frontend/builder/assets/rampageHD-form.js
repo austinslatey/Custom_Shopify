@@ -3153,25 +3153,21 @@ async function submitForm() {
         // console.log('WordPress email sent successfully:', wordpressData.status);
 
         // Express server request (new)
-        const expressResponse = await fetch('http://localhost:3000/api/builder', {
+        const response = await fetch('http://localhost:3000/api/builder', {
             method: 'POST',
             body: formData,
         });
 
-        if (!expressResponse.ok) {
-            const err = await expressResponse.json();
-            throw new Error(`Express server error: ${err.error || 'Unknown error'}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const expressData = await expressResponse.json();
-        console.log('Express submission successful:', expressData);
-
-        // Success for both requests
-        alert('Configuration saved successfully!');
-        updateSummary();
+        const data = await response.json();
+        console.log('Success:', data);
+        alert(data.message || 'Configuration saved successfully!');
     } catch (error) {
-        console.error('Submission error:', error.message);
-        alert('Failed to save configuration: ' + error.message);
+        console.error('Failed to save configuration:', error);
+        alert(`Failed to save configuration: ${error.message}`);
     }
 }
 
