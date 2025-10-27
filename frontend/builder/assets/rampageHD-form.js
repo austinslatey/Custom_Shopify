@@ -2771,7 +2771,8 @@ function renderExteriorPaintPicker(brandName, brands, selectedPartNumber) {
     container.appendChild(grid);
 }
 
-async function submitForm() {
+async function submitForm(event) {
+    if (event) event.preventDefault();
     if (isSubmitting) {
         console.log('submitForm blocked: already submitting');
         return;
@@ -3170,34 +3171,26 @@ async function submitForm() {
         console.log('Submission ID:', submissionId);
         formData.append('submissionId', submissionId);
 
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000); //30 second timeout
+
+        let response;
         try {
-            const response = await fetch('http://localhost:3000/api/builder', {
+            response = await fetch('http://localhost:3000/api/builder', {
                 method: 'POST',
                 body: formData,
                 headers: {
                     'Accept': 'application/json',
                 },
+                signal: controller.signal,
             });
-
-            let data;
-            try {
-                data = await response.json();
-            } catch (jsonError) {
-                throw new Error(`Failed to parse response JSON: ${jsonError.message}`);
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                throw new Error('Request timed out after 30 second. Please try again.');
             }
-
-            if (!response.ok) {
-                throw new Error(data.error || `HTTP error! Status: ${response.status}`);
-            }
-
-            console.log('Success:', data);
-            alert(data.message || 'Configuration saved successfully!');
-        } catch (error) {
-            console.error('Failed to save configuration:', error.message, error.stack);
-            alert(`Failed to save configuration: ${error.message}`);
+            throw err;
         } finally {
-            isSubmitting = false;
-            if (submitButton) submitButton.disabled = false;
+            clearTimeout(timeout);
         }
     } catch (error) {
         console.error('Unexpected error in submitForm:', error.message, error.stack);
