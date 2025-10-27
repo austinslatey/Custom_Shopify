@@ -5,8 +5,10 @@ const allowedOrigins = [
   process.env.SHOPIFY_SHOP,
   process.env.WORDPRESS_SITE,
   process.env.LOCAL_URL,
-  'http://127.0.0.1:5500', // Fallback for local testing
-  'http://localhost:5500', // Additional fallback
+ 'http://127.0.0.1:5500',
+  'http://localhost:5500',
+  'http://127.0.0.1:3000',
+  'http://localhost:3000',
 ].filter(Boolean); // Remove undefined/null values
 
 // Log allowed origins for debugging
@@ -26,7 +28,7 @@ const corsMiddleware = cors({
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true, // Support cookies (e.g., hubspotutk)
-  optionsSuccessStatus: 204, // Ensure preflight returns 204
+  optionsSuccessStatus: 200, // Ensure preflight returns 200
 });
 
 export default corsMiddleware;
