@@ -2,11 +2,11 @@ import sgMail from '@sendgrid/mail';
 
 // Sends emails for quote requests
 export const sendEmails = async ({ first_name, last_name, email, phone, product_title, sku, quantity, message, vehicle_make, vehicle_model, vehicle_year, vin_number, isTopper }) => {
-    const salesEmailData = {
-        to: process.env.SALES_EMAIL,
-        from: process.env.EMAIL_FROM,
-        subject: `New Quote Request: ${product_title}`,
-        html: `
+  const salesEmailData = {
+    to: process.env.SALES_EMAIL,
+    from: process.env.EMAIL_FROM,
+    subject: `New Quote Request: ${product_title}`,
+    html: `
       <h2>New Quote Request for: ${sku}</h2>
       <p><strong>Product:</strong> ${product_title}</p>
       <p><strong>SKU:</strong> ${sku}</p>
@@ -29,13 +29,13 @@ export const sendEmails = async ({ first_name, last_name, email, phone, product_
              alt="Waldoch Logo" style="max-width:200px; height:auto;">
       </p>
     `,
-    };
+  };
 
-    const customerEmailData = {
-        to: email,
-        from: process.env.EMAIL_FROM,
-        subject: `Your Quote Request for ${product_title}`,
-        html: `
+  const customerEmailData = {
+    to: email,
+    from: process.env.EMAIL_FROM,
+    subject: `Your Quote Request for ${product_title}`,
+    html: `
       <style>
         body { font-family: Arial, sans-serif; color: #333; }
         h2 { color: #007bff; }
@@ -64,10 +64,11 @@ export const sendEmails = async ({ first_name, last_name, email, phone, product_
         <img src="https://www.waldoch.com/wp-content/uploads/2021/02/logo-wo-w-50th-314-86-1.png" alt="Waldoch Logo" class="logo">
       </p>
     `,
-    };
+  };
 
-    await Promise.all([
-        sgMail.send(salesEmailData),
-        sgMail.send(customerEmailData),
-    ]);
+  await Promise.all([
+    sgMail.send(salesEmailData),
+    sgMail.send(customerEmailData),
+  ]);
 };
+

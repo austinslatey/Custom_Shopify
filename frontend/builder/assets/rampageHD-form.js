@@ -2202,6 +2202,15 @@ let showPrices = false;
 let isSubmitting = false;
 let submissionCount = 0;
 
+// Debounce function to prevent rapid clicks
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
 function validateRequiredFields() {
     const form = document.querySelector('#vehicle-form');
     const chassisDropdown = document.querySelector('#chassis-dropdown');
@@ -2762,426 +2771,444 @@ function renderExteriorPaintPicker(brandName, brands, selectedPartNumber) {
     container.appendChild(grid);
 }
 
-async function submitForm() {
+async function submitForm(event) {
+    if (event) event.preventDefault();
+    if (isSubmitting) {
+        console.log('submitForm blocked: already submitting');
+        return;
+    }
+    isSubmitting = true;
+    submissionCount++;
     console.log('submitForm called, submissionCount:', submissionCount);
+
     const form = document.querySelector('#vehicle-form');
-    const totalDisplay = document.querySelector('#total-price');
-    const selectedChassis = chassisController.getSelectedChassis();
+    const submitButton = document.querySelector('#save-config-btn') || document.querySelector('#confirm-submit-btn');
+    if (submitButton) submitButton.disabled = true;
 
-    const collectValues = name =>
-        Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map(i => ({
-            part_number: i.value,
-            description: i.dataset.partName || i.value,
-            price: parseFloat(i.dataset.price) || 0
-        }));
+    try {
+        const totalDisplay = document.querySelector('#total-price');
+        const selectedChassis = chassisController.getSelectedChassis();
 
-    let totalPrice = 0;
-    const BASE_PRICE = 15000;
-    const FREIGHT_PRICE = 0;
-    totalPrice += BASE_PRICE + FREIGHT_PRICE;
+        const collectValues = name =>
+            Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map(i => ({
+                part_number: i.value,
+                description: i.dataset.partName || i.value,
+                price: parseFloat(i.dataset.price) || 0
+            }));
 
-    if (selectedChassis) {
-        totalPrice += selectedChassis.price || 0;
-    }
+        let totalPrice = 0;
+        const BASE_PRICE = 15000;
+        const FREIGHT_PRICE = 0;
+        totalPrice += BASE_PRICE + FREIGHT_PRICE;
 
-    ['ram_exterior_paint', 'ford_exterior_paint', 'chevrolet_exterior_paint'].forEach(paintField => {
-        const selectedPaint = document.querySelector(`input[name="${paintField}"]:checked`);
-        if (selectedPaint) {
-            totalPrice += parseFloat(selectedPaint.dataset.price) || 0;
+        if (selectedChassis) {
+            totalPrice += selectedChassis.price || 0;
         }
-    });
 
-    const optionFields = [
-        'running_boards',
-        'truck_bed_options',
-        'exterior_options',
-        'paint_options',
-        'interior_amenities',
-        'performance_package',
-        'wheels_tires',
-        'electronics'
-    ];
-
-    const includedPartNumbers = new Set();
-    optionFields.forEach(field => {
-        const selectedItems = form.querySelectorAll(`input[name="${field}"]:checked`);
-        selectedItems.forEach(item => {
-            if (!includedPartNumbers.has(item.value)) {
-                totalPrice += parseFloat(item.dataset.price) || 0;
-                includedPartNumbers.add(item.value);
+        ['ram_exterior_paint', 'ford_exterior_paint', 'chevrolet_exterior_paint'].forEach(paintField => {
+            const selectedPaint = document.querySelector(`input[name="${paintField}"]:checked`);
+            if (selectedPaint) {
+                totalPrice += parseFloat(selectedPaint.dataset.price) || 0;
             }
         });
-    });
 
-    const vehicleConfig = {
-        customer_info: {
-            first_name: form.querySelector('[name="first_name"]').value || '',
-            last_name: form.querySelector('[name="last_name"]').value || '',
-            email: form.querySelector('[name="your_email"]').value || '',
-            phone: form.querySelector('[name="phone"]').value || '',
-            address: form.querySelector('[name="address"]').value || '',
-            city: form.querySelector('[name="city"]').value || '',
-            country: form.querySelector('[name="form_fields[country]"]').value || '',
-            state_province: form.querySelector('[name="form_fields[state]"]').value || '',
-            zip: form.querySelector('[name="zip"]').value || '',
-            contact_preference: collectValues('contact_preference').map(item => item.description),
-            purchase_timeline: form.querySelector('[name="purchase_timeline"]').value || '',
-            dealer: form.querySelector('[name="dealer"]').value || '',
-            comments: form.querySelector('[name="comments"]').value || '',
-            special_offers: form.querySelector('input[name="special_offers"]:checked')?.value === 'yes' ? 'Yes' : 'No',
-        },
-        chassis: selectedChassis
-            ? {
-                part_number: selectedChassis.part_number,
-                description: selectedChassis.model,
-            }
-            : null,
-        exterior_paint: (() => {
-            const paintFields = ['ram_exterior_paint', 'ford_exterior_paint', 'chevrolet_exterior_paint'];
-            for (const field of paintFields) {
-                const selected = document.querySelector(`input[name="${field}"]:checked`);
-                if (selected) {
-                    return {
-                        part_number: selected.dataset.partNumber || selected.value,
-                        description: selected.dataset.partName || '',
-                    };
+        const optionFields = [
+            'running_boards',
+            'truck_bed_options',
+            'exterior_options',
+            'paint_options',
+            'interior_amenities',
+            'performance_package',
+            'wheels_tires',
+            'electronics'
+        ];
+
+        const includedPartNumbers = new Set();
+        optionFields.forEach(field => {
+            const selectedItems = form.querySelectorAll(`input[name="${field}"]:checked`);
+            selectedItems.forEach(item => {
+                if (!includedPartNumbers.has(item.value)) {
+                    totalPrice += parseFloat(item.dataset.price) || 0;
+                    includedPartNumbers.add(item.value);
                 }
-            }
-            return null;
-        })(),
-        running_boards: collectValues('running_boards'),
-        truck_bed_options: collectValues('truck_bed_options'),
-        exterior_options: collectValues('exterior_options'),
-        paint_options: collectValues('paint_options'),
-        interior_amenities: collectValues('interior_amenities'),
-        performance_package: collectValues('performance_package'),
-        wheels_tires: (() => {
-            const input = form.querySelector('input[name="wheels_tires"]:checked');
-            return input ? {
-                part_number: input.value,
-                description: input.dataset.partName || '',
-            } : null;
-        })(),
-        electronics: collectValues('electronics'),
-        total_price: totalPrice,
-    };
-
-    console.log('Configuration:', vehicleConfig);
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    async function loadImage(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'Anonymous';
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                resolve(canvas.toDataURL('image/png'));
-            };
-            img.onerror = reject;
-            img.src = url;
+            });
         });
-    }
 
-    try {
-        const logoUrl = 'https://www.waldoch.com/wp-content/uploads//2025/08/waldoch-logo-black2_1.png';
-        const logoData = await loadImage(logoUrl);
-        doc.addImage(logoData, 'PNG', 10, 5, 50, 14);
-    } catch (error) {
-        console.error('Failed to load logo:', error);
-    }
+        const vehicleConfig = {
+            customer_info: {
+                first_name: form.querySelector('[name="first_name"]').value || '',
+                last_name: form.querySelector('[name="last_name"]').value || '',
+                email: form.querySelector('[name="your_email"]').value || '',
+                phone: form.querySelector('[name="phone"]').value || '',
+                address: form.querySelector('[name="address"]').value || '',
+                city: form.querySelector('[name="city"]').value || '',
+                country: form.querySelector('[name="form_fields[country]"]').value || '',
+                state_province: form.querySelector('[name="form_fields[state]"]').value || '',
+                zip: form.querySelector('[name="zip"]').value || '',
+                contact_preference: collectValues('contact_preference').map(item => item.description),
+                purchase_timeline: form.querySelector('[name="purchase_timeline"]').value || '',
+                dealer: form.querySelector('[name="dealer"]').value || '',
+                comments: form.querySelector('[name="comments"]').value || '',
+                special_offers: form.querySelector('input[name="special_offers"]:checked')?.value === 'yes' ? 'Yes' : 'No',
+            },
+            chassis: selectedChassis
+                ? {
+                    part_number: selectedChassis.part_number,
+                    description: selectedChassis.model,
+                }
+                : null,
+            exterior_paint: (() => {
+                const paintFields = ['ram_exterior_paint', 'ford_exterior_paint', 'chevrolet_exterior_paint'];
+                for (const field of paintFields) {
+                    const selected = document.querySelector(`input[name="${field}"]:checked`);
+                    if (selected) {
+                        return {
+                            part_number: selected.dataset.partNumber || selected.value,
+                            description: selected.dataset.partName || '',
+                        };
+                    }
+                }
+                return null;
+            })(),
+            running_boards: collectValues('running_boards'),
+            truck_bed_options: collectValues('truck_bed_options'),
+            exterior_options: collectValues('exterior_options'),
+            paint_options: collectValues('paint_options'),
+            interior_amenities: collectValues('interior_amenities'),
+            performance_package: collectValues('performance_package'),
+            wheels_tires: (() => {
+                const input = form.querySelector('input[name="wheels_tires"]:checked');
+                return input ? {
+                    part_number: input.value,
+                    description: input.dataset.partName || '',
+                } : null;
+            })(),
+            electronics: collectValues('electronics'),
+            total_price: totalPrice,
+        };
 
-    try {
-        const warrantyLogoUrl = 'https://www.waldoch.com/wp-content/uploads/2021/02/warranty-logo.png';
-        const warrantyLogoData = await loadImage(warrantyLogoUrl);
-        doc.addImage(warrantyLogoData, 'PNG', 160, 5, 40, 16.5);
-    } catch (error) {
-        console.error('Failed to load warranty logo:', error);
-    }
+        console.log('Configuration:', vehicleConfig);
 
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.text("Rampage HD Vehicle Configuration", 105, 15, { align: 'center' });
-    doc.setFontSize(9);
-    doc.setFont(undefined, 'normal');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
 
-    doc.setFontSize(11);
-    doc.setFont(undefined, 'bold');
-    let y = 30;
-    doc.text("Customer Information", 10, y);
-    doc.setFontSize(9);
-    doc.setFont(undefined, 'normal');
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 190, y, { align: 'right' });
-    doc.setLineWidth(0.2);
-    doc.line(10, y + 2, 200, y + 2);
-    y += 5;
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'normal');
+        async function loadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
 
-    const customerInfo = vehicleConfig.customer_info;
-    const leftColumnX = 10;
-    const rightColumnX = 105;
-    let leftY = y;
-    let rightY = y;
+                const timeout = setTimeout(() => {
+                    console.warn(`Image loading timed out: ${url}`);
+                    reject(new Error(`Image loading timed out: ${url}`));
+                }, 5000);
 
-    doc.text(`Name: ${customerInfo.first_name} ${customerInfo.last_name}`.trim(), leftColumnX, leftY);
-    leftY += 4;
-    doc.text(`Email: ${customerInfo.email}`, leftColumnX, leftY);
-    leftY += 4;
-    doc.text(`Phone: ${customerInfo.phone}`, leftColumnX, leftY);
-    leftY += 4;
-    doc.text(`Address: ${customerInfo.address}`, leftColumnX, leftY);
-    leftY += 4;
-    doc.text(`City: ${customerInfo.city}`, leftColumnX, leftY);
-    leftY += 4;
-    doc.text(`State: ${customerInfo.state_province}`, leftColumnX, leftY);
-    leftY += 4;
-    doc.text(`Country: ${customerInfo.country}`, leftColumnX, leftY);
-    leftY += 4;
+                img.onload = () => {
+                    clearTimeout(timeout);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width || 100;
+                    canvas.height = img.height || 50;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
 
-    doc.text(`Zip: ${customerInfo.zip}`, rightColumnX, rightY);
-    rightY += 4;
-    doc.text(`Contact Preference: ${customerInfo.contact_preference.length > 0 ? customerInfo.contact_preference.join(', ') : ''}`, rightColumnX, rightY);
-    rightY += 4;
-    doc.text(`Purchase Timeline: ${customerInfo.purchase_timeline}`, rightColumnX, rightY);
-    rightY += 4;
-    doc.text(`Dealer: ${customerInfo.dealer}`, rightColumnX, rightY);
-    rightY += 4;
-    doc.text(`Special Offers: ${customerInfo.special_offers}`, rightColumnX, rightY);
-    rightY += 4;
-    const wrappedComments = doc.splitTextToSize(`Comments: ${customerInfo.comments}`, 90);
-    for (let i = 0; i < wrappedComments.length; i++) {
-        doc.text(wrappedComments[i], rightColumnX, rightY + (i * 4));
-    }
-    rightY += wrappedComments.length * 4;
+                img.onerror = () => {
+                    clearTimeout(timeout);
+                    console.error(`Failed to load image: ${url}`);
+                    localStorage.setItem('imageLoadError', JSON.stringify({
+                        url,
+                        error: 'Failed to load image',
+                        timestamp: new Date().toISOString()
+                    }));
+                    reject(new Error(`Failed to load image: ${url}`));
+                };
 
-    y = Math.max(leftY, rightY) + 5;
-
-    doc.setLineWidth(0.5);
-    doc.line(10, y, 200, y);
-    y += 5;
-
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'bold');
-    doc.text("Part Number", 10, y);
-    doc.text("Description", 35, y);
-    doc.text("Part Number", 100, y);
-    doc.text("Description", 125, y);
-    doc.setLineWidth(0.2);
-    doc.line(10, y + 2, 200, y + 2);
-    y += 5;
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'normal');
-
-    function addTableRow(leftItem, rightItem) {
-        const maxDescWidth = 60;
-        const leftPartNumber = leftItem ? (leftItem.part_number || 'N/A') : '';
-        const leftDesc = leftItem ? (leftItem.description || 'None') : '';
-        const rightPartNumber = rightItem ? (rightItem.part_number || 'N/A') : '';
-        const rightDesc = rightItem ? (rightItem.description || 'None') : '';
-
-        const leftWrappedDesc = doc.splitTextToSize(leftDesc, maxDescWidth);
-        const rightWrappedDesc = doc.splitTextToSize(rightDesc, maxDescWidth);
-        const maxLines = Math.max(leftWrappedDesc.length, rightWrappedDesc.length, 1);
-
-        if (leftItem) {
-            doc.text(leftPartNumber, 10, y);
-            for (let i = 0; i < leftWrappedDesc.length; i++) {
-                doc.text(leftWrappedDesc[i], 30, y + (i * 4));
-            }
+                img.src = url;
+            });
         }
 
-        if (rightItem) {
-            doc.text(rightPartNumber, 100, y);
-            for (let i = 0; i < rightWrappedDesc.length; i++) {
-                doc.text(rightWrappedDesc[i], 120, y + (i * 4));
-            }
+        try {
+            //const logoUrl = 'https://www.waldoch.com/wp-content/uploads//2025/08/waldoch-logo-black2_1.png';
+            const logoUrl = './assets/logos/waldoch-logo-black2_1.png';
+            const logoData = await loadImage(logoUrl);
+            doc.addImage(logoData, 'PNG', 10, 5, 35, 10); // Reduced from 50x14 to 35x10
+        } catch (error) {
+            localStorage.setItem('submitFormError', JSON.stringify({
+                error: 'Failed to load logo',
+                details: error.message,
+                timestamp: new Date().toISOString()
+            }));
         }
 
-        if (leftItem || rightItem) {
-            doc.setLineWidth(0.2);
-            doc.line(95, y - 2, 95, y + Math.max(maxLines * 4, 5) - 2);
+        try {
+            //const warrantyLogoUrl = 'https://www.waldoch.com/wp-content/uploads/2021/02/warranty-logo.png';
+            const warrantyLogoUrl = './assets/logos/warranty-logo.png';
+            const warrantyLogoData = await loadImage(warrantyLogoUrl);
+            doc.addImage(warrantyLogoData, 'PNG', 160, 5, 28, 11.5); // Reduced from 40x16.5 to 28x11.5
+        } catch (error) {
+            localStorage.setItem('submitFormError', JSON.stringify({
+                error: 'Failed to load warranty logo',
+                details: error.message,
+                timestamp: new Date().toISOString()
+            }));
         }
 
-        y += Math.max(maxLines * 4, 5);
-    }
 
-    function printSection(title, content) {
-        if (content === null || (Array.isArray(content) && content.length === 0)) {
-            return;
-        }
-        if (typeof content === 'object' && !Array.isArray(content) && content.part_number === 'N/A' && content.description === 'None') {
-            return;
-        }
-        if (Array.isArray(content) && content.every(item => item.part_number === 'N/A' && item.description === 'None')) {
-            return;
-        }
-        if (typeof content === 'string' && content === 'None') {
-            return;
-        }
-
+        doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        doc.text(title, 10, y);
-        y += 5;
+        doc.text("Rampage HD Vehicle Configuration", 105, 15, { align: 'center' });
+        doc.setFontSize(9);
         doc.setFont(undefined, 'normal');
 
-        if (typeof content === 'object' && !Array.isArray(content) && content !== null) {
-            addTableRow(content, null);
-        } else if (Array.isArray(content)) {
-            for (let i = 0; i < content.length; i += 2) {
-                const leftItem = content[i];
-                const rightItem = i + 1 < content.length ? content[i + 1] : null;
-                addTableRow(leftItem, rightItem);
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        let y = 30;
+        doc.text("Customer Information", 10, y);
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 190, y, { align: 'right' });
+        doc.setLineWidth(0.2);
+        doc.line(10, y + 2, 200, y + 2);
+        y += 5;
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+
+        const customerInfo = vehicleConfig.customer_info;
+        const leftColumnX = 10;
+        const rightColumnX = 105;
+        let leftY = y;
+        let rightY = y;
+
+        doc.text(`Name: ${customerInfo.first_name} ${customerInfo.last_name}`.trim(), leftColumnX, leftY);
+        leftY += 4;
+        doc.text(`Email: ${customerInfo.email}`, leftColumnX, leftY);
+        leftY += 4;
+        doc.text(`Phone: ${customerInfo.phone}`, leftColumnX, leftY);
+        leftY += 4;
+        doc.text(`Address: ${customerInfo.address}`, leftColumnX, leftY);
+        leftY += 4;
+        doc.text(`City: ${customerInfo.city}`, leftColumnX, leftY);
+        leftY += 4;
+        doc.text(`State: ${customerInfo.state_province}`, leftColumnX, leftY);
+        leftY += 4;
+        doc.text(`Country: ${customerInfo.country}`, leftColumnX, leftY);
+        leftY += 4;
+
+        doc.text(`Zip: ${customerInfo.zip}`, rightColumnX, rightY);
+        rightY += 4;
+        doc.text(`Contact Preference: ${customerInfo.contact_preference.length > 0 ? customerInfo.contact_preference.join(', ') : ''}`, rightColumnX, rightY);
+        rightY += 4;
+        doc.text(`Purchase Timeline: ${customerInfo.purchase_timeline}`, rightColumnX, rightY);
+        rightY += 4;
+        doc.text(`Dealer: ${customerInfo.dealer}`, rightColumnX, rightY);
+        rightY += 4;
+        doc.text(`Special Offers: ${customerInfo.special_offers}`, rightColumnX, rightY);
+        rightY += 4;
+        const wrappedComments = doc.splitTextToSize(`Comments: ${customerInfo.comments}`, 90);
+        for (let i = 0; i < wrappedComments.length; i++) {
+            doc.text(wrappedComments[i], rightColumnX, rightY + (i * 4));
+        }
+        rightY += wrappedComments.length * 4;
+
+        y = Math.max(leftY, rightY) + 5;
+
+        doc.setLineWidth(0.5);
+        doc.line(10, y, 200, y);
+        y += 5;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text("Part Number", 10, y);
+        doc.text("Description", 35, y);
+        doc.text("Part Number", 100, y);
+        doc.text("Description", 125, y);
+        doc.setLineWidth(0.2);
+        doc.line(10, y + 2, 200, y + 2);
+        y += 5;
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+
+        function addTableRow(leftItem, rightItem) {
+            const maxDescWidth = 60;
+            const leftPartNumber = leftItem ? (leftItem.part_number || 'N/A') : '';
+            const leftDesc = leftItem ? (leftItem.description || 'None') : '';
+            const rightPartNumber = rightItem ? (rightItem.part_number || 'N/A') : '';
+            const rightDesc = rightItem ? (rightItem.description || 'None') : '';
+
+            const leftWrappedDesc = doc.splitTextToSize(leftDesc, maxDescWidth);
+            const rightWrappedDesc = doc.splitTextToSize(rightDesc, maxDescWidth);
+            const maxLines = Math.max(leftWrappedDesc.length, rightWrappedDesc.length, 1);
+
+            if (leftItem) {
+                doc.text(leftPartNumber, 10, y);
+                for (let i = 0; i < leftWrappedDesc.length; i++) {
+                    doc.text(leftWrappedDesc[i], 30, y + (i * 4));
+                }
             }
-        } else if (content != null) {
-            addTableRow({ part_number: null, description: content }, null);
+
+            if (rightItem) {
+                doc.text(rightPartNumber, 100, y);
+                for (let i = 0; i < rightWrappedDesc.length; i++) {
+                    doc.text(rightWrappedDesc[i], 120, y + (i * 4));
+                }
+            }
+
+            if (leftItem || rightItem) {
+                doc.setLineWidth(0.2);
+                doc.line(95, y - 2, 95, y + Math.max(maxLines * 4, 5) - 2);
+            }
+
+            y += Math.max(maxLines * 4, 5);
         }
 
-        y += 2;
-    }
+        function printSection(title, content) {
+            if (content === null || (Array.isArray(content) && content.length === 0)) {
+                return;
+            }
+            if (typeof content === 'object' && !Array.isArray(content) && content.part_number === 'N/A' && content.description === 'None') {
+                return;
+            }
+            if (Array.isArray(content) && content.every(item => item.part_number === 'N/A' && item.description === 'None')) {
+                return;
+            }
+            if (typeof content === 'string' && content === 'None') {
+                return;
+            }
 
-    printSection("Chassis", vehicleConfig.chassis);
-    printSection("Exterior Paint", vehicleConfig.exterior_paint);
-    printSection("Running Boards", vehicleConfig.running_boards);
-    printSection("Truck Bed Options", vehicleConfig.truck_bed_options);
-    printSection("Exterior Options", vehicleConfig.exterior_options);
-    printSection("Paint Options", vehicleConfig.paint_options);
-    printSection("Interior Amenities", vehicleConfig.interior_amenities);
-    printSection("Performance Package", vehicleConfig.performance_package);
-    printSection("Wheels & Tires", vehicleConfig.wheels_tires);
+            doc.setFont(undefined, 'bold');
+            doc.text(title, 10, y);
+            y += 5;
+            doc.setFont(undefined, 'normal');
 
-    y += 5;
-    doc.setLineWidth(0.5);
-    doc.line(10, y, 200, y);
-    y += 5;
-    doc.setFont(undefined, 'bold');
-    doc.text("Total Price", 10, y);
-    doc.text(`$${vehicleConfig.total_price.toLocaleString()}`, 190, y, { align: 'right' });
-    y += 12;
+            if (typeof content === 'object' && !Array.isArray(content) && content !== null) {
+                addTableRow(content, null);
+            } else if (Array.isArray(content)) {
+                for (let i = 0; i < content.length; i += 2) {
+                    const leftItem = content[i];
+                    const rightItem = i + 1 < content.length ? content[i + 1] : null;
+                    addTableRow(leftItem, rightItem);
+                }
+            } else if (content != null) {
+                addTableRow({ part_number: null, description: content }, null);
+            }
 
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'normal');
-    doc.text("Print Name:", 10, y);
-    doc.line(35, y, 94.5, y);
-    doc.text("Dealer Signature:", 105, y);
-    doc.line(140, y, 199.5, y);
-
-    const pdfBlob = doc.output('blob');
-    const url = URL.createObjectURL(pdfBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    const formData = new FormData();
-    formData.append('first_name', vehicleConfig.customer_info.first_name);
-    formData.append('last_name', vehicleConfig.customer_info.last_name);
-    formData.append('email', vehicleConfig.customer_info.email);
-    formData.append('phone', vehicleConfig.customer_info.phone);
-    formData.append('address', vehicleConfig.customer_info.address);
-    formData.append('city', vehicleConfig.customer_info.city);
-    formData.append('form_fields[country]', vehicleConfig.customer_info.country);
-    formData.append('form_fields[state]', vehicleConfig.customer_info.state_province);
-    formData.append('zip', vehicleConfig.customer_info.zip);
-    vehicleConfig.customer_info.contact_preference.forEach((value, index) => {
-        formData.append(`contact_preference[${index}]`, value);
-    });
-    formData.append('purchase_timeline', vehicleConfig.customer_info.purchase_timeline);
-    formData.append('dealer', vehicleConfig.customer_info.dealer);
-    formData.append('comments', vehicleConfig.customer_info.comments);
-    formData.append('special_offers', vehicleConfig.customer_info.special_offers);
-
-    let vehicle_make = '';
-    if (vehicleConfig.chassis && vehicleConfig.chassis.part_number) {
-        const selectedChassis = chassisData.brands.find(brand =>
-            brand.chassis.some(chassis => chassis.part_number === vehicleConfig.chassis.part_number)
-        );
-        vehicle_make = selectedChassis ? selectedChassis.brand : '';
-    }
-
-    formData.append('vehicle_make', vehicle_make);
-    formData.append('vehicle_type', 'Trucks');
-    formData.append('vehicle_package', 'Rampage HD');
-
-    const pdfFile = new File([pdfBlob], `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`, { type: 'application/pdf' });
-    formData.append('pdf', pdfFile);
-
-    console.log('FormData contents:');
-    for (const [key, value] of formData.entries()) {
-        console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
-    }
-
-    // New Express server request
-    const expressPayload = {
-        first_name: vehicleConfig.customer_info.first_name,
-        last_name: vehicleConfig.customer_info.last_name,
-        email: vehicleConfig.customer_info.email,
-        phone: vehicleConfig.customer_info.phone,
-        address: vehicleConfig.customer_info.address,
-        city: vehicleConfig.customer_info.city,
-        state: vehicleConfig.customer_info.state_province,
-        country: vehicleConfig.customer_info.country,
-        zip: vehicleConfig.customer_info.zip,
-        message: vehicleConfig.customer_info.comments, // Map comments to message
-        file: {
-            name: `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`,
-            content: doc.output('datauristring').split(',')[1] // Base64-encoded PDF
+            y += 2;
         }
-    };
 
-    console.log('Express payload:', expressPayload);
+        printSection("Chassis", vehicleConfig.chassis);
+        printSection("Exterior Paint", vehicleConfig.exterior_paint);
+        printSection("Running Boards", vehicleConfig.running_boards);
+        printSection("Truck Bed Options", vehicleConfig.truck_bed_options);
+        printSection("Exterior Options", vehicleConfig.exterior_options);
+        printSection("Paint Options", vehicleConfig.paint_options);
+        printSection("Interior Amenities", vehicleConfig.interior_amenities);
+        printSection("Performance Package", vehicleConfig.performance_package);
+        printSection("Wheels & Tires", vehicleConfig.wheels_tires);
 
-    try {
-        // WordPress request (existing)
-        // const wordpressResponse = await fetch('/wp-json/vehicle-config/v1/mailer', {
-        //     method: 'POST',
-        //     body: formData
-        // });
+        y += 5;
+        doc.setLineWidth(0.5);
+        doc.line(10, y, 200, y);
+        y += 5;
+        doc.setFont(undefined, 'bold');
+        doc.text("Total Price", 10, y);
+        doc.text(`$${vehicleConfig.total_price.toLocaleString()}`, 190, y, { align: 'right' });
+        y += 12;
 
-        // if (!wordpressResponse.ok) {
-        //     const err = await wordpressResponse.json();
-        //     throw new Error(`WordPress error: ${err.error || 'Unknown error'}`);
-        // }
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+        doc.text("Print Name:", 10, y);
+        doc.line(35, y, 94.5, y);
+        doc.text("Dealer Signature:", 105, y);
+        doc.line(140, y, 199.5, y);
 
-        // const wordpressData = await wordpressResponse.json();
-        // console.log('WordPress email sent successfully:', wordpressData.status);
+        const pdfBlob = doc.output('blob');
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
 
-        // Express server request (new)
-        const expressResponse = await fetch('https://custom-shopify.onrender.com/api/builder', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(expressPayload)
+        const formData = new FormData();
+        formData.append('first_name', vehicleConfig.customer_info.first_name);
+        formData.append('last_name', vehicleConfig.customer_info.last_name);
+        formData.append('email', vehicleConfig.customer_info.email);
+        formData.append('phone', vehicleConfig.customer_info.phone);
+        formData.append('address', vehicleConfig.customer_info.address);
+        formData.append('city', vehicleConfig.customer_info.city);
+        formData.append('form_fields[country]', vehicleConfig.customer_info.country);
+        formData.append('form_fields[state]', vehicleConfig.customer_info.state_province);
+        formData.append('zip', vehicleConfig.customer_info.zip);
+        vehicleConfig.customer_info.contact_preference.forEach((value, index) => {
+            formData.append(`contact_preference[${index}]`, value);
         });
+        formData.append('purchase_timeline', vehicleConfig.customer_info.purchase_timeline);
+        formData.append('dealer', vehicleConfig.customer_info.dealer);
+        formData.append('comments', vehicleConfig.customer_info.comments);
+        formData.append('special_offers', vehicleConfig.customer_info.special_offers);
 
-        if (!expressResponse.ok) {
-            const err = await expressResponse.json();
-            throw new Error(`Express server error: ${err.error || 'Unknown error'}`);
+        let vehicle_make = '';
+        if (vehicleConfig.chassis && vehicleConfig.chassis.part_number) {
+            const selectedChassis = chassisData.brands.find(brand =>
+                brand.chassis.some(chassis => chassis.part_number === vehicleConfig.chassis.part_number)
+            );
+            vehicle_make = selectedChassis ? selectedChassis.brand : '';
         }
 
-        const expressData = await expressResponse.json();
-        console.log('Express submission successful:', expressData);
+        formData.append('vehicle_make', vehicle_make);
+        formData.append('vehicle_type', 'Trucks');
+        formData.append('vehicle_package', 'Rampage HD');
 
-        // Success for both requests
-        alert('Configuration saved successfully!');
-        updateSummary();
+        const pdfFile = new File([pdfBlob], `${vehicleConfig.customer_info.first_name}_${vehicleConfig.customer_info.last_name}_RampageHD_Build.pdf`, { type: 'application/pdf' });
+        formData.append('pdf', pdfFile);
+
+        console.log('FormData contents:');
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
+        }
+
+        const submissionId = Date.now();
+        console.log('Submission ID:', submissionId);
+        formData.append('submissionId', submissionId);
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000); //30 second timeout
+
+        let response;
+        try {
+            response = await fetch('http://localhost:3000/api/builder', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                },
+                signal: controller.signal,
+            });
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                throw new Error('Request timed out after 30 second. Please try again.');
+            }
+            throw err;
+        } finally {
+            clearTimeout(timeout);
+        }
     } catch (error) {
-        console.error('Submission error:', error.message);
-        alert('Failed to save configuration: ' + error.message);
+        console.error('Unexpected error in submitForm:', error.message, error.stack);
+        alert(`Unexpected error: ${error.message}`);
+        isSubmitting = false;
+        if (submitButton) submitButton.disabled = false;
     }
 }
 
-
+// Replace handleFormSubmit function
 function handleFormSubmit(e) {
     if (e) e.preventDefault();
     console.log('handleFormSubmit called, submissionCount:', submissionCount);
+
+    if (isSubmitting) {
+        console.log('Blocked: Submission already in progress');
+        return;
+    }
 
     const form = document.querySelector('#vehicle-form');
     const missingFieldsModal = document.getElementById('missing-fields-modal');
@@ -3206,26 +3233,19 @@ function handleFormSubmit(e) {
         missingFieldsModal.style.display = 'flex';
         closeMissingModalBtn.focus();
 
-        // Clone and reassign close button handler
         closeMissingModalBtn.replaceWith(closeMissingModalBtn.cloneNode(true));
         const newCloseMissingModalBtn = document.getElementById('close-missing-modal');
-        newCloseMissingModalBtn.onclick = () => {
+        newCloseMissingModalBtn.addEventListener('click', () => {
             console.log('Closing missing fields modal');
             missingFieldsModal.style.display = 'none';
-        };
+        }, { once: true });
 
-        missingFieldsModal.onclick = (event) => {
+        missingFieldsModal.addEventListener('click', (event) => {
             if (event.target === missingFieldsModal) {
                 console.log('Closing missing fields modal via background click');
                 missingFieldsModal.style.display = 'none';
             }
-        };
-        return;
-    }
-
-    // Guard: Skip if modal is visible or submission in progress
-    if (confirmModal.style.display === 'flex' || isSubmitting) {
-        console.log('Blocked: Confirm modal already visible or submission in progress');
+        }, { once: true });
         return;
     }
 
@@ -3233,45 +3253,33 @@ function handleFormSubmit(e) {
     confirmModal.style.display = 'flex';
     confirmSubmitBtn.focus();
 
-    // Clone buttons to clear any existing listeners
     confirmSubmitBtn.replaceWith(confirmSubmitBtn.cloneNode(true));
     cancelSubmitBtn.replaceWith(cancelSubmitBtn.cloneNode(true));
 
-    // Re-select cloned buttons
     const newConfirmSubmitBtn = document.getElementById('confirm-submit-btn');
     const newCancelSubmitBtn = document.getElementById('cancel-submit-btn');
 
-    newCancelSubmitBtn.onclick = () => {
+    newCancelSubmitBtn.addEventListener('click', () => {
         console.log('Cancel button clicked, hiding confirm modal');
         confirmModal.style.display = 'none';
-    };
+    }, { once: true });
 
-    newConfirmSubmitBtn.onclick = () => {
-        if (isSubmitting) {
-            console.log('Blocked: Submission already in progress');
-            return;
-        }
+    newConfirmSubmitBtn.addEventListener('click', debounce(() => {
         console.log('Confirm button clicked, starting submission');
-        isSubmitting = true;
-        submissionCount++; // Debug: Increment counter
-        newConfirmSubmitBtn.disabled = true;
         confirmModal.style.display = 'none';
         showPrices = true;
         updateSummary();
-        submitForm().finally(() => {
-            console.log('Submission completed, resetting isSubmitting');
-            isSubmitting = false;
-            newConfirmSubmitBtn.disabled = false;
-        });
-    };
+        submitForm();
+    }, 300), { once: true });
 
-    confirmModal.onclick = (event) => {
+    confirmModal.addEventListener('click', (event) => {
         if (event.target === confirmModal) {
             console.log('Closing confirm modal via background click');
             confirmModal.style.display = 'none';
         }
-    };
+    }, { once: true });
 }
+
 
 document.addEventListener('chassisChanged', () => {
     const selectedChassis = chassisController.getSelectedChassis();
@@ -3302,35 +3310,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const countrySelect = document.querySelector('#country');
     const stateSelect = document.querySelector('#state_province');
 
-    if (!form) {
-        console.error('Form (#vehicle-form) not found in DOM');
-        return;
-    }
-
-    if (!saveConfigBtn) {
-        console.error('Save Configuration button (#save-config-btn) not found in DOM');
-        return;
-    }
-
-    if (!countrySelect) {
-        console.error('Country select (#country) not found in DOM');
-        return;
-    }
-
-    if (!stateSelect) {
-        console.error('State select (#state_province) not found in DOM');
+    if (!form || !saveConfigBtn || !countrySelect || !stateSelect) {
+        console.error('Critical elements not found:', { form, saveConfigBtn, countrySelect, stateSelect });
         return;
     }
 
     // Create modals
     createModals();
 
-    // Ensure button is visible
-    saveConfigBtn.style.display = 'inline-block';
-
-    // Attach click listener to the save-config-btn
+    // Remove existing listeners
+    form.removeEventListener('submit', handleFormSubmit);
     saveConfigBtn.removeEventListener('click', handleFormSubmit);
-    saveConfigBtn.addEventListener('click', handleFormSubmit);
+
+    // Add debounced listener to save-config-btn
+    saveConfigBtn.addEventListener('click', debounce((e) => {
+        e.preventDefault();
+        console.log('Save Config button clicked');
+        handleFormSubmit();
+    }, 300));
 
     setupGalaxyInfoToggle();
     updateSummary();

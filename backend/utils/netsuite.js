@@ -32,17 +32,16 @@ const stateMap = {
 const nsCountry = (country) => countryMap[country] || country;
 const nsState = (state) => stateMap[state] || state;
 
-
 const netsuiteRequest = async (data) => {
-    let url; 
-     if (data.isTopperQuote) {
+    let url;
+    if (data.isTopperQuote) {
         url = process.env.NETSUITE_TOPPER_QUOTE_RESTLET_URL;
-     } else if (data.isBuilder) {
+    } else if (data.isBuilder) {
         url = process.env.NETSUITE_BUILDER_RESTLET_URL;
-     } else {
+    } else {
         url = process.env.NETSUITE_QUOTE_RESTLET_URL;
-     }
-    
+    }
+
     const oauth = OAuth({
         consumer: {
             key: process.env.NETSUITE_CONSUMER_KEY,
@@ -70,13 +69,31 @@ const netsuiteRequest = async (data) => {
     };
 
     try {
+        console.log('NetSuite Request Payload:', {
+            ...data,
+            file: data.file ? {
+                name: data.file.name,
+                contentLength: data.file.content?.length,
+                contentPreview: data.file.content?.substring(0, 100)
+            } : null
+        });
+
+        // Only validate Base64 for Builder Restlet
+        if (data.isBuilder && data.file && (!data.file.content || !/^[A-Za-z0-9+/=]+$/.test(data.file.content))) {
+            throw new Error('Invalid Base64 content in file data');
+        }
+
         const response = await axios.post(url, data, { headers, timeout: 30000 });
         return response.data;
     } catch (err) {
-        console.error("NetSuite RESTlet Error:", err.response?.data || err.message);
+        console.error('NetSuite RESTlet Error:', {
+            message: err.message,
+            status: err.response?.status,
+            data: err.response?.data,
+            headers: err.response?.headers
+        });
         throw new Error(`NetSuite RESTlet Error: ${JSON.stringify(err.response?.data?.error || err.message)}`);
     }
 };
-
 
 export { netsuiteRequest, countryMap, stateMap, nsCountry, nsState };
