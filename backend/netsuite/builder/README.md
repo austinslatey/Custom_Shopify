@@ -15,6 +15,12 @@ When called via HTTP **POST**, the RESTlet:
 
 ---
 
+## Screenshots
+Here is a visual representation of all the processing this RESTlet achieves.
+![Customer](../../../assets/builder/customer.jpg)
+![Folder-Structure](../../../assets/builder/folder_structure.jpg)
+![File-name](../../../assets/builder/filename_with_timestamp.jpg)
+
 ## Script Information
 
 | Property | Value |
