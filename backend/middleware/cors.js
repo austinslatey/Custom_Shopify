@@ -6,7 +6,7 @@ const allowedOrigins = [
     process.env.WORDPRESS_SITE,
 
     // Uncomment for testing and add variable back to server
-    // process.env.LOCAL_URL
+    process.env.LOCAL_URL
 
 ].filter(Boolean); // Remove undefined/null values
 
