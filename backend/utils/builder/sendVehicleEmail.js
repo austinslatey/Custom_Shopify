@@ -91,7 +91,6 @@ export const sendVehicleConfigEmail = async ({
 
   try {
     await sgMail.send(emailData);
-    console.log('[Vehicle Config Email] Email sent successfully');
     return { success: true };
   } catch (error) {
     console.error('[Vehicle Config Email] Email sending error:', error.message, error.response?.body);
