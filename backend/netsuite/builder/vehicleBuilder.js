@@ -50,7 +50,7 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
 
             id = cust.save();
 
-        // ---------- NEW CUSTOMER ----------
+            // ---------- NEW CUSTOMER ----------
         } else {
             cust = record.create({ type: record.Type.CUSTOMER, isDynamic: true });
             cust.setValue({ fieldId: 'firstname', value: data.first_name });
@@ -79,6 +79,13 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
 
             // 💡 Reload after save to get the true entityid (fixes "To Be Generated")
             cust = record.load({ type: record.Type.CUSTOMER, id, isDynamic: true });
+
+            log.audit('Customer Reloaded', {
+                id,
+                entityid: cust.getValue('entityid'),
+                email
+            });
+
         }
 
         // ---------- FILE UPLOAD ----------
@@ -99,6 +106,12 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
                     columns: ['internalid']
                 }).run().getRange({ start: 0, end: 1 });
 
+                log.audit('Folder Lookup', {
+                    baseFolderFound: !!baseFolderSearch.length,
+                    baseFolderId: baseFolderSearch.length ? baseFolderSearch[0].getValue('internalid') : null
+                });
+
+
                 if (!baseFolderSearch.length) {
                     throw new Error(`Base folder "${BASE_FOLDER_NAME}" not found in File Cabinet.`);
                 }
@@ -110,6 +123,8 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
                     cust.getValue('entityid') ||
                     `${data.first_name || ''} ${data.last_name || ''}`.trim();
                 const customerFolderName = `(${id}) ${entityName}`;
+
+                log.audit('Folder Naming', { id, entityName, customerFolderName });
 
                 // Check for existing subfolder
                 const customerFolderSearch = search.create({
@@ -124,11 +139,13 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
                 let folderId;
                 if (customerFolderSearch.length) {
                     folderId = customerFolderSearch[0].getValue('internalid');
+                    log.audit('Existing Folder', { folderId });
                 } else {
                     const folderRec = record.create({ type: record.Type.FOLDER });
                     folderRec.setValue({ fieldId: 'name', value: customerFolderName });
                     folderRec.setValue({ fieldId: 'parent', value: baseFolderId });
                     folderId = folderRec.save();
+                    log.audit('New Folder Created', { folderId, name: customerFolderName });
                 }
 
                 // Timestamp for uniqueness
@@ -158,6 +175,11 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
                 });
 
                 const fileId = fileObj.save();
+                log.audit('File Upload', {
+                    fileName: uniqueName,
+                    folderId,
+                    base64Length: data.file.content.length
+                });
 
                 // Attach to customer
                 record.attach({
@@ -165,6 +187,7 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
                     to: { type: 'customer', id }
                 });
 
+                log.audit('File Attached', { fileId, customerId: id });
             } catch (fileErr) {
                 log.error({
                     title: 'File Handling Error',
@@ -187,17 +210,23 @@ define(['N/record', 'N/search', 'N/log', 'N/file'], (record, search, log, file) 
     const post = (data) => {
         try {
             const customerId = findOrCreateCustomer(data);
-            return { success: true, customerId };
+            const result = {
+                success: true,
+                message: 'Vehicle Builder data processed successfully',
+                customerId: customerId || null
+            };
+            log.audit('Response Payload', JSON.stringify(result));
+            return result; // explicit JSON-safe object
         } catch (e) {
+            const errorDetails = {
+                success: false,
+                error: e.message || e.toString(),
+            };
             log.error({
                 title: 'Vehicle Builder Error',
-                details: JSON.stringify({
-                    message: e.message || e,
-                    stack: e.stack,
-                    data
-                })
+                details: JSON.stringify(errorDetails)
             });
-            return { success: false, error: e.message || e.toString() };
+            return errorDetails;
         }
     };
 
