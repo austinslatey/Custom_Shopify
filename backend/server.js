@@ -2,7 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import sgMail from '@sendgrid/mail';
 import routes from './routes/index.js';
-import corsMiddleware from './middleware/cors.js';
+//import corsMiddleware from './middleware/cors.js';
+import cors from 'cors';
 
 // Load environment variables
 const result = dotenv.config();
@@ -21,7 +22,10 @@ app.use((req, res, next) => {
 });
 
 // Middleware
-app.use(corsMiddleware);
+//app.use(corsMiddleware);
+
+// Allow all
+app.use(cors({ origin: '*', credentials: true }));
 
 // Increase JSON and URL-encoded payload limit to 15MB (for 12.6 MB PDF)
 app.use(express.json({ limit: '15mb' }));
