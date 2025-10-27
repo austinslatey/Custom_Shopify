@@ -3153,12 +3153,9 @@ async function submitForm() {
         // console.log('WordPress email sent successfully:', wordpressData.status);
 
         // Express server request (new)
-        const expressResponse = await fetch('https://custom-shopify.onrender.com/api/builder', {
+        const expressResponse = await fetch('http://localhost:3000/api/builder', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(expressPayload)
+            body: formData,
         });
 
         if (!expressResponse.ok) {
