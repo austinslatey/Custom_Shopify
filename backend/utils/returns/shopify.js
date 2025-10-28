@@ -42,6 +42,7 @@ export const lookupCustomerOrders = async (first_name, last_name, email) => {
             variant_title: item.variant_title || null,
             quantity: item.quantity,
             sku: item.sku || null,
+            image_src: item.image?.src || null,
         })),
     }));
 };
