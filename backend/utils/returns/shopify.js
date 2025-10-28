@@ -32,40 +32,40 @@ export const lookupCustomerOrders = async (first_name, last_name, email) => {
         limit: 50,
     });
 
-    // Enrich line_items with image_src
-    const enrichedOrders = await Promise.all(
-        orders.map(async (order) => {
-            const lineItemsWithImages = await Promise.all(
-                order.line_items.map(async (item) => {
-                    let imageSrc = null;
-                    if (item.variant_id) {
-                        try {
-                            const variant = await shopify.productVariant.get(item.variant_id);
-                            imageSrc = variant.image?.src || null;
-                        } catch (error) {
-                            console.error(`Error fetching variant image for ID ${item.variant_id}:`, error);
-                        }
-                    }
-                    return {
-                        id: item.id,
-                        title: item.title,
-                        variant_title: item.variant_title || null,
-                        quantity: item.quantity,
-                        sku: item.sku || null,
-                        image_src: imageSrc,
-                    };
-                })
-            );
+    return await Promise.all(orders.map(async (order) => ({
+        id: order.id,
+        name: order.name,
+        created_at: order.created_at,
+        line_items: await Promise.all(order.line_items.map(async (item) => {
+            let imageSrc = item.image?.src || null;
+            if (!imageSrc && item.variant_id) {
+                try {
+                    const variant = await shopify.productVariant.get(item.variant_id);
+                    imageSrc = variant.image?.src || null;
+                } catch (err) {
+                    console.error(`Failed to fetch variant image for ${item.variant_id}:`, err);
+                }
+            }
+            if (!imageSrc && item.product_id) {
+                try {
+                    const product = await shopify.product.get(item.product_id);
+                    imageSrc = product.image?.src || null;
+                } catch (err) {
+                    console.error(`Failed to fetch product image for ${item.product_id}:`, err);
+                }
+            }
             return {
-                id: order.id,
-                name: order.name,
-                created_at: order.created_at,
-                line_items: lineItemsWithImages,
+                id: item.id,
+                title: item.title,
+                variant_title: item.variant_title || null,
+                quantity: item.quantity,
+                sku: item.sku || null,
+                image_src: imageSrc,
+                variant_id: item.variant_id || null,
+                product_id: item.product_id || null
             };
-        })
-    );
-
-    return enrichedOrders;
+        }))
+    })));
 };
 
 export const processReturnSubmission = async ({
