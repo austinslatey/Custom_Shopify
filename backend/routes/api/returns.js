@@ -1,4 +1,3 @@
-// routes/api/returns.js
 import express from 'express';
 import {
   validateLookupInput,
