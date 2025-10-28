@@ -1,5 +1,9 @@
+import dotenv from 'dotenv';
 import Shopify from 'shopify-api-node';
 import { sendReturnEmails } from './email.js';
+
+// Load environment variables
+dotenv.config();
 
 const shopify = new Shopify({
     shopName: process.env.SHOPIFY_SHOP_ADMIN,
