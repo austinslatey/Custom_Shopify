@@ -32,19 +32,40 @@ export const lookupCustomerOrders = async (first_name, last_name, email) => {
         limit: 50,
     });
 
-    return orders.map((order) => ({
-        id: order.id,
-        name: order.name,
-        created_at: order.created_at,
-        line_items: order.line_items.map((item) => ({
-            id: item.id,
-            title: item.title,
-            variant_title: item.variant_title || null,
-            quantity: item.quantity,
-            sku: item.sku || null,
-            image_src: item.image?.src || null,
-        })),
-    }));
+    // Enrich line_items with image_src
+    const enrichedOrders = await Promise.all(
+        orders.map(async (order) => {
+            const lineItemsWithImages = await Promise.all(
+                order.line_items.map(async (item) => {
+                    let imageSrc = null;
+                    if (item.variant_id) {
+                        try {
+                            const variant = await shopify.productVariant.get(item.variant_id);
+                            imageSrc = variant.image?.src || null;
+                        } catch (error) {
+                            console.error(`Error fetching variant image for ID ${item.variant_id}:`, error);
+                        }
+                    }
+                    return {
+                        id: item.id,
+                        title: item.title,
+                        variant_title: item.variant_title || null,
+                        quantity: item.quantity,
+                        sku: item.sku || null,
+                        image_src: imageSrc,
+                    };
+                })
+            );
+            return {
+                id: order.id,
+                name: order.name,
+                created_at: order.created_at,
+                line_items: lineItemsWithImages,
+            };
+        })
+    );
+
+    return enrichedOrders;
 };
 
 export const processReturnSubmission = async ({
