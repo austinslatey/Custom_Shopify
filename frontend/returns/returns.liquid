@@ -1,0 +1,278 @@
+{% comment %}
+return-request.liquid – Multi-step return form (no Bootstrap)
+{% endcomment %}
+
+<div style="padding:0 1rem;">
+  <a href="#" id="open-return-modal"
+     style="display:block;background:#dc3545;color:#fff;padding:.75rem 1.5rem;text-align:center;border-radius:.375rem;font-size:1.125rem;font-weight:500;transition:background .2s;width:100%;box-sizing:border-box;text-decoration:none;">
+    Start a Return
+  </a>
+</div>
+
+<!-- Modal -->
+<div id="returnModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:.5rem;max-width:38rem;width:90%;max-height:90vh;overflow-y:auto;">
+    <div style="background:#f8f9fa;padding:1rem 1.5rem;border-bottom:1px solid #dee2e6;display:flex;justify-content:space-between;align-items:center;">
+      <h5 style="margin:0;font-size:1rem;font-weight:600;">Request a Return</h5>
+      <button type="button" id="close-modal" style="background:none;border:none;font-size:1.5rem;color:#6c757d;cursor:pointer;">×</button>
+    </div>
+
+    <div style="padding:1.5rem;">
+      <!-- STEP 1: Customer Info -->
+      <div id="step1">
+        <form id="customer-lookup-form" style="display:flex;flex-direction:column;gap:1rem;">
+          <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:1rem;">
+            <div class="form-group">
+              <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">First Name *</label>
+              <input type="text" name="first_name" required style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;">
+              <div class="invalid" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Required</div>
+            </div>
+            <div class="form-group">
+              <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Last Name *</label>
+              <input type="text" name="last_name" required style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;">
+              <div class="invalid" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Required</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Email *</label>
+            <input type="email" name="email" required style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;">
+            <div class="invalid" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Valid email required</div>
+          </div>
+          <button type="submit" id="lookup-btn"
+                  style="background:#007bff;color:#fff;padding:.75rem;border-radius:.375rem;font-weight:500;border:none;cursor:pointer;">
+            <span class="txt">Find My Orders</span>
+            <span class="load" style="display:none;">Searching...</span>
+          </button>
+        </form>
+        <div id="lookup-msg" style="margin-top:1rem;"></div>
+      </div>
+
+      <!-- STEP 2: Order Selection -->
+      <div id="step2" style="display:none;">
+        <div id="orders-list"></div>
+        <div id="no-orders" style="display:none;color:#6c757d;font-style:italic;">
+          No orders found in the last 30 days.
+        </div>
+        <button id="back-to-step1"
+                style="margin-top:1rem;background:#6c757d;color:#fff;padding:.5rem 1rem;border-radius:.375rem;border:none;cursor:pointer;">
+          ← Back
+        </button>
+      </div>
+
+      <!-- STEP 3: Return Details -->
+      <div id="step3" style="display:none;">
+        <form id="return-submit-form">
+          <input type="hidden" name="order_id" id="selected-order-id">
+          <div id="selected-items"></div>
+
+          <div class="form-group" style="margin-top:1.5rem;">
+            <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.5rem;">Refund Preference *</label>
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;cursor:pointer;">
+                <input type="radio" name="refund_method" value="store_credit" required style="margin-right:.5rem;"> Store Credit
+              </label>
+              <label style="display:flex;align-items:center;cursor:pointer;">
+                <input type="radio" name="refund_method" value="original_payment" required style="margin-right:.5rem;"> Original Payment
+              </label>
+            </div>
+            <div class="invalid" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Required</div>
+          </div>
+
+          <div class="form-group" style="margin-top:1rem;">
+            <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Additional Notes (Optional)</label>
+            <textarea name="message" style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;resize:vertical;min-height:80px;"></textarea>
+          </div>
+
+          <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+            <button type="button" id="back-to-step2"
+                    style="background:#6c757d;color:#fff;padding:.75rem 1rem;border-radius:.375rem;border:none;cursor:pointer;flex:1;">
+              ← Back
+            </button>
+            <button type="submit"
+                    style="background:#dc3545;color:#fff;padding:.75rem 1rem;border-radius:.375rem;border:none;cursor:pointer;flex:2;">
+              <span class="txt">Submit Return Request</span>
+              <span class="load" style="display:none;">Submitting...</span>
+            </button>
+          </div>
+        </form>
+        <div id="submit-msg" style="margin-top:1rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #open-return-modal:hover {background:#c82333 !important;}
+  input:focus, select:focus, textarea:focus {outline:none;border-color:#dc3545;box-shadow:0 0 0 3px rgba(220,53,69,.2);}
+  .is-invalid {border-color:#dc3545 !important;}
+  .is-invalid ~ .invalid {display:block;}
+  @media (min-width:768px){
+    .form-row{grid-template-columns:1fr 1fr !important;}
+    #returnModal > div{max-width:750px !important;}
+  }
+</style>
+
+<script>
+$(function(){
+  const $modal = $('#returnModal'), $step1 = $('#step1'), $step2 = $('#step2'), $step3 = $('#step3');
+
+  // Open / Close
+  $('#open-return-modal').on('click', e=>{e.preventDefault();$modal.show();$step1.show();$step2.hide();$step3.hide();});
+  $('#close-modal, #back-to-step1, #back-to-step2').on('click',()=>$modal.hide());
+  $modal.on('click', e=>{if(e.target===$modal[0])$modal.hide();});
+
+  // === STEP 1: Lookup ===
+  $('#customer-lookup-form').on('submit', function(e){
+    e.preventDefault();
+    const $form = $(this), $btn = $('#lookup-btn'), $txt = $btn.find('.txt'), $load = $btn.find('.load'), $msg = $('#lookup-msg');
+    $msg.empty();
+
+    let valid = true;
+    $form.find('input[required]').each(function(){
+      const val = this.value.trim();
+      if(!val || (this.type==='email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))){
+        $(this).addClass('is-invalid');
+        valid = false;
+      } else $(this).removeClass('is-invalid');
+    });
+    if(!valid) return;
+
+    $btn.prop('disabled',true); $txt.hide(); $load.show();
+
+    $.post('/apps/return-lookup', $form.serialize())
+      .done(data=>{
+        if(!data.orders || data.orders.length===0){
+          $('#no-orders').show();
+          $('#orders-list').empty();
+          $step2.show(); $step1.hide();
+          return;
+        }
+        renderOrders(data.orders);
+        $step2.show(); $step1.hide();
+      })
+      .fail(xhr=>{
+        $msg.html(`<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">${xhr.responseJSON?.error || 'Server error'}</div>`);
+      })
+      .always(()=>{ $btn.prop('disabled',false); $txt.show(); $load.hide(); });
+  });
+
+  function renderOrders(orders){
+    const $list = $('#orders-list').empty();
+    $('#no-orders').hide();
+
+    orders.forEach(order=>{
+      const $card = $(`
+        <div style="border:1px solid #dee2e6;border-radius:.5rem;padding:1rem;margin-bottom:1rem;background:#fdfdfe;">
+          <strong>Order #${order.name}</strong> <small style="color:#6c757d;">(${new Date(order.created_at).toLocaleDateString()})</small>
+          <div style="margin-top:.75rem;"></div>
+        </div>`);
+      const $items = $card.find('div').last();
+
+      order.line_items.forEach(item=>{
+        const id = `item-${order.id}-${item.id}`;
+        $items.append(`
+          <label style="display:flex;align-items:center;margin:.5rem 0;cursor:pointer;">
+            <input type="checkbox" class="select-item" data-order-id="${order.id}" data-item-id="${item.id}"
+                   data-title="${item.title}" data-sku="${item.sku||''}" style="margin-right:.5rem;">
+            <span>${item.title} ${item.variant_title?('('+item.variant_title+')'):''} ×${item.quantity}</span>
+          </label>`);
+      });
+
+      $list.append($card);
+    });
+
+    // Proceed button
+    if(!$list.find('#proceed-btn').length){
+      $list.append(`
+        <button id="proceed-btn" style="margin-top:1rem;background:#007bff;color:#fff;padding:.75rem;border-radius:.375rem;border:none;cursor:pointer;width:100%;">
+          Continue with Selected Items →
+        </button>`);
+    }
+  }
+
+  // === STEP 2 → STEP 3 ===
+  $(document).on('click', '#proceed-btn', function(){
+    const selected = [];
+    $('.select-item:checked').each(function(){
+      selected.push({
+        order_id: $(this).data('order-id'),
+        item_id: $(this).data('item-id'),
+        title: $(this).data('title'),
+        sku: $(this).data('sku')
+      });
+    });
+
+    if(selected.length===0){
+      alert('Please select at least one item to return.');
+      return;
+    }
+
+    // Deduplicate by order_id
+    const orderIds = [...new Set(selected.map(s=>s.order_id))];
+    if(orderIds.length > 1){
+      alert('Please select items from a single order only.');
+      return;
+    }
+
+    $('#selected-order-id').val(orderIds[0]);
+    renderReturnItems(selected);
+    $step3.show(); $step2.hide();
+  });
+
+  function renderReturnItems(items){
+    const $container = $('#selected-items').empty();
+    items.forEach((it, idx)=>{
+      const reasonId = `reason-${idx}`;
+      $container.append(`
+        <div style="border:1px solid #dee2e6;border-radius:.5rem;padding:1rem;margin-bottom:1rem;background:#fdfdfe;">
+          <strong>${it.title}</strong> ${it.sku?`<small style="color:#6c757d;">(SKU: ${it.sku})</small>`:''}
+          <input type="hidden" name="items[${idx}][line_item_id]" value="${it.item_id}">
+          <div style="margin-top:.75rem;">
+            <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Reason for Return *</label>
+            <select name="items[${idx}][reason]" required style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;">
+              <option value="" disabled selected>Select reason</option>
+              <option value="ordered_wrong">Ordered wrong item</option>
+              <option value="duplicate">Duplicate order</option>
+              <option value="wrong_part">Wrong part</option>
+              <option value="damaged">Damaged in shipping</option>
+              <option value="no_fit">Did not fit</option>
+              <option value="changed_mind">Changed my mind</option>
+            </select>
+            <div class="invalid" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Required</div>
+          </div>
+        </div>`);
+    });
+  }
+
+  // === STEP 3: Submit ===
+  $('#return-submit-form').on('submit', function(e){
+    e.preventDefault();
+    const $form = $(this), $btn = $form.find('button[type=submit]'), $txt = $btn.find('.txt'), $load = $btn.find('.load'), $msg = $('#submit-msg');
+    $msg.empty();
+
+    let valid = true;
+    $form.find('select[required]').each(function(){
+      if(!this.value){ $(this).addClass('is-invalid'); valid=false; }
+      else $(this).removeClass('is-invalid');
+    });
+    if(!$form.find('input[name="refund_method"]:checked').length){
+      $form.find('input[name="refund_method"]').closest('.form-group').find('.invalid').show();
+      valid=false;
+    }
+
+    if(!valid) return;
+
+    $btn.prop('disabled',true); $txt.hide(); $load.show();
+
+    $.post('/apps/return-submit', $form.serialize())
+      .done(res=>{
+        $msg.html(`<div style="color:#166534;background:#dcfce7;padding:.75rem;border-radius:.375rem;">${res.message||'Return request submitted!'}</div>`);
+        setTimeout(()=>{ $modal.hide(); }, 3000);
+      })
+      .fail(xhr=>{
+        $msg.html(`<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">${xhr.responseJSON?.error||'Error'}</div>`);
+      })
+      .always(()=>{ $btn.prop('disabled',false); $txt.show(); $load.hide(); });
+  });
+});
+</script>
