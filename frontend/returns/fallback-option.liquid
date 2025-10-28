@@ -1,0 +1,294 @@
+{% comment %}
+Snippet: return-request-form.liquid
+Purpose: Custom return request modal (no Bootstrap)
+Dependencies: jQuery only
+{% endcomment %}
+
+<!-- Return Request Button -->
+<div style="padding:0 1rem;">
+  <a href="#" id="open-return-modal"
+     style="display:block;background:#dc3545;color:#fff;padding:0.75rem 1.5rem;text-align:center;border-radius:0.375rem;font-size:1.125rem;font-weight:500;transition:background .2s;width:100%;box-sizing:border-box;text-decoration:none;">
+    Start a Return
+  </a>
+</div>
+
+<!-- Modal (pure CSS/JS) -->
+<div id="returnModal" class="return-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+  <div class="return-modal-content"
+       style="background:#fff;border-radius:0.5rem;max-width:32rem;width:90%;max-height:90vh;overflow-y:auto;position:relative;">
+    <!-- Header -->
+    <div style="background:#f8f9fa;padding:1rem 1.5rem;border-bottom:1px solid #dee2e6;display:flex;justify-content:space-between;align-items:center;">
+      <h5 style="margin:0;font-size:1rem;font-weight:600;">Request a Return</h5>
+      <button type="button" id="close-return-modal"
+              style="background:none;border:none;font-size:1.5rem;color:#6c757d;cursor:pointer;">&times;</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:1.5rem;">
+      <form id="return-request-form" novalidate style="display:flex;flex-direction:column;gap:1rem;">
+
+        <!-- First Name | Last Name -->
+        <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:1rem;">
+          <div class="form-group">
+            <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">First Name *</label>
+            <input type="text" id="return-first-name" name="first_name" required
+                   style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:border .2s;"
+                   placeholder="Enter your first name">
+            <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">First name is required.</div>
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Last Name *</label>
+            <input type="text" id="return-last-name" name="last_name" required
+                   style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:border .2s;"
+                   placeholder="Enter your last name">
+            <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Last name is required.</div>
+          </div>
+        </div>
+
+        <!-- Order Number -->
+        <div class="form-group">
+          <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Order Number *</label>
+          <input type="text" id="return-order-number" name="order_number" required
+                 style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:border .2s;"
+                 placeholder="e.g. #1001">
+          <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Order number is required.</div>
+        </div>
+
+        <!-- PART SECTION (bordered) -->
+        <div id="return-parts-container"
+             style="border:1px solid #dee2e6;border-radius:.5rem;padding:1rem;background:#fdfdfe;">
+          <div class="return-part-entry" data-index="0">
+            <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:.75rem;">
+              <div class="form-group">
+                <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Part to Return *</label>
+                <input type="text" name="parts[0][description]" required
+                       style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;"
+                       placeholder="e.g. Brake Rotor - Front Left">
+                <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Part description is required.</div>
+              </div>
+              <div class="form-group">
+                <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Reason for Return *</label>
+                <select name="parts[0][reason]" required
+                        style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;">
+                  <option value="" disabled selected>Select a reason</option>
+                  <option value="ordered_wrong">Ordered wrong item</option>
+                  <option value="duplicate">Duplicate order of product</option>
+                  <option value="wrong_part">Wrong part</option>
+                  <option value="damaged">Damaged in shipping</option>
+                  <option value="no_fit">Did not fit</option>
+                  <option value="changed_mind">Changed my mind</option>
+                </select>
+                <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Please select a reason.</div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" id="add-another-part"
+                  style="margin-top:.5rem;background:none;border:1px dashed #6c757d;color:#495057;padding:.5rem 1rem;border-radius:.375rem;font-size:.875rem;cursor:pointer;width:100%;transition:all .2s;">
+            + Add Another Part (Same Order)
+          </button>
+        </div>
+
+        <!-- Refund Preference -->
+        <div class="form-group">
+          <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.5rem;">Refund Preference *</label>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;font-size:.875rem;cursor:pointer;">
+              <input type="radio" name="refund_method" value="store_credit" required style="margin-right:.5rem;">
+              <span>Store Credit</span>
+            </label>
+            <label style="display:flex;align-items:center;font-size:.875rem;cursor:pointer;">
+              <input type="radio" name="refund_method" value="original_payment" required style="margin-right:.5rem;">
+              <span>Refund to Original Payment</span>
+            </label>
+          </div>
+          <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Please select a refund method.</div>
+        </div>
+
+        <!-- Message (optional) -->
+        <div class="form-group">
+          <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Additional Details (Optional)</label>
+          <textarea id="return-message" name="message"
+                    style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;resize:vertical;min-height:80px;"
+                    placeholder="Any extra info (condition, photos, etc.)"></textarea>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="return-submit-btn"
+                style="width:100%;background:#dc3545;color:#fff;padding:.75rem;border-radius:.375rem;font-size:1rem;font-weight:500;transition:background .2s;border:none;cursor:pointer;">
+          <span class="btn-text">Submit Return Request</span>
+          <span class="btn-loading" style="display:none;">Submitting...</span>
+        </button>
+      </form>
+
+      <div id="return-form-message" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Hover & focus states */
+  #open-return-modal:hover {background:#c82333 !important;}
+  #add-another-part:hover {background:#f8f9fa;border-color:#495057;}
+  input:focus, select:focus, textarea:focus {outline:none;border-color:#dc3545;box-shadow:0 0 0 3px rgba(220,53,69,.2);}
+  .is-invalid {border-color:#dc3545 !important;}
+  .is-invalid ~ .invalid-feedback {display:block;}
+
+  /* Tablet+ two-column layout */
+  @media (min-width:768px){
+    .form-row {grid-template-columns:1fr 1fr !important;}
+    .return-modal-content {max-width:700px !important;}
+  }
+</style>
+
+<script>
+  $(function () {
+    const $modal = $('#returnModal');
+    const $open  = $('#open-return-modal');
+    const $close = $('#close-return-modal');
+    let partIndex = 1;
+
+    // Open / close modal
+    $open.on('click', e => { e.preventDefault(); $modal.show(); });
+    $close.on('click', () => $modal.hide());
+    $modal.on('click', e => { if (e.target === $modal[0]) $modal.hide(); });
+
+    // Add another part
+    $('#add-another-part').on('click', function () {
+      const html = `
+        <div class="return-part-entry" data-index="${partIndex}" style="margin-top:1rem;padding-top:1rem;border-top:1px dashed #dee2e6;">
+          <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:.5rem;">
+            <div class="form-group">
+              <input type="text" name="parts[${partIndex}][description]" required
+                     style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;"
+                     placeholder="e.g. Brake Rotor - Front Left">
+              <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Part description is required.</div>
+            </div>
+            <div class="form-group">
+              <select name="parts[${partIndex}][reason]" required
+                      style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;">
+                <option value="" disabled selected>Select a reason</option>
+                <option value="ordered_wrong">Ordered wrong item</option>
+                <option value="duplicate">Duplicate order of product</option>
+                <option value="wrong_part">Wrong part</option>
+                <option value="damaged">Damaged in shipping</option>
+                <option value="no_fit">Did not fit</option>
+                <option value="changed_mind">Changed my mind</option>
+              </select>
+              <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Please select a reason.</div>
+            </div>
+          </div>
+          <button type="button" class="remove-part-btn"
+                  style="margin-top:.5rem;color:#dc3545;background:none;border:none;font-size:.8rem;text-decoration:underline;cursor:pointer;">
+            Remove this part
+          </button>
+        </div>`;
+      $('#return-parts-container').append(html);
+      partIndex++;
+    });
+
+    // Remove part
+    $(document).on('click', '.remove-part-btn', function () {
+      $(this).closest('.return-part-entry').remove();
+    });
+
+    // Form submit
+    $('#return-request-form').on('submit', function (e) {
+      e.preventDefault();
+      const $form = $(this);
+      const $msg  = $('#return-form-message');
+      const $btn  = $('#return-submit-btn');
+      const $txt  = $btn.find('.btn-text');
+      const $load = $btn.find('.btn-loading');
+      $msg.empty();
+
+      let valid = true;
+
+      // Required fields
+      $form.find('input[required], select[required]').each(function () {
+        const val = $(this).val().trim();
+        if (!val) {
+          $(this).addClass('is-invalid');
+          valid = false;
+        } else {
+          $(this).removeClass('is-invalid');
+        }
+      });
+
+      // Refund method
+      if (!$form.find('input[name="refund_method"]:checked').length) {
+        $form.find('input[name="refund_method"]').closest('.form-group').find('.invalid-feedback').show();
+        valid = false;
+      } else {
+        $form.find('input[name="refund_method"]').closest('.form-group').find('.invalid-feedback').hide();
+      }
+
+      if (!valid) {
+        $msg.html('<div style="color:#dc3545;background:#fee2e2;border:1px solid #f5c2c7;padding:.75rem;border-radius:.375rem;">Please fill out all required fields.</div>');
+        return;
+      }
+
+      // Loading
+      $btn.prop('disabled', true);
+      $txt.hide();
+      $load.show();
+
+      // Build payload
+      const data = {
+        first_name: $form.find('#return-first-name').val().trim(),
+        last_name:  $form.find('#return-last-name').val().trim(),
+        order_number: $form.find('#return-order-number').val().trim(),
+        refund_method: $form.find('input[name="refund_method"]:checked').val(),
+        message: $form.find('#return-message').val().trim(),
+        parts: []
+      };
+      $form.find('.return-part-entry').each(function () {
+        const i = $(this).data('index');
+        data.parts.push({
+          description: $form.find(`input[name="parts[${i}][description]"]`).val().trim(),
+          reason: $form.find(`select[name="parts[${i}][reason]"]`).val()
+        });
+      });
+
+      // Add an AJAX CALL HERE
+
+      // Simulated success
+      setTimeout(() => {
+        $msg.html('<div style="color:#166534;background:#dcfce7;border:1px solid #bbffb3;padding:.75rem;border-radius:.375rem;">Return request submitted! We’ll email you next steps.</div>');
+        $form[0].reset();
+        $('#return-parts-container').html(`
+          <div class="return-part-entry" data-index="0">
+            <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:.75rem;">
+              <div class="form-group">
+                <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Part to Return *</label>
+                <input type="text" name="parts[0][description]" required style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;" placeholder="e.g. Brake Rotor - Front Left">
+                <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Part description is required.</div>
+              </div>
+              <div class="form-group">
+                <label style="display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem;">Reason for Return *</label>
+                <select name="parts[0][reason]" required style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;">
+                  <option value="" disabled selected>Select a reason</option>
+                  <option value="ordered_wrong">Ordered wrong item</option>
+                  <option value="duplicate">Duplicate order of product</option>
+                  <option value="wrong_part">Wrong part</option>
+                  <option value="damaged">Damaged in shipping</option>
+                  <option value="no_fit">Did not fit</option>
+                  <option value="changed_mind">Changed my mind</option>
+                </select>
+                <div class="invalid-feedback" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Please select a reason.</div>
+              </div>
+            </div>
+          </div>
+          <button type="button" id="add-another-part" style="margin-top:.5rem;background:none;border:1px dashed #6c757d;color:#495057;padding:.5rem 1rem;border-radius:.375rem;font-size:.875rem;cursor:pointer;width:100%;">+ Add Another Part (Same Order)</button>
+        `);
+        partIndex = 1;
+        setTimeout(() => { $modal.hide(); $msg.empty(); }, 3000);
+      }, 800);
+
+      // Reset button
+      $btn.prop('disabled', false);
+      $txt.show();
+      $load.hide();
+    });
+  });
+</script>
