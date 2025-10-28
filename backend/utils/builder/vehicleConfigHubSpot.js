@@ -195,14 +195,18 @@ export const submitToVehicleConfigHubspot = async ({
   // Update contact with owner ID – ONLY IF NOT ALREADY SET
   if (contactId) {
     let currentOwnerId;
+    let isNewContact = false;
 
-    // Get owner ID from search result if available
-    if (profileResponse?.data?.results?.[0]?.properties?.hubspot_owner_id) {
-      currentOwnerId = profileResponse.data.results[0].properties.hubspot_owner_id;
+    // If contact existed in search results → get owner ID from there
+    if (profileResponse?.data?.results?.[0]) {
+      currentOwnerId = profileResponse.data.results[0].properties?.hubspot_owner_id;
+    } else {
+      // No results in search → we just created a new contact
+      isNewContact = true;
     }
 
-    // Only update if owner ID is missing
-    if (!currentOwnerId) {
+    // Only update if: it's a new contact OR existing contact has no owner
+    if (isNewContact || !currentOwnerId) {
       try {
         const updateData = {
           properties: {
