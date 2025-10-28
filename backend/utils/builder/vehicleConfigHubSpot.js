@@ -117,7 +117,7 @@ export const submitToVehicleConfigHubspot = async ({
           ],
         },
       ],
-      properties: ['email', 'firstname', 'lastname', 'phone', 'address', 'city', 'state', 'zip', 'country'],
+      properties: ['email', 'firstname', 'lastname', 'phone', 'address', 'city', 'state', 'zip', 'country', 'hubspot_owner_id'],
     };
     const profileResponse = await axios.post(`${HUBSPOT_CONTACTS_URL}/search`, profileData, {
       headers: {
@@ -192,25 +192,42 @@ export const submitToVehicleConfigHubspot = async ({
     // Continue despite error
   }
 
-  // Update contact with owner ID
+  // Update contact with owner ID – ONLY IF NOT ALREADY SET
   if (contactId) {
-    try {
-      const updateData = {
-        properties: {
-          hubspot_owner_id: '18814870',
-        },
-      };
-      const updateResponse = await axios.patch(`${HUBSPOT_CONTACTS_URL}/${contactId}`, updateData, {
-        headers: {
-          Authorization: `Bearer ${HUBSPOT_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000,
-      });
-      console.log('Contact update response:', updateResponse.status, updateResponse.data);
-    } catch (error) {
-      console.error('Contact update error:', error.message);
-      results.errors.push(`Contact update error: ${error.message}`);
+    let currentOwnerId;
+
+    // Get owner ID from search result if available
+    if (profileResponse?.data?.results?.[0]?.properties?.hubspot_owner_id) {
+      currentOwnerId = profileResponse.data.results[0].properties.hubspot_owner_id;
+    }
+
+    // Only update if owner ID is missing
+    if (!currentOwnerId) {
+      try {
+        const updateData = {
+          properties: {
+            hubspot_owner_id: '18814870',
+          },
+        };
+
+        const updateResponse = await axios.patch(
+          `${HUBSPOT_CONTACTS_URL}/${contactId}`,
+          updateData,
+          {
+            headers: {
+              Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 30000,
+          }
+        );
+        console.log('Contact owner ID set:', updateResponse.status);
+      } catch (error) {
+        console.error('Owner ID update error:', error.message);
+        results.errors.push(`Owner ID update error: ${error.message}`);
+      }
+    } else {
+      console.log('Owner ID already exists:', currentOwnerId, '- skipping update');
     }
   }
 
