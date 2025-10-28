@@ -2,7 +2,7 @@ import Shopify from 'shopify-api-node';
 import { sendReturnEmails } from './email.js';
 
 const shopify = new Shopify({
-    shopName: process.env.SHOPIFY_SHOP,
+    shopName: process.env.SHOPIFY_SHOP_ADMIN,
     accessToken: process.env.SHOPIFY_ACCESS_TOKEN,
 });
 
