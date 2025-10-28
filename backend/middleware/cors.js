@@ -7,8 +7,6 @@ const allowedOrigins = [
   process.env.WORDPRESS_SITE,
 ].filter(Boolean); // Remove undefined/null values
 
-// Log allowed origins for debugging
-console.log('[CORS] Allowed origins:', allowedOrigins);
 
 // CORS middleware configuration
 const corsMiddleware = cors({
