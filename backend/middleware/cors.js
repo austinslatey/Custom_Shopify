@@ -4,11 +4,6 @@ import cors from 'cors';
 const allowedOrigins = [
   process.env.SHOPIFY_SHOP,
   process.env.WORDPRESS_SITE,
-  process.env.LOCAL_URL,
- 'http://127.0.0.1:5500',
-  'http://localhost:5500',
-  'http://127.0.0.1:3000',
-  'http://localhost:3000',
 ].filter(Boolean); // Remove undefined/null values
 
 // Log allowed origins for debugging
@@ -31,4 +26,4 @@ const corsMiddleware = cors({
   optionsSuccessStatus: 200, // Ensure preflight returns 200
 });
 
-export default corsMiddleware;
+export default corsMiddleware; 
