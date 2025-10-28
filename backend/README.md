@@ -1,16 +1,7 @@
-# Integration Records
-A list of all integrations
+# API routes
 
-## SendGrid
-![send-grid](../assets/SendGrid.jpg)
+## /quotes
 
-## HubSpot
-![hubspot](../assets/HubSpot.jpg)
+## /builder
 
-## NetSuite
-![netsuite-quote](../assets/NetSuite.jpg)
-![netsuite-vehicle-info](../assets/NetSuite_Vehicle_Info.jpg)
-
-## Shopify
-![shopify-button](../assets/Reqeust.jpg)
-![shopify-modal](../assets/ShopifySubmitRequest.jpg)
+## /returns
