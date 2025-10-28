@@ -1,9 +1,7 @@
 import { Router } from 'express';
 
 // Import Utilities
-import { validateRequest } from '../../utils/validation.js';
-import { sendEmails } from '../../utils/emailAPI.js';
-import { submitToHubSpot } from '../../utils/hubspotAPI.js';
+import { validateRequest, sendEmails, submitToHubSpot } from '../../utils/quotes/index.js';
 import { netsuiteRequest } from '../../utils/netsuite.js';
 
 const router = Router();
