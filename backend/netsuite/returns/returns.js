@@ -36,36 +36,39 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             // -------------------------------------------------
 
             // Will hold Invoice or Sales Order internal ID
-            let sourceId = null;  
+            let sourceId = null;
+            const shopifyRef = data.shopifyOrderName.toUpperCase().trim();
 
-            // Try Invoice first
-            const invSearch = search.create({
-                type: search.Type.INVOICE,
-                filters: [['otherrefnum', 'is', data.shopifyOrderName]],
-                columns: ['internalid']
-            });
-            const invRes = invSearch.run().getRange({ start: 0, end: 1 });
+            if (!shopifyRef) {
+                throw new Error('shopifyOrderName is required');
+            }
 
-            if (invRes.length > 0) {
-                sourceId = invRes[0].getValue('internalid');
-                log.audit('RA Source', 'Found Invoice: ' + sourceId);
-            } else {
-                // Fallback: Try Sales Order
-                const soSearch = search.create({
-                    type: search.Type.SALES_ORDER,
-                    filters: [['otherrefnum', 'is', data.shopifyOrderName]],
-                    columns: ['internalid']
+            // Helper function to search transaction
+            function findTransaction(type) {
+                const s = search.create({
+                    type: type,
+                    filters: [
+                        ['otherrefnum', 'contains', shopifyRef]
+                    ],
+                    columns: ['internalid', 'tranid', 'otherrefnum']
                 });
-                const soRes = soSearch.run().getRange({ start: 0, end: 1 });
+                return s.run().getRange({ start: 0, end: 1 });
+            }
 
-                if (soRes.length > 0) {
-                    sourceId = soRes[0].getValue('internalid');
-                    log.audit('RA Created From', 'Fallback to Sales Order: ' + sourceId);
+            // Try Invoice
+            let results = findTransaction(search.Type.INVOICE);
+            if (results.length > 0) {
+                sourceId = results[0].getValue('internalid');
+                log.audit('RA Source', `Found Invoice: ${results[0].getValue('tranid')} (ID: ${sourceId})`);
+            } else {
+                // Try Sales Order
+                results = findTransaction(search.Type.SALES_ORDER);
+                if (results.length > 0) {
+                    sourceId = results[0].getValue('internalid');
+                    log.audit('RA Source', `Fallback to Sales Order: ${results[0].getValue('tranid')} (ID: ${sourceId})`);
                 } else {
-                    throw new Error(
-                        'No Invoice or Sales Order found for Shopify order: ' +
-                        data.shopifyOrderName
-                    );
+                    log.error('Search Failed', `No records found with otherrefnum containing: ${shopifyRef}`);
+                    throw new Error(`No Invoice or Sales Order found for Shopify order: ${data.shopifyOrderName}`);
                 }
             }
 
@@ -80,7 +83,7 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             ra.setValue({ fieldId: 'entity', value: customerId });
 
             // Valid: Invoice or SO
-            ra.setValue({ fieldId: 'createdfrom', value: sourceId }); 
+            ra.setValue({ fieldId: 'createdfrom', value: sourceId });
 
             ra.setValue({
                 fieldId: 'memo',
