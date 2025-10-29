@@ -111,8 +111,11 @@ export const processReturnSubmission = async ({
     // --- Step 3: Create Return Authorization in NetSuite ---
     const payload = {
         isReturnRequest: true,
-        customerEmail: order.customer?.email || null, // Email lookup will be handled inside RESTlet
-        orderId: order.id,
+        // Email lookup will be handled inside RESTlet
+        customerEmail: order.customer?.email || null, 
+        shopfiyOrderName: order.name,
+        //----- keep order id for if needed logging only  -------
+        //orderId: order.id,  
         message,
         refundMethod: refund_method,
         items: enrichedItems.map((it) => ({
