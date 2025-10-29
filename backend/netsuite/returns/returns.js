@@ -27,11 +27,8 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     columns: ['internalid']
                 });
                 const res = custSearch.run().getRange({ start: 0, end: 1 });
-                if (res.length) {
-                    customerId = res[0].getValue('internalid');
-                } else {
-                    throw new Error(`Customer not found: ${data.customerEmail}`);
-                }
+                if (res.length) customerId = res[0].getValue('internalid');
+                else throw new Error(`Customer not found: ${data.customerEmail}`);
             }
 
             // -------------------------------------------------
@@ -40,10 +37,6 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             let sourceId = null;
             let sourceType = null;
 
-            /**
-             * Helper: Search for transaction type where memo or PO# contains the Shopify order
-             * (case-insensitive, safe with # character)
-             */
             function findTransaction(type, value) {
                 const s = search.create({
                     type: type,
@@ -56,7 +49,6 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     ],
                     columns: ['internalid', 'tranid', 'createdfrom', 'memo', 'otherrefnum']
                 });
-
                 const results = s.run().getRange({ start: 0, end: 5 });
                 log.audit(`Search Results (${type})`, JSON.stringify(results.map(r => ({
                     id: r.getValue('internalid'),
@@ -68,13 +60,11 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 return results;
             }
 
-            // Step 1: Look for Invoice (matches Memo or PO#)
             let invoiceResults = findTransaction(search.Type.INVOICE, shopifyRef);
 
             if (invoiceResults.length > 0) {
                 const invoiceId = invoiceResults[0].getValue('internalid');
-                const createdFrom = invoiceResults[0].getValue('createdfrom'); // Sales Order link
-
+                const createdFrom = invoiceResults[0].getValue('createdfrom');
                 if (createdFrom) {
                     sourceId = createdFrom;
                     sourceType = 'Sales Order (via Invoice)';
@@ -85,7 +75,6 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     log.audit('RA Source', `Invoice Found (no Created From): ${invoiceId}`);
                 }
             } else {
-                // Step 2: Look for Sales Order (matches Memo or PO#)
                 const soResults = findTransaction(search.Type.SALES_ORDER, shopifyRef);
                 if (soResults.length > 0) {
                     sourceId = soResults[0].getValue('internalid');
@@ -121,12 +110,26 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             });
 
             // -------------------------------------------------
-            // 5. Add Return Items
+            // 5. Add Return Items (resolve item internal ID first)
             // -------------------------------------------------
+            function resolveItemInternalId(partNumber) {
+                const itemSearch = search.create({
+                    type: search.Type.ITEM,
+                    filters: [['itemid', 'is', partNumber]],
+                    columns: ['internalid']
+                });
+                const res = itemSearch.run().getRange({ start: 0, end: 1 });
+                return res.length ? res[0].getValue('internalid') : null;
+            }
+
             if (data.items && data.items.length) {
                 data.items.forEach(item => {
+                    const itemInternalId = resolveItemInternalId(item.itemId);
+                    if (!itemInternalId)
+                        throw new Error(`Item not found in NetSuite: ${item.itemId}`);
+
                     ra.selectNewLine({ sublistId: 'item' });
-                    ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: item.itemId });
+                    ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: itemInternalId });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: item.quantity });
                     if (item.class)
                         ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'class', value: item.class });
