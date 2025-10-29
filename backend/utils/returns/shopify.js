@@ -94,7 +94,7 @@ export const processReturnSubmission = async ({
             reason: it.reason,
             product_id: lineItem?.product_id,
             quantity: it.quantity || 1,
-            itemId: lineItem?.sku || lineItem?.id, // use SKU or itemId from NetSuite mapping if available
+            itemId: lineItem?.sku || lineItem?.id,
             class: 'RMA',
         };
     });
@@ -109,19 +109,20 @@ export const processReturnSubmission = async ({
     });
 
     // --- Step 3: Create Return Authorization in NetSuite ---
-    // ✅ Updated to use customerEmail instead of customerId
     const payload = {
-        customerEmail: order.customer?.email || null, // pass email for NetSuite lookup
+        isReturnRequest: true,
+        customerEmail: order.customer?.email || null, // Email lookup will be handled inside RESTlet
         orderId: order.id,
         message,
+        refundMethod: refund_method,
         items: enrichedItems.map((it) => ({
             itemId: it.itemId,
             quantity: it.quantity,
             class: it.class,
         })),
-        isReturnRequest: true,
     };
 
+    // Make the authenticated RESTlet request (auth handled in netsuiteRequest)
     const netsuiteResponse = await netsuiteRequest(payload);
 
     if (!netsuiteResponse.success) {
