@@ -113,7 +113,7 @@ export const processReturnSubmission = async ({
         isReturnRequest: true,
         // Email lookup will be handled inside RESTlet
         customerEmail: order.customer?.email || null, 
-        shopfiyOrderName: order.name,
+        shopifyOrderName: order.name,
         //----- keep order id for if needed logging only  -------
         //orderId: order.id,  
         message,
