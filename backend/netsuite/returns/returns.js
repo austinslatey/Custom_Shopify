@@ -25,37 +25,50 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             }
 
             // -------------------------------------------------
-            // 2. Validate shopifyOrderName
+            // 2. Validate Shopify Order Name
             // -------------------------------------------------
             if (!data.shopifyOrderName) {
                 throw new Error('shopifyOrderName is required');
             }
 
+            const shopifyRef = data.shopifyOrderName.toUpperCase().trim();
+            if (!shopifyRef) throw new Error('shopifyOrderName is required');
+
             // -------------------------------------------------
             // 3. Find Invoice → fallback to Sales Order
             // -------------------------------------------------
-
-            // Will hold Invoice or Sales Order internal ID
             let sourceId = null;
-            const shopifyRef = data.shopifyOrderName.toUpperCase().trim();
 
-            if (!shopifyRef) {
-                throw new Error('shopifyOrderName is required');
-            }
-
-            // Helper function to search transaction
+            /**
+             * Helper: Searches transaction type for Shopify reference across multiple fields
+             */
             function findTransaction(type) {
                 const s = search.create({
                     type: type,
                     filters: [
-                        ['otherrefnum', 'contains', shopifyRef]
+                        [
+                            ['otherrefnum', 'contains', shopifyRef], 'OR',
+                            ['custbody_work_order', 'contains', shopifyRef], 'OR',
+                            ['memo', 'contains', shopifyRef], 'OR',
+                            ['tranid', 'contains', shopifyRef]
+                        ]
                     ],
-                    columns: ['internalid', 'tranid', 'otherrefnum']
+                    columns: [
+                        'internalid', 'tranid', 'otherrefnum', 'memo'
+                    ]
                 });
-                return s.run().getRange({ start: 0, end: 1 });
+
+                const results = s.run().getRange({ start: 0, end: 5 });
+                log.audit(`Search Results (${type})`, JSON.stringify(results.map(r => ({
+                    id: r.getValue('internalid'),
+                    tranid: r.getValue('tranid'),
+                    memo: r.getValue('memo'),
+                    po: r.getValue('otherrefnum')
+                }))));
+                return results;
             }
 
-            // Try Invoice
+            // Try to find matching Invoice
             let results = findTransaction(search.Type.INVOICE);
             if (results.length > 0) {
                 sourceId = results[0].getValue('internalid');
@@ -67,7 +80,7 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     sourceId = results[0].getValue('internalid');
                     log.audit('RA Source', `Fallback to Sales Order: ${results[0].getValue('tranid')} (ID: ${sourceId})`);
                 } else {
-                    log.error('Search Failed', `No records found with otherrefnum containing: ${shopifyRef}`);
+                    log.error('Search Failed', `No Invoice or Sales Order found with reference: ${shopifyRef}`);
                     throw new Error(`No Invoice or Sales Order found for Shopify order: ${data.shopifyOrderName}`);
                 }
             }
@@ -80,26 +93,36 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 isDynamic: true
             });
 
-            ra.setValue({ fieldId: 'entity', value: customerId });
+            if (customerId) {
+                ra.setValue({ fieldId: 'entity', value: customerId });
+            }
 
-            // Valid: Invoice or SO
+            // Set Created From (Invoice or Sales Order)
             ra.setValue({ fieldId: 'createdfrom', value: sourceId });
 
+            // Add Memo
             ra.setValue({
                 fieldId: 'memo',
                 value: `Shopify Return for ${data.shopifyOrderName} – ${data.message || ''}`
             });
 
-            // Add Items to be returned
-            data.items.forEach(item => {
-                ra.selectNewLine({ sublistId: 'item' });
-                ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: item.itemId });
-                ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: item.quantity });
-                ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'class', value: item.class || 'RMA' });
-                ra.commitLine({ sublistId: 'item' });
-            });
+            // -------------------------------------------------
+            // 5. Add Items
+            // -------------------------------------------------
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    ra.selectNewLine({ sublistId: 'item' });
+                    ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: item.itemId });
+                    ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: item.quantity });
+                    if (item.class) {
+                        ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'class', value: item.class });
+                    }
+                    ra.commitLine({ sublistId: 'item' });
+                });
+            }
 
             const raId = ra.save();
+            log.audit('Return Authorization Created', `Return Auth ID: ${raId}`);
             return { success: true, returnId: raId };
 
         } catch (e) {
