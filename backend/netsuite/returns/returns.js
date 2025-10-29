@@ -27,8 +27,11 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     columns: ['internalid']
                 });
                 const res = custSearch.run().getRange({ start: 0, end: 1 });
-                if (res.length) customerId = res[0].getValue('internalid');
-                else throw new Error(`Customer not found: ${data.customerEmail}`);
+                if (res.length) {
+                    customerId = res[0].getValue('internalid');
+                } else {
+                    throw new Error(`Customer not found: ${data.customerEmail}`);
+                }
             }
 
             // -------------------------------------------------
@@ -37,18 +40,36 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             let sourceId = null;
             let sourceType = null;
 
-            // Helper: Run transaction search
-            function findTransaction(type, fieldId, value) {
+            /**
+             * Helper: Search for transaction type where memo or PO# contains the Shopify order
+             * (case-insensitive, safe with # character)
+             */
+            function findTransaction(type, value) {
                 const s = search.create({
                     type: type,
-                    filters: [[fieldId, 'contains', value]],
-                    columns: ['internalid', 'tranid', 'createdfrom', 'memo']
+                    filters: [
+                        [
+                            ['formulatext: UPPER({memo})', 'contains', value.toUpperCase()],
+                            'OR',
+                            ['formulatext: UPPER({otherrefnum})', 'contains', value.toUpperCase()]
+                        ]
+                    ],
+                    columns: ['internalid', 'tranid', 'createdfrom', 'memo', 'otherrefnum']
                 });
-                return s.run().getRange({ start: 0, end: 1 });
+
+                const results = s.run().getRange({ start: 0, end: 5 });
+                log.audit(`Search Results (${type})`, JSON.stringify(results.map(r => ({
+                    id: r.getValue('internalid'),
+                    tranid: r.getValue('tranid'),
+                    memo: r.getValue('memo'),
+                    po: r.getValue('otherrefnum'),
+                    createdfrom: r.getText('createdfrom')
+                }))));
+                return results;
             }
 
-            // 🔹 Step 1: Look for Invoice with Memo containing Shopify order
-            let invoiceResults = findTransaction(search.Type.INVOICE, 'memo', shopifyRef);
+            // Step 1: Look for Invoice (matches Memo or PO#)
+            let invoiceResults = findTransaction(search.Type.INVOICE, shopifyRef);
 
             if (invoiceResults.length > 0) {
                 const invoiceId = invoiceResults[0].getValue('internalid');
@@ -59,14 +80,13 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     sourceType = 'Sales Order (via Invoice)';
                     log.audit('RA Source', `Invoice Found: Linked to Sales Order ID ${createdFrom}`);
                 } else {
-                    // fallback to Invoice directly if Created From is blank
                     sourceId = invoiceId;
                     sourceType = 'Invoice';
                     log.audit('RA Source', `Invoice Found (no Created From): ${invoiceId}`);
                 }
             } else {
-                // 🔹 Step 2: Look for Sales Order with Memo containing Shopify order
-                const soResults = findTransaction(search.Type.SALES_ORDER, 'memo', shopifyRef);
+                // Step 2: Look for Sales Order (matches Memo or PO#)
+                const soResults = findTransaction(search.Type.SALES_ORDER, shopifyRef);
                 if (soResults.length > 0) {
                     sourceId = soResults[0].getValue('internalid');
                     sourceType = 'Sales Order';
@@ -90,7 +110,7 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
 
             ra.setValue({ fieldId: 'createdfrom', value: sourceId });
 
-            // Build detailed memo
+            // Build detailed memo including refund method
             let memoText = `Shopify Return for ${data.shopifyOrderName}`;
             if (data.message) memoText += ` – ${data.message}`;
             if (data.refundMethod) memoText += `\nCustomer's requested refund method: ${data.refundMethod}`;
