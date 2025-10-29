@@ -1,3 +1,8 @@
+/**
+ * @NApiVersion 2.1
+ * @NScriptType Restlet
+ */
+
 define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
 
     function createReturnAuthorization(data) {
