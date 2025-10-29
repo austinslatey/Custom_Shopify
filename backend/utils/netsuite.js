@@ -34,7 +34,11 @@ const nsState = (state) => stateMap[state] || state;
 
 const netsuiteRequest = async (data) => {
     let url;
-    if (data.isTopperQuote) {
+    
+    if (data.isReturnRequest) {
+        url = process.env.NETSUITE_RETURN_RESTLET_URL;
+    }
+    else if (data.isTopperQuote) {
         url = process.env.NETSUITE_TOPPER_QUOTE_RESTLET_URL;
     } else if (data.isBuilder) {
         url = process.env.NETSUITE_BUILDER_RESTLET_URL;
