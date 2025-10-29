@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import Shopify from 'shopify-api-node';
 import { sendReturnEmails } from './email.js';
+import { netsuiteRequest } from '../netsuite.js';
 
 // Load environment variables
 dotenv.config();
@@ -74,6 +75,7 @@ export const processReturnSubmission = async ({
     message = '',
     items = [],
 }) => {
+    // --- Step 1: Validate and enrich Shopify order data ---
     const order = await shopify.order.get(order_id, {
         fields: 'id,name,line_items,customer',
     });
@@ -84,17 +86,20 @@ export const processReturnSubmission = async ({
         throw new Error('One or more items do not belong to this order');
     }
 
-    // Build enriched items for email
     const enrichedItems = items.map((it) => {
         const lineItem = order.line_items.find((li) => li.id === Number(it.line_item_id));
         return {
             title: lineItem?.title || 'Unknown Item',
             sku: lineItem?.sku || null,
             reason: it.reason,
+            product_id: lineItem?.product_id,
+            quantity: it.quantity || 1,
+            itemId: lineItem?.sku || lineItem?.id, // use SKU or itemId from NetSuite mapping if available
+            class: 'RMA',
         };
     });
 
-    // Send emails
+    // --- Step 2: Send confirmation/notification emails ---
     await sendReturnEmails({
         order_name: order.name,
         customer: order.customer,
@@ -103,9 +108,31 @@ export const processReturnSubmission = async ({
         items: enrichedItems,
     });
 
-    // TODO: Add DB save, NetSuite sync, etc.
-    // await saveReturnToDB(...);
-    // await syncWithNetSuite(...);
+    // --- Step 3: Create Return Authorization in NetSuite ---
+    // ✅ Updated to use customerEmail instead of customerId
+    const payload = {
+        customerEmail: order.customer?.email || null, // pass email for NetSuite lookup
+        orderId: order.id,
+        message,
+        items: enrichedItems.map((it) => ({
+            itemId: it.itemId,
+            quantity: it.quantity,
+            class: it.class,
+        })),
+        isReturnRequest: true,
+    };
 
-    return { success: true, order_name: order.name };
+    const netsuiteResponse = await netsuiteRequest(payload);
+
+    if (!netsuiteResponse.success) {
+        throw new Error(netsuiteResponse.message || 'NetSuite return creation failed');
+    }
+
+    // --- Step 4: Return result ---
+    return {
+        success: true,
+        order_name: order.name,
+        return_id: netsuiteResponse.returnId,
+        netsuite_response: netsuiteResponse,
+    };
 };
