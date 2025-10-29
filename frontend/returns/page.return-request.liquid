@@ -344,53 +344,79 @@
     }
 
     // === STEP 3: Submit ===
-    document.getElementById('return-submit-form')?.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const form = this;
-      const btn = form.querySelector('button[type="submit"]');
-      const txt = btn.querySelector('.txt');
-      const load = btn.querySelector('.load');
-      const msg = document.getElementById('submit-msg');
+    document.getElementById('return-submit-form')?.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const form = this;
+  const btn = form.querySelector('button[type="submit"]');
+  const txt = btn.querySelector('.txt');
+  const load = btn.querySelector('.load');
+  const msg = document.getElementById('submit-msg');
 
-      let valid = true;
-      form.querySelectorAll('select[required]').forEach((sel) => {
-        if (!sel.value) {
-          sel.classList.add('is-invalid');
-          valid = false;
-        } else sel.classList.remove('is-invalid');
-      });
-      if (!form.querySelector('input[name="refund_method"]:checked')) {
-        form.querySelector('.form-group .invalid').style.display = 'block';
-        valid = false;
-      }
-      if (!valid) return;
-
-      btn.disabled = true;
-      txt.style.display = 'none';
-      load.style.display = 'inline';
-
-      fetch('https://custom-shopify.onrender.com/api/returns/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(new FormData(form)),
-      })
-        .then((r) => r.json())
-        .then((res) => {
-          msg.innerHTML = `<div style="color:#166534;background:#dcfce7;padding:.75rem;border-radius:.375rem;">
-          ${res.message || 'Return request submitted!'}
-        </div>`;
-          setTimeout(() => {
-            window.location.href = '/pages/return-thank-you';
-          }, 2000);
-        })
-        .catch(() => {
-          msg.innerHTML = `<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">Error</div>`;
-        })
-        .finally(() => {
-          btn.disabled = false;
-          txt.style.display = 'inline';
-          load.style.display = 'none';
-        });
-    });
+  // Validate
+  let valid = true;
+  form.querySelectorAll('select[required]').forEach((sel) => {
+    if (!sel.value) {
+      sel.classList.add('is-invalid');
+      valid = false;
+    } else sel.classList.remove('is-invalid');
   });
+  if (!form.querySelector('input[name="refund_method"]:checked')) {
+    form.querySelector('.form-group .invalid').style.display = 'block';
+    valid = false;
+  }
+  if (!valid) return;
+
+  btn.disabled = true;
+  txt.style.display = 'none';
+  load.style.display = 'inline';
+
+  // Build structured payload
+  const order_id = document.getElementById('selected-order-id').value;
+  const refund_method = form.querySelector('input[name="refund_method"]:checked')?.value;
+  const message = form.querySelector('textarea[name="message"]')?.value || '';
+
+  const items = Array.from(form.querySelectorAll('[name^="items["]'))
+    .reduce((acc, input) => {
+      const match = input.name.match(/items\[(\d+)\]\[(.+)\]/);
+      if (match) {
+        const idx = parseInt(match[1]);
+        const key = match[2];
+        acc[idx] = acc[idx] || {};
+        acc[idx][key] = input.value;
+      }
+      return acc;
+    }, []);
+
+  const payload = { order_id, refund_method, message, items };
+
+  try {
+    const res = await fetch('https://custom-shopify.onrender.com/api/returns/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      msg.innerHTML = `<div style="color:#166534;background:#dcfce7;padding:.75rem;border-radius:.375rem;">
+        ${data.message || 'Return request submitted successfully!'}
+      </div>`;
+      setTimeout(() => {
+        window.location.href = '/pages/return-thank-you';
+      }, 2000);
+    } else {
+      throw new Error(data.message || 'Submission failed');
+    }
+  } catch (err) {
+    console.error('Submit error:', err);
+    msg.innerHTML = `<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">
+      ${err.message || 'Error submitting return'}
+    </div>`;
+  } finally {
+    btn.disabled = false;
+    txt.style.display = 'inline';
+    load.style.display = 'none';
+  }
+});
 </script>
