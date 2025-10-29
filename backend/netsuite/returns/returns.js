@@ -7,7 +7,17 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
     function createReturnAuthorization(data) {
         try {
             // -------------------------------------------------
-            // 1. Find Customer
+            // 1. Validate Inputs
+            // -------------------------------------------------
+            if (!data.shopifyOrderName)
+                throw new Error('shopifyOrderName is required');
+
+            const shopifyRef = data.shopifyOrderName.toUpperCase().trim();
+            if (!shopifyRef)
+                throw new Error('shopifyOrderName is required');
+
+            // -------------------------------------------------
+            // 2. Find Customer (optional)
             // -------------------------------------------------
             let customerId = null;
             if (data.customerEmail) {
@@ -17,70 +27,52 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     columns: ['internalid']
                 });
                 const res = custSearch.run().getRange({ start: 0, end: 1 });
-                if (res.length > 0) {
-                    customerId = res[0].getValue('internalid');
-                } else {
-                    throw new Error('Customer not found: ' + data.customerEmail);
-                }
+                if (res.length) customerId = res[0].getValue('internalid');
+                else throw new Error(`Customer not found: ${data.customerEmail}`);
             }
 
             // -------------------------------------------------
-            // 2. Validate Shopify Order Name
-            // -------------------------------------------------
-            if (!data.shopifyOrderName) {
-                throw new Error('shopifyOrderName is required');
-            }
-
-            const shopifyRef = data.shopifyOrderName.toUpperCase().trim();
-            if (!shopifyRef) throw new Error('shopifyOrderName is required');
-
-            // -------------------------------------------------
-            // 3. Find Invoice → fallback to Sales Order
+            // 3. Find Source Transaction (Invoice → Sales Order)
             // -------------------------------------------------
             let sourceId = null;
+            let sourceType = null;
 
-            /**
-             * Helper: Searches transaction type for Shopify reference across multiple fields
-             */
-            function findTransaction(type) {
+            // Helper: Run transaction search
+            function findTransaction(type, fieldId, value) {
                 const s = search.create({
                     type: type,
-                    filters: [
-                        [
-                            ['otherrefnum', 'contains', shopifyRef], 'OR',
-                            ['custbody_work_order', 'contains', shopifyRef], 'OR',
-                            ['memo', 'contains', shopifyRef], 'OR',
-                            ['tranid', 'contains', shopifyRef]
-                        ]
-                    ],
-                    columns: [
-                        'internalid', 'tranid', 'otherrefnum', 'memo'
-                    ]
+                    filters: [[fieldId, 'contains', value]],
+                    columns: ['internalid', 'tranid', 'createdfrom', 'memo']
                 });
-
-                const results = s.run().getRange({ start: 0, end: 5 });
-                log.audit(`Search Results (${type})`, JSON.stringify(results.map(r => ({
-                    id: r.getValue('internalid'),
-                    tranid: r.getValue('tranid'),
-                    memo: r.getValue('memo'),
-                    po: r.getValue('otherrefnum')
-                }))));
-                return results;
+                return s.run().getRange({ start: 0, end: 1 });
             }
 
-            // Try to find matching Invoice
-            let results = findTransaction(search.Type.INVOICE);
-            if (results.length > 0) {
-                sourceId = results[0].getValue('internalid');
-                log.audit('RA Source', `Found Invoice: ${results[0].getValue('tranid')} (ID: ${sourceId})`);
-            } else {
-                // Try Sales Order
-                results = findTransaction(search.Type.SALES_ORDER);
-                if (results.length > 0) {
-                    sourceId = results[0].getValue('internalid');
-                    log.audit('RA Source', `Fallback to Sales Order: ${results[0].getValue('tranid')} (ID: ${sourceId})`);
+            // 🔹 Step 1: Look for Invoice with Memo containing Shopify order
+            let invoiceResults = findTransaction(search.Type.INVOICE, 'memo', shopifyRef);
+
+            if (invoiceResults.length > 0) {
+                const invoiceId = invoiceResults[0].getValue('internalid');
+                const createdFrom = invoiceResults[0].getValue('createdfrom'); // Sales Order link
+
+                if (createdFrom) {
+                    sourceId = createdFrom;
+                    sourceType = 'Sales Order (via Invoice)';
+                    log.audit('RA Source', `Invoice Found: Linked to Sales Order ID ${createdFrom}`);
                 } else {
-                    log.error('Search Failed', `No Invoice or Sales Order found with reference: ${shopifyRef}`);
+                    // fallback to Invoice directly if Created From is blank
+                    sourceId = invoiceId;
+                    sourceType = 'Invoice';
+                    log.audit('RA Source', `Invoice Found (no Created From): ${invoiceId}`);
+                }
+            } else {
+                // 🔹 Step 2: Look for Sales Order with Memo containing Shopify order
+                const soResults = findTransaction(search.Type.SALES_ORDER, 'memo', shopifyRef);
+                if (soResults.length > 0) {
+                    sourceId = soResults[0].getValue('internalid');
+                    sourceType = 'Sales Order';
+                    log.audit('RA Source', `Sales Order Found: ${soResults[0].getValue('tranid')} (ID: ${sourceId})`);
+                } else {
+                    log.error('Search Failed', `No Invoice or Sales Order found for ${shopifyRef}`);
                     throw new Error(`No Invoice or Sales Order found for Shopify order: ${data.shopifyOrderName}`);
                 }
             }
@@ -93,37 +85,43 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 isDynamic: true
             });
 
-            if (customerId) {
+            if (customerId)
                 ra.setValue({ fieldId: 'entity', value: customerId });
-            }
 
-            // Set Created From (Invoice or Sales Order)
             ra.setValue({ fieldId: 'createdfrom', value: sourceId });
 
-            // Add Memo
+            // Build detailed memo
+            let memoText = `Shopify Return for ${data.shopifyOrderName}`;
+            if (data.message) memoText += ` – ${data.message}`;
+            if (data.refundMethod) memoText += `\nCustomer's requested refund method: ${data.refundMethod}`;
+
             ra.setValue({
                 fieldId: 'memo',
-                value: `Shopify Return for ${data.shopifyOrderName} – ${data.message || ''}`
+                value: memoText
             });
 
             // -------------------------------------------------
-            // 5. Add Items
+            // 5. Add Return Items
             // -------------------------------------------------
-            if (data.items && data.items.length > 0) {
+            if (data.items && data.items.length) {
                 data.items.forEach(item => {
                     ra.selectNewLine({ sublistId: 'item' });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: item.itemId });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: item.quantity });
-                    if (item.class) {
+                    if (item.class)
                         ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'class', value: item.class });
-                    }
                     ra.commitLine({ sublistId: 'item' });
                 });
             }
 
             const raId = ra.save();
-            log.audit('Return Authorization Created', `Return Auth ID: ${raId}`);
-            return { success: true, returnId: raId };
+            log.audit('Return Authorization Created', {
+                id: raId,
+                createdFrom: sourceId,
+                sourceType: sourceType
+            });
+
+            return { success: true, returnId: raId, createdFrom: sourceId, sourceType };
 
         } catch (e) {
             log.error('Return Creation Error', e.message + '\n' + e.stack);
