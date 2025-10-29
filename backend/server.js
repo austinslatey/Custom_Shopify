@@ -10,7 +10,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const ENV = process.env.NODE_ENV
 
 // Middleware
 app.use(corsMiddleware);
@@ -30,5 +30,9 @@ app.use('/', routes);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`[Server] Server running on http://localhost:${PORT}`);
+  if (ENV === 'development') {
+    console.log(`[Server] Local server running on http://localhost:${PORT}`);
+  } else {
+    console.log(`[Server] Production server running on port ${PORT}`);
+  }
 });
