@@ -175,15 +175,15 @@
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
     const step3 = document.getElementById('step3');
 
     function showStep(n) {
-      step1.style.display = n === 1 ? 'block' : 'none';
-      step2.style.display = n === 2 ? 'block' : 'none';
-      step3.style.display = n === 3 ? 'block' : 'none';
+        step1.style.display = n === 1 ? 'block' : 'none';
+        step2.style.display = n === 2 ? 'block' : 'none';
+        step3.style.display = n === 3 ? 'block' : 'none';
     }
 
     // Back buttons
@@ -192,84 +192,84 @@
 
     // === STEP 1: Lookup ===
     document.getElementById('customer-lookup-form')?.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const form = this;
-      const btn = document.getElementById('lookup-btn');
-      const txt = btn.querySelector('.txt');
-      const load = btn.querySelector('.load');
-      const msg = document.getElementById('lookup-msg');
+        e.preventDefault();
+        const form = this;
+        const btn = document.getElementById('lookup-btn');
+        const txt = btn.querySelector('.txt');
+        const load = btn.querySelector('.load');
+        const msg = document.getElementById('lookup-msg');
 
-      let valid = true;
-      form.querySelectorAll('input[required]').forEach((input) => {
-        const val = input.value.trim();
-        if (!val || (input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))) {
-          input.classList.add('is-invalid');
-          valid = false;
-        } else {
-          input.classList.remove('is-invalid');
-        }
-      });
-      if (!valid) return;
-
-      btn.disabled = true;
-      txt.style.display = 'none';
-      load.style.display = 'inline';
-
-      fetch('https://custom-shopify.onrender.com/api/returns/lookup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(new FormData(form)),
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          if (!data.orders || data.orders.length === 0) {
-            document.getElementById('no-orders').style.display = 'block';
-            document.getElementById('orders-list').innerHTML = '';
-            showStep(2);
-            return;
-          }
-          renderOrders(data.orders);
-          showStep(2);
-        })
-        .catch(() => {
-          msg.innerHTML = `<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">Server error</div>`;
-        })
-        .finally(() => {
-          btn.disabled = false;
-          txt.style.display = 'inline';
-          load.style.display = 'none';
+        let valid = true;
+        form.querySelectorAll('input[required]').forEach((input) => {
+            const val = input.value.trim();
+            if (!val || (input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val))) {
+                input.classList.add('is-invalid');
+                valid = false;
+            } else {
+                input.classList.remove('is-invalid');
+            }
         });
+        if (!valid) return;
+
+        btn.disabled = true;
+        txt.style.display = 'none';
+        load.style.display = 'inline';
+
+        fetch('https://custom-shopify.onrender.com/api/returns/lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(new FormData(form)),
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (!data.orders || data.orders.length === 0) {
+                    document.getElementById('no-orders').style.display = 'block';
+                    document.getElementById('orders-list').innerHTML = '';
+                    showStep(2);
+                    return;
+                }
+                renderOrders(data.orders);
+                showStep(2);
+            })
+            .catch(() => {
+                msg.innerHTML = `<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">Server error</div>`;
+            })
+            .finally(() => {
+                btn.disabled = false;
+                txt.style.display = 'inline';
+                load.style.display = 'none';
+            });
     });
 
     // === RENDER ORDERS WITH IMAGES ===
     function renderOrders(orders) {
-      const list = document.getElementById('orders-list');
-      list.innerHTML = '';
-      document.getElementById('no-orders').style.display = 'none';
+        const list = document.getElementById('orders-list');
+        list.innerHTML = '';
+        document.getElementById('no-orders').style.display = 'none';
 
-      orders.forEach((order) => {
-        // Header
-        const header = document.createElement('div');
-        header.style = `background:#f8f9fa;padding:1rem;border-radius:.5rem;margin-bottom:1rem;text-align:center;border:1px solid #dee2e6;`;
-        header.innerHTML = `
+        orders.forEach((order) => {
+            // Header
+            const header = document.createElement('div');
+            header.style = `background:#f8f9fa;padding:1rem;border-radius:.5rem;margin-bottom:1rem;text-align:center;border:1px solid #dee2e6;`;
+            header.innerHTML = `
           <h2 style="margin:0 0 .5rem 0;font-size:1.25rem;color:#374151;">Request a Return</h2>
           <p style="margin:0;font-size:1rem;color:#6c757d;">
             <strong>Order ${order.name}</strong> (${new Date(order.created_at).toLocaleDateString()})
           </p>`;
-        list.appendChild(header);
+            list.appendChild(header);
 
-        // Items wrapper
-        const wrapper = document.createElement('div');
-        wrapper.style = 'margin-bottom:1.5rem;';
+            // Items wrapper
+            const wrapper = document.createElement('div');
+            wrapper.style = 'margin-bottom:1.5rem;';
 
-        order.line_items.forEach((item) => {
-          const row = document.createElement('div');
-          row.className = 'return-item-row';
+            order.line_items.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = 'return-item-row';
 
-          const imgSrc =
-            item.image_src || 'https://store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_80x80.png';
+                const imgSrc =
+                    item.image_src || 'https://store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_80x80.png';
 
-          row.innerHTML = `
+                row.innerHTML = `
             <img src="${imgSrc}" alt="${item.title}" class="return-item-img"
                  onerror="this.src='https://store.waldoch.com/cdn/shop/files/truck_and_vans_accessories-01_80x80.png'">
             <label class="return-item-label">
@@ -283,46 +283,46 @@
                 ×${item.quantity}
               </span>
             </label>`;
-          wrapper.appendChild(row);
+                wrapper.appendChild(row);
+            });
+
+            list.appendChild(wrapper);
         });
 
-        list.appendChild(wrapper);
-      });
-
-      // Proceed button (once)
-      if (!document.getElementById('proceed-btn')) {
-        const btn = document.createElement('button');
-        btn.id = 'proceed-btn';
-        btn.textContent = 'Continue with Selected Items';
-        btn.style =
-          'margin-top:1rem;background:#007bff;color:#fff;padding:.75rem;border-radius:.375rem;border:none;cursor:pointer;width:100%;';
-        btn.onclick = proceedToStep3;
-        list.appendChild(btn);
-      }
+        // Proceed button (once)
+        if (!document.getElementById('proceed-btn')) {
+            const btn = document.createElement('button');
+            btn.id = 'proceed-btn';
+            btn.textContent = 'Continue with Selected Items';
+            btn.style =
+                'margin-top:1rem;background:#007bff;color:#fff;padding:.75rem;border-radius:.375rem;border:none;cursor:pointer;width:100%;';
+            btn.onclick = proceedToStep3;
+            list.appendChild(btn);
+        }
     }
 
     function proceedToStep3() {
-      const selected = Array.from(document.querySelectorAll('.select-item:checked')).map((cb) => ({
-        order_id: cb.dataset.orderId,
-        item_id: cb.dataset.itemId,
-        title: cb.dataset.title,
-        sku: cb.dataset.sku,
-      }));
+        const selected = Array.from(document.querySelectorAll('.select-item:checked')).map((cb) => ({
+            order_id: cb.dataset.orderId,
+            item_id: cb.dataset.itemId,
+            title: cb.dataset.title,
+            sku: cb.dataset.sku,
+        }));
 
-      if (selected.length === 0) return alert('Please select at least one item.');
-      const orderIds = [...new Set(selected.map((s) => s.order_id))];
-      if (orderIds.length > 1) return alert('Please select items from one order only.');
+        if (selected.length === 0) return alert('Please select at least one item.');
+        const orderIds = [...new Set(selected.map((s) => s.order_id))];
+        if (orderIds.length > 1) return alert('Please select items from one order only.');
 
-      document.getElementById('selected-order-id').value = orderIds[0];
-      renderReturnItems(selected);
-      showStep(3);
+        document.getElementById('selected-order-id').value = orderIds[0];
+        renderReturnItems(selected);
+        showStep(3);
     }
 
     function renderReturnItems(items) {
-      const container = document.getElementById('selected-items');
-      container.innerHTML = '';
-      items.forEach((it, idx) => {
-        container.innerHTML += `
+        const container = document.getElementById('selected-items');
+        container.innerHTML = '';
+        items.forEach((it, idx) => {
+            container.innerHTML += `
           <div style="border:1px solid #dee2e6;border-radius:.5rem;padding:1rem;margin-bottom:1rem;background:#fdfdfe;">
             <strong>${it.title}</strong> ${it.sku ? `<small style="color:#6c757d;">(SKU: ${it.sku})</small>` : ''}
             <input type="hidden" name="items[${idx}][line_item_id]" value="${it.item_id}">
@@ -340,83 +340,84 @@
               <div class="invalid" style="display:none;color:#dc3545;font-size:.75rem;margin-top:.25rem;">Required</div>
             </div>
           </div>`;
-      });
+        });
     }
 
     // === STEP 3: Submit ===
     document.getElementById('return-submit-form')?.addEventListener('submit', async function (e) {
-  e.preventDefault();
-  const form = this;
-  const btn = form.querySelector('button[type="submit"]');
-  const txt = btn.querySelector('.txt');
-  const load = btn.querySelector('.load');
-  const msg = document.getElementById('submit-msg');
+        e.preventDefault();
+        const form = this;
+        const btn = form.querySelector('button[type="submit"]');
+        const txt = btn.querySelector('.txt');
+        const load = btn.querySelector('.load');
+        const msg = document.getElementById('submit-msg');
 
-  // Validate
-  let valid = true;
-  form.querySelectorAll('select[required]').forEach((sel) => {
-    if (!sel.value) {
-      sel.classList.add('is-invalid');
-      valid = false;
-    } else sel.classList.remove('is-invalid');
-  });
-  if (!form.querySelector('input[name="refund_method"]:checked')) {
-    form.querySelector('.form-group .invalid').style.display = 'block';
-    valid = false;
-  }
-  if (!valid) return;
+        // Validate
+        let valid = true;
+        form.querySelectorAll('select[required]').forEach((sel) => {
+            if (!sel.value) {
+                sel.classList.add('is-invalid');
+                valid = false;
+            } else sel.classList.remove('is-invalid');
+        });
+        if (!form.querySelector('input[name="refund_method"]:checked')) {
+            form.querySelector('.form-group .invalid').style.display = 'block';
+            valid = false;
+        }
+        if (!valid) return;
 
-  btn.disabled = true;
-  txt.style.display = 'none';
-  load.style.display = 'inline';
+        btn.disabled = true;
+        txt.style.display = 'none';
+        load.style.display = 'inline';
 
-  // Build structured payload
-  const order_id = document.getElementById('selected-order-id').value;
-  const refund_method = form.querySelector('input[name="refund_method"]:checked')?.value;
-  const message = form.querySelector('textarea[name="message"]')?.value || '';
+        // Build structured payload
+        const order_id = document.getElementById('selected-order-id').value;
+        const refund_method = form.querySelector('input[name="refund_method"]:checked')?.value;
+        const message = form.querySelector('textarea[name="message"]')?.value || '';
 
-  const items = Array.from(form.querySelectorAll('[name^="items["]'))
-    .reduce((acc, input) => {
-      const match = input.name.match(/items\[(\d+)\]\[(.+)\]/);
-      if (match) {
-        const idx = parseInt(match[1]);
-        const key = match[2];
-        acc[idx] = acc[idx] || {};
-        acc[idx][key] = input.value;
-      }
-      return acc;
-    }, []);
+        const items = Array.from(form.querySelectorAll('[name^="items["]'))
+            .reduce((acc, input) => {
+                const match = input.name.match(/items\[(\d+)\]\[(.+)\]/);
+                if (match) {
+                    const idx = parseInt(match[1]);
+                    const key = match[2];
+                    acc[idx] = acc[idx] || {};
+                    acc[idx][key] = input.value;
+                }
+                return acc;
+            }, []);
 
-  const payload = { order_id, refund_method, message, items };
+        const payload = { order_id, refund_method, message, items };
 
-  try {
-    const res = await fetch('https://custom-shopify.onrender.com/api/returns/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+        try {
+            const res = await fetch('https://custom-shopify.onrender.com/api/returns/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
 
-    const data = await res.json();
+            const data = await res.json();
 
-    if (res.ok && data.success) {
-      msg.innerHTML = `<div style="color:#166534;background:#dcfce7;padding:.75rem;border-radius:.375rem;">
+            if (res.ok && data.success) {
+                msg.innerHTML = `<div style="color:#166534;background:#dcfce7;padding:.75rem;border-radius:.375rem;">
         ${data.message || 'Return request submitted successfully!'}
       </div>`;
-      setTimeout(() => {
-        window.location.href = '/pages/return-thank-you';
-      }, 2000);
-    } else {
-      throw new Error(data.message || 'Submission failed');
-    }
-  } catch (err) {
-    console.error('Submit error:', err);
-    msg.innerHTML = `<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">
+                setTimeout(() => {
+                    window.location.href = '/pages/return-thank-you';
+                }, 2000);
+            } else {
+                throw new Error(data.message || 'Submission failed');
+            }
+        } catch (err) {
+            console.error('Submit error:', err);
+            msg.innerHTML = `<div style="color:#dc3545;background:#fee2e2;padding:.75rem;border-radius:.375rem;">
       ${err.message || 'Error submitting return'}
     </div>`;
-  } finally {
-    btn.disabled = false;
-    txt.style.display = 'inline';
-    load.style.display = 'none';
-  }
+        } finally {
+            btn.disabled = false;
+            txt.style.display = 'inline';
+            load.style.display = 'none';
+        }
+    });
 });
 </script>
