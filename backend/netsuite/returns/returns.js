@@ -131,8 +131,16 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     ra.selectNewLine({ sublistId: 'item' });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: itemInternalId });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: item.quantity });
-                    if (item.class)
-                        ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'class', value: item.class });
+
+                    // if wanting to update division field (location) instead of default value
+                    if (item.division !== undefined) {
+                        ra.setCurrentSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'location',
+                            value: item.division
+                        });
+                    }
+
                     ra.commitLine({ sublistId: 'item' });
                 });
             }
