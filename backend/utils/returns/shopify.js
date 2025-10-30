@@ -86,6 +86,9 @@ export const processReturnSubmission = async ({
         throw new Error('One or more items do not belong to this order');
     }
 
+    // RMA Division Internal ID
+    const RMA_DIVISION_ID = 3;
+
     const enrichedItems = items.map((it) => {
         const lineItem = order.line_items.find((li) => li.id === Number(it.line_item_id));
         return {
@@ -95,7 +98,7 @@ export const processReturnSubmission = async ({
             product_id: lineItem?.product_id,
             quantity: it.quantity || 1,
             itemId: lineItem?.sku || lineItem?.id,
-            class: 'RMA',
+            division: 'RMA',
         };
     });
 
@@ -111,21 +114,18 @@ export const processReturnSubmission = async ({
     // --- Step 3: Create Return Authorization in NetSuite ---
     const payload = {
         isReturnRequest: true,
-        // Email lookup will be handled inside RESTlet
-        customerEmail: order.customer?.email || null, 
+        customerEmail: order.customer?.email || null,
         shopifyOrderName: order.name,
-        //----- keep order id for if needed logging only  -------
-        //orderId: order.id,  
         message,
         refundMethod: refund_method,
         items: enrichedItems.map((it) => ({
             itemId: it.itemId,
             quantity: it.quantity,
-            class: it.class,
+            division: RMA_DIVISION_ID,
         })),
     };
 
-    // Make the authenticated RESTlet request (auth handled in netsuiteRequest)
+    // Make the authenticated RESTlet request
     const netsuiteResponse = await netsuiteRequest(payload);
 
     if (!netsuiteResponse.success) {
