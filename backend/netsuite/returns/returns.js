@@ -58,23 +58,18 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     po: r.getValue('otherrefnum'),
                     createdfrom: r.getText('createdfrom')
                 }))));
+
                 return results;
             }
 
+            // Invoice primary
             let invoiceResults = findTransaction(search.Type.INVOICE, shopifyRef);
 
             if (invoiceResults.length > 0) {
-                const invoiceId = invoiceResults[0].getValue('internalid');
-                const createdFrom = invoiceResults[0].getValue('createdfrom');
-                if (createdFrom) {
-                    sourceId = createdFrom;
-                    sourceType = 'Sales Order (via Invoice)';
-                    log.audit('RA Source', `Invoice Found: Linked to Sales Order ID ${createdFrom}`);
-                } else {
-                    sourceId = invoiceId;
-                    sourceType = 'Invoice';
-                    log.audit('RA Source', `Invoice Found (no Created From): ${invoiceId}`);
-                }
+                sourceId = invoiceResults[0].getValue('internalid'); // RA createdfrom = Invoice
+                sourceType = 'Invoice';
+                invoiceId = sourceId;
+                log.audit('RA Source', `Invoice Found: ID ${sourceId}`);
             } else {
                 const soResults = findTransaction(search.Type.SALES_ORDER, shopifyRef);
                 if (soResults.length > 0) {
@@ -82,27 +77,22 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     sourceType = 'Sales Order';
                     log.audit('RA Source', `Sales Order Found: ${soResults[0].getValue('tranid')} (ID: ${sourceId})`);
                 } else {
-                    log.error('Search Failed', `No Invoice or Sales Order found for ${shopifyRef}`);
                     throw new Error(`No Invoice or Sales Order found for Shopify order: ${data.shopifyOrderName}`);
                 }
             }
 
             // -------------------------------------------------
-            // 4. Retrieve Tax Item & Tax Rate (with fallback)
+            // 4. Retrieve Tax Item & Tax Rate
             // -------------------------------------------------
             let taxItemId = null;
             let taxRate = null;
 
             function getTaxFields(recordType, recId) {
                 try {
-                    const fields = search.lookupFields({
-                        type: recordType,
-                        id: recId,
-                        columns: ['taxitem', 'taxrate']
-                    });
+                    const rec = record.load({ type: recordType, id: recId, isDynamic: false });
                     return {
-                        taxItemId: fields.taxitem?.[0]?.value || null,
-                        taxRate: parseFloat(fields.taxrate) || null
+                        taxItemId: rec.getValue({ fieldId: 'taxitem' }),
+                        taxRate: rec.getValue({ fieldId: 'taxrate' })
                     };
                 } catch (e) {
                     log.error('Tax Lookup Failed', `${recordType} ID ${recId}: ${e.message}`);
@@ -110,74 +100,33 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 }
             }
 
-            // Try invoice first, fallback to SO if not found
             if (invoiceId) {
-                const invTax = getTaxFields(search.Type.INVOICE, invoiceId);
-                taxItemId = invTax.taxItemId;
-                taxRate = invTax.taxRate;
+                ({ taxItemId, taxRate } = getTaxFields(search.Type.INVOICE, invoiceId));
 
+                // fallback to SO if missing
                 if (!taxItemId && sourceId) {
                     log.audit('Tax Fallback', 'No tax found on Invoice, checking Sales Order...');
-                    const soTax = getTaxFields(search.Type.SALES_ORDER, sourceId);
-                    taxItemId = soTax.taxItemId;
-                    taxRate = soTax.taxRate;
+                    ({ taxItemId, taxRate } = getTaxFields(search.Type.SALES_ORDER, sourceId));
                 }
             } else if (sourceId) {
-                const soTax = getTaxFields(search.Type.SALES_ORDER, sourceId);
-                taxItemId = soTax.taxItemId;
-                taxRate = soTax.taxRate;
+                ({ taxItemId, taxRate } = getTaxFields(search.Type.SALES_ORDER, sourceId));
             }
 
             log.audit('Final Tax Info', { taxItemId, taxRate });
 
             // -------------------------------------------------
-            // 5. Find & Log "Custom" Price Level internal ID
+            // 5. Custom Price Level (hardcoded)
             // -------------------------------------------------
-            let customPriceLevelId = -1;
-            try {
-                const priceLevelSearch = search.create({
-                    type: 'pricelevel',
-                    filters: [['name', 'is', 'Custom']],
-                    columns: ['internalid', 'name']
-                });
-                const plRes = priceLevelSearch.run().getRange({ start: 0, end: 1 });
-
-                if (plRes.length) {
-                    customPriceLevelId = parseInt(plRes[0].getValue('internalid'), 10);
-                    log.audit('Custom Price Level Found', { id: customPriceLevelId });
-                } else {
-                    log.error('Custom Price Level Not Found', 'Listing all price levels for verification...');
-                    const allLevels = search.create({
-                        type: 'pricelevel',
-                        columns: ['internalid', 'name']
-                    }).run().getRange({ start: 0, end: 100 });
-                    const levelList = allLevels.map(l => ({
-                        id: l.getValue('internalid'),
-                        name: l.getValue('name')
-                    }));
-                    log.audit('All Price Levels', JSON.stringify(levelList));
-                }
-            } catch (e) {
-                log.error('Price Level Lookup Failed', e.message);
-            }
-
-            log.audit('Custom Price Level ID', customPriceLevelId);
-            // Once verified, you can hardcode e.g. const customPriceLevelId = 5; for performance
+            const customPriceLevelId = -1;
 
             // -------------------------------------------------
             // 6. Create Return Authorization
             // -------------------------------------------------
-            const ra = record.create({
-                type: record.Type.RETURN_AUTHORIZATION,
-                isDynamic: true
-            });
+            const ra = record.create({ type: record.Type.RETURN_AUTHORIZATION, isDynamic: true });
 
-            if (customerId)
-                ra.setValue({ fieldId: 'entity', value: customerId });
-            if (sourceId)
-                ra.setValue({ fieldId: 'createdfrom', value: sourceId });
+            if (customerId) ra.setValue({ fieldId: 'entity', value: customerId });
+            if (sourceId) ra.setValue({ fieldId: 'createdfrom', value: sourceId });
 
-            // Build detailed memo
             let memoText = `Shopify Return for ${data.shopifyOrderName}`;
             if (data.message) memoText += ` – ${data.message}`;
             if (data.refundMethod) memoText += `\nCustomer's requested refund method: ${data.refundMethod}`;
@@ -196,27 +145,19 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 return res.length ? res[0].getValue('internalid') : null;
             }
 
-            if (data.items && data.items.length) {
+            if (data.items?.length) {
                 data.items.forEach(item => {
                     const itemInternalId = resolveItemInternalId(item.itemId);
-                    if (!itemInternalId)
-                        throw new Error(`Item not found in NetSuite: ${item.itemId}`);
+                    if (!itemInternalId) throw new Error(`Item not found: ${item.itemId}`);
 
                     ra.selectNewLine({ sublistId: 'item' });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'item', value: itemInternalId });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'quantity', value: item.quantity });
-
-                    // Force Custom Price Level and Shopify Price
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'price', value: customPriceLevelId });
                     ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'rate', value: item.price });
 
-                    // Update Division/Location if provided
                     if (item.division !== undefined) {
-                        ra.setCurrentSublistValue({
-                            sublistId: 'item',
-                            fieldId: 'location',
-                            value: item.division
-                        });
+                        ra.setCurrentSublistValue({ sublistId: 'item', fieldId: 'location', value: item.division });
                     }
 
                     ra.commitLine({ sublistId: 'item' });
@@ -224,12 +165,10 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             }
 
             // -------------------------------------------------
-            // 8. Apply Tax Item and Rate from Source
+            // 8. Apply Tax Item & Rate
             // -------------------------------------------------
-            if (taxItemId)
-                ra.setValue({ fieldId: 'taxitem', value: taxItemId });
-            if (taxRate)
-                ra.setValue({ fieldId: 'taxrate', value: taxRate });
+            if (taxItemId) ra.setValue({ fieldId: 'taxitem', value: taxItemId });
+            if (taxRate) ra.setValue({ fieldId: 'taxrate', value: taxRate });
 
             // -------------------------------------------------
             // 9. Save Return Authorization
@@ -238,7 +177,7 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             log.audit('Return Authorization Created', {
                 id: raId,
                 createdFrom: sourceId,
-                sourceType: sourceType,
+                sourceType,
                 taxItemId,
                 taxRate,
                 customPriceLevelId
