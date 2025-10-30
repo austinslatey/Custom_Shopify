@@ -41,6 +41,7 @@ router.post('/submit', async (req, res) => {
     });
 
     res.json({
+      success: true,
       message: `Return request for ${result.order_name} submitted successfully.`,
     });
   } catch (err) {
