@@ -35,8 +35,9 @@ export const sendReturnEmails = async ({
     .join('');
 
   const internalEmailData = {
-    to: process.env.RETURNS_EMAIL || process.env.SALES_EMAIL,
+    to: process.env.RETURNS_EMAIL,
     from: process.env.EMAIL_FROM,
+    cc: process.env.ADMIN_EMAIL,
     subject: `Return Request – ${order_name}`,
     html: `
       <h2>New Return Request</h2>

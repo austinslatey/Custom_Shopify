@@ -1,10 +1,15 @@
 import sgMail from '@sendgrid/mail';
 
+
 // Sends emails for quote requests
 export const sendEmails = async ({ first_name, last_name, email, phone, product_title, sku, quantity, message, vehicle_make, vehicle_model, vehicle_year, vin_number, isTopper }) => {
   const salesEmailData = {
-    to: process.env.SALES_EMAIL,
+    to: process.env.SALES_QUOTES_EMAIL,
     from: process.env.EMAIL_FROM,
+    cc: [
+      ...(process.env.OVERSIGHT_EMAIL ? [process.env.OVERSIGHT_EMAIL] : []),
+      ...(process.env.ADMIN_EMAIL ? [process.env.ADMIN_EMAIL] : [])
+    ],
     subject: `New Quote Request: ${product_title}`,
     html: `
       <h2>New Quote Request for: ${sku}</h2>
