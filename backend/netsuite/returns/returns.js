@@ -36,7 +36,6 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
             // -------------------------------------------------
             let sourceId = null;
             let sourceType = null;
-            let sourceRecordType = null;
             let invoiceId = null;
 
             function findTransaction(type, value) {
@@ -44,9 +43,9 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                     type: type,
                     filters: [
                         [
-                            ['formula(text)', 'contains', `UPPER({memo})`],
+                            ['formulatext: UPPER({memo})', 'contains', value.toUpperCase()],
                             'OR',
-                            ['formula(text)', 'contains', `UPPER({otherrefnum})`]
+                            ['formulatext: UPPER({otherrefnum})', 'contains', value.toUpperCase()]
                         ]
                     ],
                     columns: ['internalid', 'tranid', 'createdfrom', 'memo', 'otherrefnum']
@@ -62,20 +61,18 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 return results;
             }
 
-            const invoiceResults = findTransaction(search.Type.INVOICE, shopifyRef);
+            let invoiceResults = findTransaction(search.Type.INVOICE, shopifyRef);
 
             if (invoiceResults.length > 0) {
-                invoiceId = invoiceResults[0].getValue('internalid');
+                const invoiceId = invoiceResults[0].getValue('internalid');
                 const createdFrom = invoiceResults[0].getValue('createdfrom');
                 if (createdFrom) {
                     sourceId = createdFrom;
                     sourceType = 'Sales Order (via Invoice)';
-                    sourceRecordType = search.Type.INVOICE;
                     log.audit('RA Source', `Invoice Found: Linked to Sales Order ID ${createdFrom}`);
                 } else {
                     sourceId = invoiceId;
                     sourceType = 'Invoice';
-                    sourceRecordType = search.Type.INVOICE;
                     log.audit('RA Source', `Invoice Found (no Created From): ${invoiceId}`);
                 }
             } else {
@@ -83,7 +80,6 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 if (soResults.length > 0) {
                     sourceId = soResults[0].getValue('internalid');
                     sourceType = 'Sales Order';
-                    sourceRecordType = search.Type.SALES_ORDER;
                     log.audit('RA Source', `Sales Order Found: ${soResults[0].getValue('tranid')} (ID: ${sourceId})`);
                 } else {
                     log.error('Search Failed', `No Invoice or Sales Order found for ${shopifyRef}`);
