@@ -142,18 +142,31 @@ define(['N/record', 'N/search', 'N/log'], function (record, search, log) {
                 const priceLevelSearch = search.create({
                     type: 'pricelevel',
                     filters: [['name', 'is', 'Custom']],
-                    columns: ['internalid']
+                    columns: ['internalid', 'name']
                 });
                 const plRes = priceLevelSearch.run().getRange({ start: 0, end: 1 });
+
                 if (plRes.length) {
                     customPriceLevelId = parseInt(plRes[0].getValue('internalid'), 10);
+                    log.audit('Custom Price Level Found', { id: customPriceLevelId });
+                } else {
+                    log.error('Custom Price Level Not Found', 'Listing all price levels for verification...');
+                    const allLevels = search.create({
+                        type: 'pricelevel',
+                        columns: ['internalid', 'name']
+                    }).run().getRange({ start: 0, end: 100 });
+                    const levelList = allLevels.map(l => ({
+                        id: l.getValue('internalid'),
+                        name: l.getValue('name')
+                    }));
+                    log.audit('All Price Levels', JSON.stringify(levelList));
                 }
             } catch (e) {
                 log.error('Price Level Lookup Failed', e.message);
             }
 
             log.audit('Custom Price Level ID', customPriceLevelId);
-            // NOTE: you can hardcode this ID later for performance, e.g. const customPriceLevelId = -1;
+            // Once verified, you can hardcode e.g. const customPriceLevelId = 5; for performance
 
             // -------------------------------------------------
             // 6. Create Return Authorization
