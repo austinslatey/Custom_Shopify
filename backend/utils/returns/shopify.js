@@ -106,8 +106,8 @@ export const processReturnSubmission = async ({
             variant_id: lineItem.variant_id,
             quantity: it.quantity || 1,
             itemId: lineItem.sku || lineItem.id.toString(),
-            division: 'RMA', // For email
-            price: price,    // ← NEW: include price
+            division: 'RMA',
+            price: price,
         };
     });
 
