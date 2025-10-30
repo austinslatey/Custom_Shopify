@@ -75,9 +75,9 @@ export const processReturnSubmission = async ({
     message = '',
     items = [],
 }) => {
-    // --- Step 1: Validate and enrich Shopify order data ---
+    // --- Step 1: Fetch FULL order with line item prices ---
     const order = await shopify.order.get(order_id, {
-        fields: 'id,name,line_items,customer',
+        fields: 'id,name,line_items,customer,financial_status,total_price',
     });
 
     const validIds = order.line_items.map((li) => li.id);
@@ -86,32 +86,41 @@ export const processReturnSubmission = async ({
         throw new Error('One or more items do not belong to this order');
     }
 
-    // RMA Division Internal ID
-    const RMA_DIVISION_ID = 3;
+    // === CONFIG ===
+    const RMA_DIVISION_ID = process.env.NETSUITE_RMA_DIVISION_ID || 3;
+    const RMA_LOCATION_ID = process.env.NETSUITE_RMA_LOCATION_ID || null;
 
+    // --- Enrich items with price, SKU, etc. ---
     const enrichedItems = items.map((it) => {
         const lineItem = order.line_items.find((li) => li.id === Number(it.line_item_id));
+        if (!lineItem) throw new Error(`Line item ${it.line_item_id} not found`);
+
+        // Use line_item.price (Shopify always includes it)
+        const price = parseFloat(lineItem.price) || 0;
+
         return {
-            title: lineItem?.title || 'Unknown Item',
-            sku: lineItem?.sku || null,
+            title: lineItem.title || 'Unknown Item',
+            sku: lineItem.sku || null,
             reason: it.reason,
-            product_id: lineItem?.product_id,
+            product_id: lineItem.product_id,
+            variant_id: lineItem.variant_id,
             quantity: it.quantity || 1,
-            itemId: lineItem?.sku || lineItem?.id,
-            division: 'RMA',
+            itemId: lineItem.sku || lineItem.id.toString(),
+            division: 'RMA', // For email
+            price: price,    // ← NEW: include price
         };
     });
 
-    // --- Step 2: Send confirmation/notification emails ---
-    // await sendReturnEmails({
-    //     order_name: order.name,
-    //     customer: order.customer,
-    //     refund_method,
-    //     message,
-    //     items: enrichedItems,
-    // });
+    // --- Step 2: Send emails ---
+    await sendReturnEmails({
+        order_name: order.name,
+        customer: order.customer,
+        refund_method,
+        message,
+        items: enrichedItems,
+    });
 
-    // --- Step 3: Create Return Authorization in NetSuite ---
+    // --- Step 3: Build NetSuite payload with price ---
     const payload = {
         isReturnRequest: true,
         customerEmail: order.customer?.email || null,
@@ -121,18 +130,22 @@ export const processReturnSubmission = async ({
         items: enrichedItems.map((it) => ({
             itemId: it.itemId,
             quantity: it.quantity,
-            division: RMA_DIVISION_ID,
+            price: it.price,           // ← SEND PRICE
+            division: RMA_DIVISION_ID, // custcol_division
+            location: RMA_LOCATION_ID, // optional
         })),
     };
 
-    // Make the authenticated RESTlet request
+    console.log('NetSuite Payload with Prices:', JSON.stringify(payload, null, 2));
+
+    // --- Step 4: Call NetSuite ---
     const netsuiteResponse = await netsuiteRequest(payload);
 
     if (!netsuiteResponse.success) {
         throw new Error(netsuiteResponse.message || 'NetSuite return creation failed');
     }
 
-    // --- Step 4: Return result ---
+    // --- Step 5: Return result ---
     return {
         success: true,
         order_name: order.name,
