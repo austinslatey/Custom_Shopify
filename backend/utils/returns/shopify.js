@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import Shopify from 'shopify-api-node';
-//import { sendReturnEmails } from './email.js';
+import { sendReturnEmails } from './email.js';
 import { netsuiteRequest } from '../netsuite.js';
 
 // Load environment variables
@@ -112,13 +112,13 @@ export const processReturnSubmission = async ({
     });
 
     // --- Step 2: Send emails ---
-    // await sendReturnEmails({
-    //     order_name: order.name,
-    //     customer: order.customer,
-    //     refund_method,
-    //     message,
-    //     items: enrichedItems,
-    // });
+    await sendReturnEmails({
+        order_name: order.name,
+        customer: order.customer,
+        refund_method,
+        message,
+        items: enrichedItems,
+    });
 
     // --- Step 3: Build NetSuite payload with price ---
     const payload = {
