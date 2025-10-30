@@ -136,8 +136,6 @@ export const processReturnSubmission = async ({
         })),
     };
 
-    console.log('NetSuite Payload with Prices:', JSON.stringify(payload, null, 2));
-
     // --- Step 4: Call NetSuite ---
     const netsuiteResponse = await netsuiteRequest(payload);
 
