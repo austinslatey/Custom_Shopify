@@ -32,8 +32,10 @@ export const submitToVehicleConfigHubspot = async ({
   const HUBSPOT_SUBSCRIPTION_URL = 'https://api.hubapi.com/communication-preferences/v3/subscribe';
 
   let results = { success: true, errors: [], contactId: null };
+  let contactId = null;
+  let profileResponse = null;
 
-  // Form submission
+  // === 1. FORM SUBMISSION ===
   const formData = {
     firstname: first_name,
     lastname: last_name,
@@ -67,16 +69,13 @@ export const submitToVehicleConfigHubspot = async ({
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       timeout: 30000,
     });
-    console.log('Form submission response:', formResponse.status, formResponse.data);
-    if (formResponse.status >= 400) {
-      throw new Error('Failed to create/update HubSpot contact via form');
-    }
+    console.log('Form submission response:', formResponse.status);
   } catch (error) {
     console.error('Form submission error:', error.message);
     results.errors.push(`Form submission error: ${error.message}`);
   }
 
-  // Marketing subscription if special_offers is 'Yes'
+  // === 2. MARKETING SUBSCRIPTION ===
   if (special_offers === 'Yes') {
     try {
       const subscriptionData = {
@@ -92,186 +91,154 @@ export const submitToVehicleConfigHubspot = async ({
         },
         timeout: 30000,
       });
-      console.log('Marketing subscription response:', subscriptionResponse.status, subscriptionResponse.data);
-      if (subscriptionResponse.status >= 400) {
-        results.errors.push('Marketing subscription failed');
-      }
+      console.log('Marketing subscription response:', subscriptionResponse.status);
     } catch (error) {
       console.error('Marketing subscription error:', error.message);
       results.errors.push(`Marketing subscription error: ${error.message}`);
     }
   }
 
-  // Retrieve or create HubSpot contact
-  let contactId;
+  // === 3. CONTACT SEARCH / CREATE / UPDATE ===
   try {
     const profileData = {
-      filterGroups: [
-        {
-          filters: [
-            {
-              propertyName: 'email',
-              operator: 'EQ',
-              value: email,
-            },
-          ],
-        },
-      ],
+      filterGroups: [{
+        filters: [{ propertyName: 'email', operator: 'EQ', value: email }]
+      }],
       properties: ['email', 'firstname', 'lastname', 'phone', 'address', 'city', 'state', 'zip', 'country', 'hubspot_owner_id'],
     };
-    const profileResponse = await axios.post(`${HUBSPOT_CONTACTS_URL}/search`, profileData, {
+
+    profileResponse = await axios.post(`${HUBSPOT_CONTACTS_URL}/search`, profileData, {
       headers: {
         Authorization: `Bearer ${HUBSPOT_API_KEY}`,
         'Content-Type': 'application/json',
       },
       timeout: 30000,
     });
-    console.log('Contact search response:', profileResponse.status, profileResponse.data);
 
-    if (!profileResponse.data.results || profileResponse.data.results.length === 0) {
-      // Create new contact
-      const createResponse = await axios.post(
-        HUBSPOT_CONTACTS_URL,
-        {
-          properties: {
-            firstname: first_name,
-            lastname: last_name,
-            email,
-            phone,
-            address,
-            city,
-            state,
-            zip,
-            country,
-            hs_lead_status: 'NEW',
-            lead_type: 'Conversion vehicle',
-            lead_from: 'Website - Vehicle Builder',
-          },
+    console.log('Contact search response:', profileResponse.status);
+
+    if (!profileResponse.data.results?.length) {
+      // Create new
+      const createResponse = await axios.post(HUBSPOT_CONTACTS_URL, {
+        properties: {
+          firstname: first_name,
+          lastname: last_name,
+          email,
+          phone,
+          address,
+          city,
+          state,
+          zip,
+          country,
+          hs_lead_status: 'NEW',
+          lead_type: 'Conversion vehicle',
+          lead_from: 'Website - Vehicle Builder',
         },
-        {
-          headers: {
-            Authorization: `Bearer ${HUBSPOT_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 30000,
-        }
-      );
+      }, {
+        headers: {
+          Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000,
+      });
       contactId = createResponse.data.id;
-      console.log('Contact created:', { id: contactId });
+      console.log('Contact created:', contactId);
     } else {
       contactId = profileResponse.data.results[0].id;
-      // Update existing contact
-      await axios.patch(
-        `${HUBSPOT_CONTACTS_URL}/${contactId}`,
-        {
-          properties: {
-            firstname: first_name,
-            lastname: last_name,
-            phone,
-            address,
-            city,
-            state,
-            zip,
-            country,
-          },
+      await axios.patch(`${HUBSPOT_CONTACTS_URL}/${contactId}`, {
+        properties: {
+          firstname: first_name,
+          lastname: last_name,
+          phone,
+          address,
+          city,
+          state,
+          zip,
+          country,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${HUBSPOT_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 30000,
-        }
-      );
-      console.log('Contact updated:', { id: contactId });
+      }, {
+        headers: {
+          Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000,
+      });
+      console.log('Contact updated:', contactId);
     }
     results.contactId = contactId;
   } catch (error) {
     console.error('Contact search/create error:', error.message);
-    results.errors.push(`Contact search/create error: ${error.message}`);
-    // Continue despite error
+    results.errors.push(`Contact error: ${error.message}`);
   }
 
-  // Update contact with owner ID – ONLY IF NOT ALREADY SET
+  // === 4. OWNER ID ASSIGNMENT ===
   if (contactId) {
-    let currentOwnerId;
-    let isNewContact = false;
+    const isNewContact = !profileResponse?.data?.results?.length;
+    const currentOwnerId = profileResponse?.data?.results?.[0]?.properties?.hubspot_owner_id;
 
-    // If contact existed in search results → get owner ID from there
-    if (profileResponse?.data?.results?.[0]) {
-      currentOwnerId = profileResponse.data.results[0].properties?.hubspot_owner_id;
-    } else {
-      // No results in search → we just created a new contact
-      isNewContact = true;
-    }
-
-    // Only update if: it's a new contact OR existing contact has no owner
     if (isNewContact || !currentOwnerId) {
       try {
-        const updateData = {
-          properties: {
-            hubspot_owner_id: '18814870',
+        await axios.patch(`${HUBSPOT_CONTACTS_URL}/${contactId}`, {
+          properties: { hubspot_owner_id: '18814870' },
+        }, {
+          headers: {
+            Authorization: `Bearer ${HUBSPOT_API_KEY}`,
+            'Content-Type': 'application/json',
           },
-        };
-
-        const updateResponse = await axios.patch(
-          `${HUBSPOT_CONTACTS_URL}/${contactId}`,
-          updateData,
-          {
-            headers: {
-              Authorization: `Bearer ${HUBSPOT_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            timeout: 30000,
-          }
-        );
-        console.log('Contact owner ID set:', updateResponse.status);
+          timeout: 30000,
+        });
+        console.log('Owner ID assigned');
       } catch (error) {
         console.error('Owner ID update error:', error.message);
-        results.errors.push(`Owner ID update error: ${error.message}`);
+        results.errors.push(`Owner ID error: ${error.message}`);
       }
-    } else {
-      console.log('Owner ID already exists:', currentOwnerId, '- skipping update');
     }
   }
 
-  // Upload PDF to HubSpot
-  let fileId;
+  // === 5. FILE UPLOAD (ONLY IF contactId exists) ===
+  let fileId = null;
   if (file_path && file_name && contactId) {
     try {
       const boundary = uuidv4();
       const fileContent = await fs.readFile(file_path);
-      const formData = [
-        `--${boundary}\r\nContent-Disposition: form-data; name="options"\r\n\r\n${JSON.stringify({
-          access: 'PRIVATE',
-          overwrite: false,
-          category: 'HUBSPOT_DEFAULT',
-        })}\r\n`,
-        `--${boundary}\r\nContent-Disposition: form-data; name="folderId"\r\n\r\n196279583602\r\n`,
-        `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${file_name}"\r\nContent-Type: application/pdf\r\n\r\n`,
-        fileContent,
-        `\r\n--${boundary}--\r\n`,
-      ];
 
-      const fileResponse = await axios.post(HUBSPOT_FILES_URL, Buffer.concat(formData.map((part) => (Buffer.isBuffer(part) ? part : Buffer.from(part)))), {
+      const parts = [
+        `--${boundary}`,
+        'Content-Disposition: form-data; name="options"',
+        '',
+        JSON.stringify({ access: 'PRIVATE', overwrite: false, category: 'HUBSPOT_DEFAULT' }),
+        `--${boundary}`,
+        'Content-Disposition: form-data; name="folderId"',
+        '',
+        '196279583602',
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="file"; filename="${file_name}"`,
+        'Content-Type: application/pdf',
+        '',
+        fileContent,
+        `--${boundary}--`,
+        ''
+      ].map(line => Buffer.from(line + '\r\n')).concat([Buffer.from('\r\n')]);
+
+      const body = Buffer.concat(parts.flat());
+
+      const fileResponse = await axios.post(HUBSPOT_FILES_URL, body, {
         headers: {
           Authorization: `Bearer ${HUBSPOT_API_KEY}`,
           'Content-Type': `multipart/form-data; boundary=${boundary}`,
         },
-        timeout: 30000,
+        timeout: 60000,
       });
-      console.log('File upload response:', fileResponse.status, fileResponse.data);
+
       fileId = fileResponse.data.id;
-      if (!fileId || fileResponse.status >= 400) {
-        throw new Error('Failed to upload PDF to HubSpot or retrieve file ID');
-      }
+      console.log('File uploaded to HubSpot:', fileId);
     } catch (error) {
-      console.error('File upload error:', error.message);
-      results.errors.push(`File upload error: ${error.message}`);
+      console.error('File upload failed:', error.response?.data || error.message);
+      results.errors.push(`File upload failed: ${error.message}`);
     }
   }
 
-  // Create HubSpot Note
+  // === 6. NOTE WITH ATTACHMENT ===
   if (fileId && contactId) {
     try {
       const engagementData = {
@@ -281,31 +248,26 @@ export const submitToVehicleConfigHubspot = async ({
           hs_note_body: `Vehicle Configuration PDF for ${first_name} ${last_name}`,
           hs_attachment_ids: fileId,
         },
-        associations: [
-          {
-            to: { id: contactId },
-            types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }],
-          },
-        ],
+        associations: [{
+          to: { id: contactId },
+          types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 202 }]
+        }],
       };
-      const engagementResponse = await axios.post(HUBSPOT_NOTES_URL, engagementData, {
+
+      await axios.post(HUBSPOT_NOTES_URL, engagementData, {
         headers: {
           Authorization: `Bearer ${HUBSPOT_API_KEY}`,
           'Content-Type': 'application/json',
         },
         timeout: 30000,
       });
-      console.log('Notes creation response:', engagementResponse.status, engagementResponse.data);
-      if (engagementResponse.status >= 400) {
-        results.errors.push('Notes creation failed');
-      }
+      console.log('Note created with PDF');
     } catch (error) {
-      console.error('Notes creation error:', error.message);
-      results.errors.push(`Notes creation error: ${error.message}`);
+      console.error('Note creation failed:', error.message);
+      results.errors.push(`Note error: ${error.message}`);
     }
   }
 
-  // Only mark as failed if no operations succeeded
-  results.success = results.errors.length === 0 || contactId != null;
+  results.success = results.errors.length === 0 || contactId !== null;
   return results;
 };
