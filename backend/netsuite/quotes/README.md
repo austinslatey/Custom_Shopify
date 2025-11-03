@@ -12,6 +12,9 @@ They are designed for **lead capture and quote generation** from e-commerce quot
 
 ---
 
+## Screenshots
+![Generated-Quote](../../../assets/NetSuite.jpg)
+
 ## How It Works (Step-by-Step)
 
 ### 1. **Customer Lookup or Creation**

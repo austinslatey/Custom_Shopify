@@ -6,6 +6,9 @@ This RESTlet is a NetSuite SuiteScript 2.1 script designed to handle POST reques
 
 The RESTlet exposes a single endpoint method: `post`, which invokes the `createReturnAuthorization` function.
 
+## Screenshots
+![Return-Authorization](../../../assets/returns/RA_Taxrate_ShopifySync.jpg)
+
 ## Purpose
 
 The primary purpose of this RESTlet is to automate the creation of return authorizations in NetSuite. It is typically used in scenarios such as:
