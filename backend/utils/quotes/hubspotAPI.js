@@ -78,6 +78,11 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
                 { name: 'vehicle_vin', value: sanitizedData.vin_number },
             ] : []),
             ...(sanitizedData.message ? [{ name: 'message', value: sanitizedData.message }] : []),
+
+            // === HARD-CODED PROPERTIES (always sent) ===
+            { name: 'leadstatus', value: 'NEW' },
+            { name: 'brands', value: 'Retail Customers' }, 
+            { name: 'hubspot_owner_id', value: '83013387' }, 
         ],
         context: {
             pageUri: req.headers.referer || process.env.REF_URL,
