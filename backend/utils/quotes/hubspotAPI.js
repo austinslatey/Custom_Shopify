@@ -81,8 +81,7 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
 
             // === HARD-CODED PROPERTIES (always sent) ===
             { name: 'hs_lead_status', value: 'NEW' },
-            { name: 'brands', value: 'Retail Customers' }, 
-            { name: 'hubspot_owner_id', value: '83013387' }, 
+            { name: 'brands', value: 'Retail Customers' },
         ],
         context: {
             pageUri: req.headers.referer || process.env.REF_URL,
@@ -92,10 +91,62 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
 
     try {
         await axios.post(hubspotUrl, hubspotData);
+
+        await assignOwnerIfNeeded(sanitizedData.email);
+
         return { success: true };
     } catch (hubspotError) {
         const errorMessage = `HubSpot submission error for ${isTopper ? 'topper' : 'general'} quote: ${hubspotError.response?.data || hubspotError.message}`;
         console.error(errorMessage);
         return { success: false, error: errorMessage };
+    }
+};
+
+// Helper: Assign owner to contact if none exists
+const assignOwnerIfNeeded = async (email) => {
+    if (!process.env.HUBSPOT_API_KEY) {
+        console.warn('No HUBSPOT_API_KEY — skipping owner assignment');
+        return;
+    }
+
+    const headers = {
+        'Authorization': `Bearer ${process.env.HUBSPOT_API_KEY}`,
+        'Content-Type': 'application/json'
+    };
+
+    // An employee
+    const DEFAULT_OWNER_ID = '83013387';
+
+    try {
+        // Search for contact by email
+        const searchResponse = await axios.get(
+            `https://api.hubapi.com/crm/v3/objects/contacts/search?limit=1&filterGroups=[{"filters":[{"propertyName":"email","operator":"EQ","value":"${email}"}]}]`,
+            { headers }
+        );
+
+        const contact = searchResponse.data.results[0];
+        if (!contact) {
+            console.warn(`No contact found for ${email} — owner not assigned`);
+            return;
+        }
+
+        // Check if owner already exists
+        const currentOwnerId = contact.properties.hubspot_owner_id;
+        if (currentOwnerId) {
+            console.log(`Contact ${contact.id} already has owner ${currentOwnerId} — skipping assignment`);
+            return;
+        }
+
+        // Assign owner (PATCH if exists)
+        const updateResponse = await axios.patch(
+            `https://api.hubapi.com/crm/v3/objects/contacts/${contact.id}`,
+            { properties: { hubspot_owner_id: DEFAULT_OWNER_ID } },
+            { headers }
+        );
+
+        console.log(`Assigned owner ${DEFAULT_OWNER_ID} to contact ${contact.id}:`, updateResponse.data);
+    } catch (apiError) {
+        console.error(`Owner assignment error for ${email}:`, apiError.response?.data || apiError.message);
+        // Don't fail the whole submission — just log
     }
 };
