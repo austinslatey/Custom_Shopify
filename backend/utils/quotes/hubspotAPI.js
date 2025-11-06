@@ -31,7 +31,7 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
         'QC': 'Quebec', 'SK': 'Saskatchewan'
     };
 
-    // Country code to full name mapping (if needed; test if codes work)
+    // Country code to full name mapping (Hubspot doesnt like state codes)
     const countryFullNameMap = {
         'US': 'United States',
         'CA': 'Canada'
