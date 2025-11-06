@@ -80,7 +80,7 @@ export const submitToHubSpot = async ({ first_name, last_name, email, phone, pro
             ...(sanitizedData.message ? [{ name: 'message', value: sanitizedData.message }] : []),
 
             // === HARD-CODED PROPERTIES (always sent) ===
-            { name: 'leadstatus', value: 'NEW' },
+            { name: 'hs_lead_status', value: 'NEW' },
             { name: 'brands', value: 'Retail Customers' }, 
             { name: 'hubspot_owner_id', value: '83013387' }, 
         ],
