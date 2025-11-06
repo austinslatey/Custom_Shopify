@@ -114,39 +114,52 @@ const assignOwnerIfNeeded = async (email) => {
         'Content-Type': 'application/json'
     };
 
-    // An employee
     const DEFAULT_OWNER_ID = '83013387';
 
     try {
-        // Search for contact by email
-        const searchResponse = await axios.get(
-            `https://api.hubapi.com/crm/v3/objects/contacts/search?limit=1&filterGroups=[{"filters":[{"propertyName":"email","operator":"EQ","value":"${email}"}]}]`,
+        // CORRECT: Use POST for /search
+        const searchResponse = await axios.post(
+            'https://api.hubapi.com/crm/v3/objects/contacts/search',
+            {
+                filterGroups: [
+                    {
+                        filters: [
+                            {
+                                propertyName: 'email',
+                                operator: 'EQ',
+                                value: email
+                            }
+                        ]
+                    }
+                ],
+                limit: 1
+            },
             { headers }
         );
 
-        const contact = searchResponse.data.results[0];
+        const contact = searchResponse.data.results?.[0];
         if (!contact) {
             console.warn(`No contact found for ${email} — owner not assigned`);
             return;
         }
 
-        // Check if owner already exists
         const currentOwnerId = contact.properties.hubspot_owner_id;
         if (currentOwnerId) {
-            console.log(`Contact ${contact.id} already has owner ${currentOwnerId} — skipping assignment`);
+            console.info(`Contact ${contact.id} already has owner ${currentOwnerId} — skipping`);
             return;
         }
 
-        // Assign owner (PATCH if exists)
-        const updateResponse = await axios.patch(
+        // Assign owner
+        await axios.patch(
             `https://api.hubapi.com/crm/v3/objects/contacts/${contact.id}`,
             { properties: { hubspot_owner_id: DEFAULT_OWNER_ID } },
             { headers }
         );
 
-        console.log(`Assigned owner ${DEFAULT_OWNER_ID} to contact ${contact.id}:`, updateResponse.data);
+        console.info(`Assigned owner ${DEFAULT_OWNER_ID} to contact ${contact.id} (${email})`);
     } catch (apiError) {
-        console.error(`Owner assignment error for ${email}:`, apiError.response?.data || apiError.message);
-        // Don't fail the whole submission — just log
+        console.error(`Owner assignment failed for ${email}:`,
+            apiError.response?.data || apiError.message
+        );
     }
 };
