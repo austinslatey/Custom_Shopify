@@ -117,7 +117,7 @@ const assignOwnerIfNeeded = async (email) => {
     const DEFAULT_OWNER_ID = '83013387';
 
     try {
-        // CORRECT: Use POST for /search
+        // Use POST for /search
         const searchResponse = await axios.post(
             'https://api.hubapi.com/crm/v3/objects/contacts/search',
             {
