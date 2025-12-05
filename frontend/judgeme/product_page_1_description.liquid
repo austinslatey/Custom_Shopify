@@ -1,0 +1,33 @@
+<!-- Start of Judge.me Review Widget code -->
+  <div style='clear:both'></div>
+  <div id='judgeme_product_reviews' class='jdgm-widget jdgm-review-widget' data-product-title='{{ product.title | escape }}' data-id='{{ product.id }}'>
+    {{ product.metafields.judgeme.widget }}
+  </div>
+<!-- End of Judge.me Review Widget code -->
+
+<!-- Start of Judge.me Star Rating Badge code --> 
+  <div class='jdgm-widget jdgm-preview-badge' data-id='{{ product.id }}'> 
+    {{ product.metafields.judgeme.badge }} 
+  </div> 
+<!-- End of Judge.me Star Rating Badge code -->
+
+<!-- Start of Judge.me Reviews Carousel code --> 
+  <div class='jdgm-carousel-wrapper'> 
+    {% assign jm_metafields = shop.metafields.judgeme %} 
+    <div class='jdgm-carousel-title-and-link'> 
+      <h2 class='jdgm-carousel-title'>Let customers speak for us</h2> 
+      <span class='jdgm-all-reviews-rating-wrapper' href='javascript:void(0)'> 
+        <span style='display:block' data-score='{{ jm_metafields.all_reviews_rating }}' class='jdgm-all-reviews-rating' aria-label='{{ jm_metafields.all_reviews_rating }} stars' tabindex='0' role='img'></span> 
+        <span style='display: block' class='jdgm-carousel-number-of-reviews' data-number-of-reviews='{{ jm_metafields.all_reviews_count }}'> 
+from {{ shop.metafields.judgeme.all_reviews_count }} reviews </span> 
+      </span> 
+    </div> 
+    {{ jm_metafields.featured_carousel }} 
+  </div> 
+<!-- End of Judge.me Reviews Carousel code -->
+
+<!-- Start of Judge.me UGC Media Grid code --> 
+  <div class='jdgm-widget jdgm-ugc-media-wrapper'> 
+    {{ shop.metafields.judgeme.ugc_media_grid }} 
+  </div> 
+<!-- End of Judge.me UGC Media Grid code -->
