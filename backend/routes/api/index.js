@@ -8,5 +8,6 @@ const router = Router();
 router.use('/quote', quote);
 router.use('/builder', builder);
 router.use('/returns', returns);
+router.use('/reviews', reviews);
 
 export default router;
