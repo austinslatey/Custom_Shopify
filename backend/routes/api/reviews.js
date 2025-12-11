@@ -1,6 +1,6 @@
 // routes/reviews.js
 import express from 'express';
-import { submitToHubSpot, sendGoogleReviewEmail } from '../utils/reviews/index.js';
+import { submitToHubSpot, sendGoogleReviewEmail } from '../../utils/reveiws/index.js';
 
 const router = express.Router();
 
