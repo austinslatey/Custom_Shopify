@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
             quality_of_service_you_received_,
             was_your_vehicle_completed_on_schedule_,
             would_you_recommend_us_to_family_or_friends_,
-            what_can_we_do_to_improve_our_service_,
+            what_can_we_do_to_improve_our_service,
             consent_marketing // optional
         } = req.body;
 
@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
             quality_of_service_you_received_,
             was_your_vehicle_completed_on_schedule_,
             would_you_recommend_us_to_family_or_friends_,
-            what_can_we_do_to_improve_our_service_,
+            what_can_we_do_to_improve_our_service,
             consent_marketing: !!consent_marketing, // checkbox → boolean
             calculated_review_score: averageScore.toFixed(2)
         });
