@@ -8,8 +8,8 @@ export const submitToHubSpot = async (fields) => {
             value: String(value || '')
         })),
         context: {
-            pageUri: 'https://www.waldoch.com/reviews/',
-            pageName: 'Waldoch Review Form'
+            pageUri: window.location.href,
+            pageName: 'Review Form'
         }
     };
 
