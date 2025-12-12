@@ -1,30 +1,33 @@
-// utils/reveiws/hubspotEntry.js — PUBLIC ENDPOINT (works with embed forms)
+// utils/reveiws/hubspotEntry.js — FINAL WORKING VERSION (matches your proven pattern)
+import axios from 'axios';
+
 export const submitToHubSpot = async (fields) => {
-    const url = 'https://api.hsforms.com/submissions/v3/integration/submit/2692861/06f00b7b-c0c5-47ee-a437-2457ac762716';
+    const HUBSPOT_FORM_URL = process.env.HUBSPOT_REVIEWS_FORM_URL ||
+        'https://api.hsforms.com/submissions/v3/integration/submit/2692861/06f00b7b-c0c5-47ee-a437-2457ac762716';
 
-    const data = {
-        fields: Object.entries(fields).map(([name, value]) => ({
-            name,
-            value: String(value || '')
-        })),
-        context: {
-            pageUri: window.location.href,
-            pageName: 'Review Form'
-        }
-    };
+    // Convert fields to URLSearchParams exactly like your working example
+    const formData = new URLSearchParams();
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+    Object.entries(fields).forEach(([key, value]) => {
+        formData.append(key, String(value || ''));
     });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HubSpot failed: ${response.status} – ${errorText}`);
-    }
+    // Add context (safe values — no window)
+    formData.append('pageUri', 'https://www.waldoch.com/reviews/');
+    formData.append('pageName', 'Waldoch Review Form');
 
-    return response.json();
+    try {
+        const response = await axios.post(HUBSPOT_FORM_URL, formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            timeout: 30000
+        });
+
+        console.log('HubSpot Review Form submitted:', response.status);
+        return response.data;
+    } catch (error) {
+        console.error('HubSpot submission failed:', error.response?.data || error.message);
+        throw new Error(`HubSpot failed: ${error.response?.status || 'Network error'}`);
+    }
 };
