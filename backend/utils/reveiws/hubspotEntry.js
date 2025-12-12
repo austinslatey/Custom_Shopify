@@ -1,44 +1,29 @@
-// utils/reviews/hubspotEntry.js
+// utils/reveiws/hubspotEntry.js — PUBLIC ENDPOINT (works with embed forms)
 export const submitToHubSpot = async (fields) => {
-    const url = process.env.HUBSPOT_REVIEWS_FORM_URL;
+    const url = 'https://api.hsforms.com/submissions/v3/integration/submit/2692861/06f00b7b-c0c5-47ee-a437-2457ac762716';
 
     const data = {
-        fields: Object.entries(fields).map(([key, value]) => ({
-            objectTypeId: "0-1", // contacts
-            name: key,
-            value: String(value || "")
+        fields: Object.entries(fields).map(([name, value]) => ({
+            name,
+            value: String(value || '')
         })),
         context: {
-            pageUri: "https://www.waldoch.com/reviews/",
-            pageName: "Reviews"
-        },
-        legalConsentOptions: {
-            consent: {
-                consentToProcess: true,
-                text: "I agree to allow Waldoch to store and process my personal data.",
-                communications: [
-                    {
-                        value: !!fields.consent_marketing,
-                        subscriptionTypeId: 999,
-                        text: "I agree to receive marketing communications from Waldoch."
-                    }
-                ]
-            }
+            pageUri: 'https://www.waldoch.com/reviews/',
+            pageName: 'Waldoch Review Form'
         }
     };
 
     const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${process.env.HUBSPOT_ACCESS_TOKEN}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     });
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HubSpot submission failed: ${response.status} – ${errorText}`);
+        throw new Error(`HubSpot failed: ${response.status} – ${errorText}`);
     }
 
     return response.json();
