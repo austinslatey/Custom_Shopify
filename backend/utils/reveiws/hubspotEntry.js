@@ -10,7 +10,7 @@ export const submitToHubSpot = async (fields) => {
         })),
         context: {
             pageUri: "https://www.waldoch.com/reviews/",
-            pageName: "Waldoch Review Form"
+            pageName: "Reviews"
         },
         legalConsentOptions: {
             consent: {
