@@ -16,7 +16,7 @@ export const submitToHubSpot = async (fields) => {
   try {
     const response = await axios.post(url, body, {
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       timeout: 30000
     });
