@@ -15,7 +15,7 @@ export const sendGoogleReviewEmail = async ({ firstName, email, score }) => {
         <p>Would you mind taking 30 seconds to share it on Google? It helps us reach more customers like you.</p>
         
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID_HERE"
+          <a href="https://g.page/r/CVER_F_AXnc-EAE/review"
              target="_blank"
              style="background:#4285f4;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
             Leave a Google Review
