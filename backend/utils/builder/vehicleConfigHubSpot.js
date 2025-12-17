@@ -199,33 +199,24 @@ export const submitToVehicleConfigHubspot = async ({
   let fileId = null;
   if (file_path && file_name && contactId) {
     try {
-      const boundary = uuidv4();
       const fileContent = await fs.readFile(file_path);
 
-      const parts = [
-        `--${boundary}`,
-        'Content-Disposition: form-data; name="options"',
-        '',
-        JSON.stringify({ access: 'PRIVATE', overwrite: false, category: 'HUBSPOT_DEFAULT' }),
-        `--${boundary}`,
-        'Content-Disposition: form-data; name="folderId"',
-        '',
-        '196279583602',
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="file"; filename="${file_name}"`,
-        'Content-Type: application/pdf',
-        '',
-        fileContent,
-        `--${boundary}--`,
-        ''
-      ].map(line => Buffer.from(line + '\r\n')).concat([Buffer.from('\r\n')]);
+      const formData = new FormData();
+      formData.append('file', fileContent, {
+        filename: file_name,
+        contentType: 'application/pdf',
+      });
+      formData.append('options', JSON.stringify({
+        access: 'PRIVATE',
+        overwrite: false,
+        category: 'HUBSPOT_DEFAULT'
+      }));
+      formData.append('folderId', '196279583602');
 
-      const body = Buffer.concat(parts.flat());
-
-      const fileResponse = await axios.post(HUBSPOT_FILES_URL, body, {
+      const fileResponse = await axios.post(HUBSPOT_FILES_URL, formData, {
         headers: {
           Authorization: `Bearer ${HUBSPOT_API_KEY}`,
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          ...formData.getHeaders?.() || {}, // Important for correct boundary
         },
         timeout: 60000,
       });
