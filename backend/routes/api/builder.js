@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import fs from 'fs/promises';
-import { validateVehicleConfigRequest, sanitizeVehicleConfigData, submitToVehicleConfigHubspot, sendVehicleConfigEmail} from "../../utils/builder/index.js"
+import { validateVehicleConfigRequest, sanitizeVehicleConfigData, submitToVehicleConfigHubspot, sendVehicleConfigEmail } from "../../utils/builder/index.js"
 import { netsuiteRequest, nsCountry, nsState } from '../../utils/netsuite.js';
 import { vehicleConfigUpload } from '../../middleware/multer.js';
 
