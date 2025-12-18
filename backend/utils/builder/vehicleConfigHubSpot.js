@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs/promises';
+import FormData from 'form-data';
 
 export const submitToVehicleConfigHubspot = async ({
   first_name,
