@@ -205,6 +205,7 @@ export const submitToVehicleConfigHubspot = async ({
       formData.append('file', fileContent, {
         filename: file_name,
         contentType: 'application/pdf',
+        knownLength: fileContent.length  // ← THIS IS KEY
       });
       formData.append('options', JSON.stringify({
         access: 'PRIVATE',
