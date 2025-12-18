@@ -53,15 +53,12 @@ router.post('/', vehicleConfigUpload, async (req, res) => {
                 file_name: req.file?.originalname,
                 req,
             });
-            if (!hubspotResult.success) {
-                console.error('HubSpot errors:', hubspotResult.errors);
-            }
         } catch (hubspotError) {
             console.error('HubSpot submission error:', hubspotError.message);
             hubspotResult.errors.push(`HubSpot submission error: ${hubspotError.message}`);
         }
 
-        // Send email
+        // Send email (still has access to file)
         let emailResult = { success: false };
         try {
             emailResult = await sendVehicleConfigEmail({
@@ -77,7 +74,7 @@ router.post('/', vehicleConfigUpload, async (req, res) => {
             emailResult = { success: false, error: emailError.message };
         }
 
-        // Submit to NetSuite
+        // Submit to NetSuite (uses in-memory base64, doesn't need file)
         let netsuiteResult = { success: false };
         try {
             const payload = {
@@ -88,17 +85,21 @@ router.post('/', vehicleConfigUpload, async (req, res) => {
                 file: fileData,
                 isBuilder: true,
             };
-            console.log('NetSuite Request Payload:', payload); // Log once
+            console.log('NetSuite Request Payload:', payload);
             netsuiteResult = await netsuiteRequest(payload);
             console.log('NetSuite Response:', netsuiteResult);
         } catch (netsuiteError) {
             console.error('NetSuite submission error:', netsuiteError.message);
         }
 
-        // Clean up file
+        // NOW safe to delete the temp file
         if (destination) {
-            await fs.unlink(destination).catch((err) => console.error('Cleanup error:', err.message));
-            console.log('Cleaned up file:', destination);
+            try {
+                await fs.unlink(destination);
+                console.log('Temporary PDF deleted:', destination);
+            } catch (err) {
+                console.error('Cleanup error:', err.message);
+            }
         }
 
         // Return response
