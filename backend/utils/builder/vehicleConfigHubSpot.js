@@ -202,31 +202,51 @@ export const submitToVehicleConfigHubspot = async ({
       const fileContent = await fs.readFile(file_path);
 
       const formData = new FormData();
+
       formData.append('file', fileContent, {
         filename: file_name,
         contentType: 'application/pdf',
-        knownLength: fileContent.length  // ← THIS IS KEY
+        knownLength: fileContent.length
       });
+
       formData.append('options', JSON.stringify({
         access: 'PRIVATE',
         overwrite: false,
         category: 'HUBSPOT_DEFAULT'
       }));
+
       formData.append('folderId', '196279583602');
 
       const fileResponse = await axios.post(HUBSPOT_FILES_URL, formData, {
         headers: {
           Authorization: `Bearer ${HUBSPOT_API_KEY}`,
-          ...formData.getHeaders?.() || {}, // Important for correct boundary
+          ...formData.getHeaders(),
         },
         timeout: 60000,
       });
 
       fileId = fileResponse.data.id;
       console.log('File uploaded to HubSpot:', fileId);
+
+      // === DELETE TEMP FILE AFTER SUCCESSFUL UPLOAD ===
+      try {
+        await fs.unlink(file_path);
+        console.log('Temporary PDF deleted:', file_path);
+      } catch (unlinkError) {
+        console.warn('Failed to delete temporary PDF (non-critical):', unlinkError.message);
+      }
+
     } catch (error) {
       console.error('File upload failed:', error.response?.data || error.message);
-      results.errors.push(`File upload failed: ${error.message}`);
+      results.errors.push(`File upload failed: ${error.response?.data?.message || error.message}`);
+
+      // Optional: Still try to clean up on failure (safe to attempt)
+      try {
+        await fs.unlink(file_path);
+        console.log('Temporary PDF deleted after failed upload:', file_path);
+      } catch (unlinkError) {
+        console.warn('Could not delete temp file after failed upload:', unlinkError.message);
+      }
     }
   }
 
