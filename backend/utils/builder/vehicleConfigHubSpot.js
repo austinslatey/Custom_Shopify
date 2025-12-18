@@ -229,25 +229,10 @@ export const submitToVehicleConfigHubspot = async ({
       fileId = fileResponse.data.id;
       console.log('File uploaded to HubSpot:', fileId);
 
-      // === DELETE TEMP FILE AFTER SUCCESSFUL UPLOAD ===
-      try {
-        await fs.unlink(file_path);
-        console.log('Temporary PDF deleted:', file_path);
-      } catch (unlinkError) {
-        console.warn('Failed to delete temporary PDF (non-critical):', unlinkError.message);
-      }
-
     } catch (error) {
       console.error('File upload failed:', error.response?.data || error.message);
       results.errors.push(`File upload failed: ${error.response?.data?.message || error.message}`);
 
-      // Optional: Still try to clean up on failure (safe to attempt)
-      try {
-        await fs.unlink(file_path);
-        console.log('Temporary PDF deleted after failed upload:', file_path);
-      } catch (unlinkError) {
-        console.warn('Could not delete temp file after failed upload:', unlinkError.message);
-      }
     }
   }
 
