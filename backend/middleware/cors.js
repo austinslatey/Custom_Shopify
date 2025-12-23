@@ -5,6 +5,8 @@ const allowedOrigins = [
   process.env.SHOPIFY_SHOP,
   process.env.SHOPIFY_SHOP_ADMIN,
   process.env.WORDPRESS_SITE,
+  process.env.WORDPRESS_SITE_VARIANT,
+  
 ].filter(Boolean); // Remove undefined/null values
 
 
