@@ -4,8 +4,16 @@ import sgMail from '@sendgrid/mail';
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export const sendGoogleReviewEmail = async ({ firstName, email }) => {
+  // Optional: skip sending if oversight email isn't set
+  const oversightEmail = process.env.OVERSIGHT_EMAIL;
+
   const msg = {
     to: email,
+    // Add CC field — SendGrid accepts string, array of strings, or array of objects
+    cc: oversightEmail ? oversightEmail : undefined,   // becomes omitted if undefined
+    // cc: oversightEmail ? [oversightEmail] : undefined,  // alternative (array style)
+    // cc: oversightEmail || undefined,
+
     from: process.env.EMAIL_FROM || 'reviews@waldoch.com',
     subject: `We'd love your review on Google, ${firstName}!`,
     html: `
@@ -35,6 +43,12 @@ export const sendGoogleReviewEmail = async ({ firstName, email }) => {
       </div>
     `,
   };
+
+  // Optional safety: only send if we have a valid recipient
+  if (!msg.to) {
+    console.warn('No recipient email provided — skipping send');
+    return;
+  }
 
   await sgMail.send(msg);
 };
