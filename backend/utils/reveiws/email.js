@@ -15,33 +15,56 @@ export const sendGoogleReviewEmail = async ({ firstName, email }) => {
     // cc: oversightEmail || undefined,
 
     from: process.env.EMAIL_FROM || 'reviews@waldoch.com',
-    subject: `We'd love your review on Google, ${firstName}!`,
+    subject: `Finish Your Google Review, ${firstName}!`,
+
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
-        <h2 style="color: #00a651;">Thank you for your review, ${firstName}!</h2>
-        <p>We’re so glad you had a great experience with Waldoch.</p>
-        <p>Would you mind taking 30 seconds to share it on Google? It helps us reach more customers like you.</p>
+  <div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background: #f4f4f4;">
+    <!-- Outer wrapper for centering -->
+    <div style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; margin: 20px;">
+      
+      <!-- Header -->
+      <div style="background: #00a651; color: #ffffff; text-align: center; padding: 30px 20px;">
+        <h1 style="margin: 0; font-size: 28px;">${firstName}, You're Almost Done!</h1>
+      </div>
+      
+      <!-- Body -->
+      <div style="padding: 30px 25px; font-size: 16px; line-height: 1.5; color: #333333;">
+        <p style="margin: 0 0 20px;">Hi ${firstName},</p>
         
-        <div style="text-align: center; margin: 30px 0;">
+        <p style="margin: 0 0 20px;">Please click the link below to finish submitting your review!</p>
+        
+        <!-- Bigger CTA Button -->
+        <div style="text-align: center; margin: 0 auto 30px;">
           <a href="https://g.page/r/CVER_F_AXnc-EAE/review"
              target="_blank"
-             style="background:#4285f4;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
-            Leave a Google Review
+             style="display: inline-block; background: #4285f4; color: #ffffff; padding: 20px 60px; font-size: 22px; font-weight: bold; text-decoration: none; border-radius: 10px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); min-width: 240px;">
+            Finish Your Review
           </a>
         </div>
-
-        <p style="color:#666; font-size:14px;">
-          Thank you for helping us grow!<br>
+        
+        <p style="margin: 0 0 20px; text-align: center; font-size: 15px; color: #555555;">
+          Your review could help someone find their dream custom ride — just like we built yours!
+        </p>
+        
+        <p style="margin: 0; text-align: center; font-size: 14px; color: #666666;">
+          Thanks so much from our family to yours.<br>
           — The Waldoch Team
         </p>
-
-        <hr style="margin:30px 0; border:none; border-top:1px solid #eee;">
-        <p style="text-align:center;">
-          <img src="https://www.waldoch.com/wp-content/uploads/2021/02/logo-wo-w-50th-314-86-1.png" 
-               alt="Waldoch" style="max-width:180px;">
+      </div>
+      
+      <!-- Footer -->
+      <div style="padding: 20px; text-align: center; border-top: 1px solid #e0e0e0; background: #ffffff;">
+        <img src="https://www.waldoch.com/wp-content/uploads/2021/02/logo-wo-w-50th-314-86-1.png"
+             alt="Waldoch" style="max-width: 180px; height: auto; display: block; margin: 0 auto;">
+        <p style="margin: 15px 0 0; font-size: 12px; color: #999999;">
+          13821 Lake Drive NE, Forest Lake, MN 55025<br>
+          1-800-328-9259
         </p>
       </div>
-    `,
+      
+    </div>
+  </div>
+`,
   };
 
   // Optional safety: only send if we have a valid recipient
