@@ -71,7 +71,10 @@ export const sendVehicleConfigEmail = async ({
   let emailData = {
     to: email,
     from: process.env.EMAIL_FROM,
-    cc: process.env.OVERSIGHT_EMAIL ? process.env.CC_BUILDER : undefined,
+    cc: [
+      process.env.OVERSIGHT_EMAIL,
+      process.env.CC_BUILDER
+    ].filter(Boolean),
     subject: 'New Vehicle Configuration Submitted',
     html: emailHtml,
   };
